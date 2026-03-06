@@ -82,6 +82,32 @@
         </div>
       </template>
 
+      <template #item.imagenes="{ item }">
+        <div v-if="item.imagenes && item.imagenes.trim()" class="py-2">
+          <div class="d-flex gap-2">
+            <v-img
+              v-for="(img, idx) in getImagenesArray(item.imagenes).slice(0, 2)"
+              :key="idx"
+              :src="img"
+              width="50"
+              height="50"
+              class="cursor-pointer rounded"
+              @click="openImageGallery(item)"
+            />
+            <v-chip
+              v-if="getImagenesArray(item.imagenes).length > 2"
+              size="small"
+              variant="tonal"
+              class="cursor-pointer"
+              @click="openImageGallery(item)"
+            >
+              +{{ getImagenesArray(item.imagenes).length - 2 }}
+            </v-chip>
+          </div>
+        </div>
+        <span v-else class="text-caption text-medium-emphasis">Sin imágenes</span>
+      </template>
+
       <template #item.tipoHabitacion="{ item }">
         <div v-if="item.tipoHabitacion" class="py-2">
           <div class="text-body-2 font-weight-medium">
@@ -212,6 +238,40 @@
                   label="Estado"
                 />
               </v-col>
+              <v-col cols="12">
+                <v-text-field
+                  v-model="formData.imagenes"
+                  label="URLs de imágenes"
+                  hint="Ingresa las URLs separadas por comas"
+                  placeholder="https://url1.jpg,https://url2.jpg"
+                  persistent-hint
+                  rows="3"
+                  auto-grow
+                  type="textarea"
+                />
+                <div v-if="getImagenesArray(formData.imagenes).length > 0" class="mt-3">
+                  <div class="text-caption font-weight-medium mb-2">Vista previa:</div>
+                  <div class="d-flex gap-2 flex-wrap">
+                    <div v-for="(img, idx) in getImagenesArray(formData.imagenes)" :key="idx" class="position-relative">
+                      <v-img
+                        :src="img"
+                        width="80"
+                        height="80"
+                        class="rounded"
+                      />
+                      <v-btn
+                        icon="mdi-close"
+                        size="x-small"
+                        variant="flat"
+                        color="error"
+                        class="position-absolute"
+                        style="top: -8px; right: -8px;"
+                        @click="removeImage(idx)"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </v-col>
             </v-row>
           </v-form>
         </v-card-text>
@@ -250,6 +310,34 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Dialog para galería de imágenes -->
+    <v-dialog v-model="galleryDialog" max-width="800">
+      <v-card>
+        <v-card-title>{{ galleryTitle }}</v-card-title>
+        <v-card-text>
+          <v-carousel
+            v-if="galleryImages.length > 0"
+            height="500"
+            hide-delimiters
+            show-arrows="always"
+            class="rounded"
+          >
+            <v-carousel-item v-for="(img, idx) in galleryImages" :key="idx">
+              <v-img :src="img" height="100%" cover />
+            </v-carousel-item>
+          </v-carousel>
+          <div v-else class="text-center py-16">
+            <v-icon size="48" class="mb-4">mdi-image-off</v-icon>
+            <p class="text-medium-emphasis">No hay imágenes disponibles</p>
+          </div>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn @click="galleryDialog = false">Cerrar</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-card>
 </template>
 
@@ -270,6 +358,9 @@ const filterNumero = ref('')
 
 const dialog = ref(false)
 const deleteDialog = ref(false)
+const galleryDialog = ref(false)
+const galleryImages = ref<string[]>([])
+const galleryTitle = ref('')
 const valid = ref(false)
 const editingItem = ref<Habitacion | null>(null)
 const itemToDelete = ref<Habitacion | null>(null)
@@ -279,12 +370,14 @@ const formData = ref<CreateHabitacionDto>({
   numeroHabitacion: '',
   piso: '',
   estado: 'disponible',
-  idTipoHabitacion: 0
+  idTipoHabitacion: 0,
+  imagenes: ''
 })
 
 const headers = [
   { title: 'Habitación', key: 'numeroHabitacion', sortable: true },
   { title: 'Tipo', key: 'tipoHabitacion', sortable: false },
+  { title: 'Imágenes', key: 'imagenes', sortable: false },
   { title: 'Amenidades', key: 'amenidades', sortable: false },
   { title: 'Estado', key: 'estado', sortable: true },
   { title: 'Acciones', key: 'actions', sortable: false, align: 'end' as const }
@@ -359,7 +452,8 @@ const openCreateDialog = () => {
     numeroHabitacion: '',
     piso: '',
     estado: 'disponible',
-    idTipoHabitacion: 0
+    idTipoHabitacion: 0,
+    imagenes: ''
   }
   dialog.value = true
 }
@@ -371,7 +465,8 @@ const openEditDialog = (item: Habitacion) => {
     numeroHabitacion: item.numeroHabitacion,
     piso: item.piso || '',
     estado: item.estado || 'disponible',
-    idTipoHabitacion: item.idTipoHabitacion
+    idTipoHabitacion: item.idTipoHabitacion,
+    imagenes: item.imagenes || ''
   }
   dialog.value = true
 }
@@ -379,6 +474,23 @@ const openEditDialog = (item: Habitacion) => {
 const openDeleteDialog = (item: Habitacion) => {
   itemToDelete.value = item
   deleteDialog.value = true
+}
+
+const getImagenesArray = (imagenes?: string): string[] => {
+  if (!imagenes || !imagenes.trim()) return []
+  return imagenes.split(',').map(img => img.trim()).filter(img => img)
+}
+
+const openImageGallery = (item: Habitacion) => {
+  galleryImages.value = getImagenesArray(item.imagenes)
+  galleryTitle.value = `Habitación ${item.numeroHabitacion}`
+  galleryDialog.value = true
+}
+
+const removeImage = (idx: number) => {
+  const images = getImagenesArray(formData.value.imagenes)
+  images.splice(idx, 1)
+  formData.value.imagenes = images.join(',')
 }
 
 const saveHabitacion = async () => {

@@ -22,5 +22,5 @@ export const ROLE_ICONS: Record<UserRole, string> = {
 export const ROLE_DEFAULT_ROUTE: Record<UserRole, string> = {
   [UserRole.ADMIN]: '/dashboard/admin/users',
   [UserRole.RECEPCIONISTA]: '/dashboard/recepcionista',
-  [UserRole.CLIENTE]: '/dashboard/cliente',
+  [UserRole.CLIENTE]: '/reservas/nueva',
 }

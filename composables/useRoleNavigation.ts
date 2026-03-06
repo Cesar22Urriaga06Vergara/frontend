@@ -31,9 +31,12 @@ const ROUTE_META: Record<string, { title: string; parent?: string }> = {
   '/dashboard/admin/amenidades': { title: 'Amenidades', parent: '/dashboard' },
   '/dashboard/admin/tipos-habitacion': { title: 'Tipos de Habitación', parent: '/dashboard' },
   '/dashboard/admin/habitaciones': { title: 'Habitaciones', parent: '/dashboard' },
+  '/dashboard/cliente': { title: 'Dashboard', parent: '/dashboard' },
   '/dashboard/player': { title: 'Dashboard', parent: '/dashboard' },
   '/dashboard/player/clues': { title: 'Mis Pistas', parent: '/dashboard/player' },
   '/dashboard/sponsor': { title: 'Dashboard', parent: '/dashboard' },
+  '/reservas/nueva': { title: 'Nueva Reserva' },
+  '/reservas/confirmacion': { title: 'Confirmación de Reserva', parent: '/reservas/nueva' },
 }
 
 export const useRoleNavigation = () => {
@@ -95,7 +98,7 @@ export const useRoleNavigation = () => {
           accountSection,
         ]
 
-      case UserRole.MODERATOR:
+      case UserRole.RECEPCIONISTA:
         return [
           {
             title: 'Principal',
@@ -112,24 +115,13 @@ export const useRoleNavigation = () => {
           accountSection,
         ]
 
-      case UserRole.PLAYER:
+      case UserRole.CLIENTE:
         return [
           {
-            title: 'Juego',
+            title: 'Reservas',
             items: [
-              { title: 'Mi Panel', icon: 'mdi-gamepad-variant-outline', to: '/dashboard/player' },
-              { title: 'Mis Pistas', icon: 'mdi-magnify', to: '/dashboard/player/clues' },
-            ],
-          },
-          accountSection,
-        ]
-
-      case UserRole.SPONSOR:
-        return [
-          {
-            title: 'Sponsor',
-            items: [
-              { title: 'Mi Panel', icon: 'mdi-handshake-outline', to: '/dashboard/sponsor' },
+              { title: 'Nueva Reserva', icon: 'mdi-calendar-plus', to: '/reservas/nueva' },
+              { title: 'Mis Reservas', icon: 'mdi-calendar-check', to: '/reservas/mis-reservas' },
             ],
           },
           accountSection,
@@ -154,7 +146,7 @@ export const useRoleNavigation = () => {
     let currentPath: string | undefined = path
 
     while (currentPath) {
-      const meta = ROUTE_META[currentPath] || matchDynamicRoute(currentPath)
+      const meta: { title: string; parent?: string } | null = ROUTE_META[currentPath] || matchDynamicRoute(currentPath)
       if (meta) {
         crumbs.unshift({
           title: meta.title,
