@@ -163,6 +163,15 @@
 
       <template #item.actions="{ item }">
         <v-btn
+          icon="mdi-image-plus"
+          variant="text"
+          size="small"
+          @click="openUploadImagesDialog(item)"
+        >
+          <v-icon>mdi-image-plus</v-icon>
+          <v-tooltip activator="parent" location="bottom">Subir imágenes</v-tooltip>
+        </v-btn>
+        <v-btn
           icon="mdi-pencil"
           variant="text"
           size="small"
@@ -338,6 +347,81 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Dialog para subir imágenes -->
+    <v-dialog v-model="uploadDialog" max-width="600" persistent>
+      <v-card>
+        <v-card-title>
+          Subir Imágenes - Habitación {{ uploadingHabitacion?.numeroHabitacion }}
+        </v-card-title>
+        <v-card-text class="pt-6">
+          <v-file-input
+            v-model="uploadFiles"
+            multiple
+            accept="image/*"
+            show-size
+            counter
+            label="Seleccionar imágenes"
+            prepend-icon="mdi-camera"
+            hint="Máximo 5 imágenes. Formatos: JPG, PNG, WebP, GIF"
+            persistent-hint
+            @update:model-value="onFilesSelected"
+          />
+          
+          <!-- Vista previa de imágenes seleccionadas -->
+          <div v-if="uploadFilesPreviews.length > 0" class="mt-6">
+            <div class="text-subtitle-2 font-weight-medium mb-3">Vista previa:</div>
+            <div class="d-flex gap-3 flex-wrap">
+              <div v-for="(preview, idx) in uploadFilesPreviews" :key="idx" class="position-relative">
+                <v-img
+                  :src="preview"
+                  width="100"
+                  height="100"
+                  class="rounded border"
+                />
+                <v-btn
+                  icon="mdi-close"
+                  size="x-small"
+                  variant="flat"
+                  color="error"
+                  class="position-absolute"
+                  style="top: -8px; right: -8px;"
+                  @click="removeUploadFile(idx)"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Imágenes existentes -->
+          <div v-if="uploadingHabitacion?.imagenes && getImagenesArray(uploadingHabitacion.imagenes).length > 0" class="mt-6">
+            <div class="text-subtitle-2 font-weight-medium mb-3">Imágenes actuales:</div>
+            <div class="d-flex gap-2 flex-wrap">
+              <div v-for="(img, idx) in getImagenesArray(uploadingHabitacion.imagenes)" :key="idx" class="position-relative">
+                <v-img
+                  :src="img"
+                  width="100"
+                  height="100"
+                  class="rounded border"
+                />
+              </div>
+            </div>
+          </div>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn @click="cancelUpload" :disabled="uploading">Cancelar</v-btn>
+          <v-btn
+            color="primary"
+            :loading="uploading"
+            :disabled="uploadFiles.length === 0"
+            @click="uploadImages"
+          >
+            <v-icon start>mdi-cloud-upload</v-icon>
+            Subir
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-card>
 </template>
 
@@ -359,11 +443,16 @@ const filterNumero = ref('')
 const dialog = ref(false)
 const deleteDialog = ref(false)
 const galleryDialog = ref(false)
+const uploadDialog = ref(false)
 const galleryImages = ref<string[]>([])
 const galleryTitle = ref('')
 const valid = ref(false)
 const editingItem = ref<Habitacion | null>(null)
 const itemToDelete = ref<Habitacion | null>(null)
+const uploadingHabitacion = ref<Habitacion | null>(null)
+const uploadFiles = ref<File[]>([])
+const uploadFilesPreviews = ref<string[]>([])
+const uploading = ref(false)
 
 const formData = ref<CreateHabitacionDto>({
   idHotel: 1,
@@ -533,6 +622,66 @@ const deleteHabitacion = async () => {
   } finally {
     deleting.value = false
   }
+}
+
+const openUploadImagesDialog = (item: Habitacion) => {
+  uploadingHabitacion.value = item
+  uploadFiles.value = []
+  uploadFilesPreviews.value = []
+  uploadDialog.value = true
+}
+
+const onFilesSelected = async () => {
+  uploadFilesPreviews.value = []
+  for (const file of uploadFiles.value) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      if (e.target?.result) {
+        uploadFilesPreviews.value.push(e.target.result as string)
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+const removeUploadFile = (idx: number) => {
+  uploadFiles.value.splice(idx, 1)
+  uploadFilesPreviews.value.splice(idx, 1)
+}
+
+const uploadImages = async () => {
+  if (!uploadingHabitacion.value || uploadFiles.value.length === 0) return
+  
+  try {
+    uploading.value = true
+    
+    // Crear FormData para multipart
+    const formData = new FormData()
+    uploadFiles.value.forEach(file => {
+      formData.append('imagenes', file)
+    })
+    
+    // Llamar al endpoint de upload
+    await api.patch<Habitacion>(
+      `/habitaciones/${uploadingHabitacion.value.id}/imagenes`,
+      formData
+    )
+    
+    success(`${uploadFiles.value.length} imagen(es) subida(s) correctamente`)
+    uploadDialog.value = false
+    await loadHabitaciones()
+  } catch (err: any) {
+    error(err?.message || 'Error al subir imágenes')
+  } finally {
+    uploading.value = false
+  }
+}
+
+const cancelUpload = () => {
+  uploadDialog.value = false
+  uploadFiles.value = []
+  uploadFilesPreviews.value = []
+  uploadingHabitacion.value = null
 }
 
 onMounted(() => {

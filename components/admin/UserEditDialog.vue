@@ -140,10 +140,10 @@ const form = reactive({
 })
 
 const roleOptions = [
+  { title: 'Superadmin', value: 'superadmin' },
   { title: 'Administrador', value: 'admin' },
-  { title: 'Moderador', value: 'moderator' },
-  { title: 'Jugador', value: 'player' },
-  { title: 'Sponsor', value: 'sponsor' },
+  { title: 'Recepcionista', value: 'recepcionista' },
+  { title: 'Cliente', value: 'cliente' },
 ]
 
 // Sincronizar form cuando cambia el usuario
@@ -151,7 +151,7 @@ watch(
   () => props.user,
   (u) => {
     if (u) {
-      form.name = u.name
+      form.name = u.name || ''
       form.role = u.role
     }
   },
@@ -178,8 +178,8 @@ const handleSave = async () => {
     const { useNotification } = await import('~/composables/useNotification')
     const notification = useNotification()
 
-    const updatedUser = await usersStore.updateUser(props.user._id, {
-      name: form.name,
+    const updatedUser = await usersStore.updateUser(props.user._id || props.user.id, {
+      fullName: form.name,
       role: form.role as UserRole,
     })
 

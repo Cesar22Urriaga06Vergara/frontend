@@ -1,0 +1,405 @@
+<template>
+  <div>
+    <!-- Header -->
+    <div class="d-flex align-center justify-space-between mb-6 flex-wrap ga-2">
+      <div>
+        <h1 class="text-h5 font-weight-bold mb-1">Gestión de Reservas</h1>
+        <p class="text-body-2 text-medium-emphasis">
+          {{ reservasStore.totalCount }} reservas registradas en el hotel
+        </p>
+      </div>
+      <v-btn
+        @click="loadReservas"
+        :loading="reservasStore.loading"
+        color="primary"
+        prepend-icon="mdi-refresh"
+      >
+        Actualizar
+      </v-btn>
+    </div>
+
+    <!-- Búsqueda por cédula -->
+    <v-card class="card-glow mb-6 pa-6">
+      <div class="text-subtitle-2 font-weight-bold mb-4">Buscar por Cédula del Cliente</div>
+      <v-row>
+        <v-col cols="12" sm="8">
+          <v-text-field
+            v-model="cedulaBusqueda"
+            label="Ingrese la cédula del cliente"
+            placeholder="Ej: 1234567890"
+            prepend-inner-icon="mdi-card-account-details-outline"
+            clearable
+            @keyup.enter="buscarPorCedula"
+          />
+        </v-col>
+        <v-col cols="12" sm="4" class="d-flex align-end">
+          <v-btn
+            @click="buscarPorCedula"
+            :loading="reservasStore.loading"
+            color="primary"
+            block
+            prepend-icon="mdi-magnify"
+          >
+            Buscar
+          </v-btn>
+        </v-col>
+      </v-row>
+    </v-card>
+
+    <!-- Tabla de reservas -->
+    <RecepcionistaReservasTable
+      @confirm-checkin="openConfirmCheckinDialog"
+      @confirm-checkout="openConfirmCheckoutDialog"
+      @cancel="openCancelDialog"
+      @refresh="loadReservas"
+      @filter-changed="onFilterChanged"
+    />
+
+    <!-- Diálogo de confirmación: check-in -->
+    <v-dialog
+      v-model="confirmCheckinDialog"
+      max-width="500"
+    >
+      <v-card rounded="xl">
+        <v-card-text class="pa-6">
+          <div class="text-center mb-4">
+            <v-avatar
+              color="success"
+              size="56"
+              variant="tonal"
+              class="mb-4"
+            >
+              <v-icon icon="mdi-door-open-outline" size="28" />
+            </v-avatar>
+            <h3 class="text-h6 font-weight-bold mb-2">Confirmar Check-in</h3>
+            <p class="text-body-2 text-medium-emphasis">
+              Ingrese la cédula del cliente para confirmar la entrada
+            </p>
+          </div>
+
+          <!-- Detalles de la reserva -->
+          <v-alert
+            v-if="selectedReserva"
+            type="info"
+            variant="tonal"
+            class="mb-4"
+          >
+            <template #title>Reserva {{ selectedReserva.codigoConfirmacion }}</template>
+            <p class="text-caption mb-1">
+              Habitación: {{ selectedReserva.habitacion?.numeroHabitacion || 'Por asignar' }}
+            </p>
+            <p class="text-caption">
+              Cliente: {{ selectedReserva.nombreCliente }}
+            </p>
+          </v-alert>
+
+          <!-- Cédula del cliente -->
+          <v-text-field
+            v-model="cedulaConfirm"
+            label="Cédula del cliente"
+            placeholder="Ej: 1003001750"
+            prepend-inner-icon="mdi-card-account-details-outline"
+            outlined
+            dense
+            :disabled="checkinLoading"
+            @keyup.enter="handleConfirmCheckin"
+          />
+
+          <p class="text-caption text-medium-emphasis text-center mt-3">
+            Verifica que la cédula coincida con el documento de identidad del cliente
+          </p>
+        </v-card-text>
+
+        <v-card-actions class="px-6 pb-5">
+          <v-btn
+            variant="text"
+            @click="confirmCheckinDialog = false"
+            :disabled="checkinLoading"
+          >
+            Cancelar
+          </v-btn>
+          <v-spacer />
+          <v-btn
+            color="success"
+            :loading="checkinLoading"
+            @click="handleConfirmCheckin"
+            :disabled="!cedulaConfirm.trim()"
+          >
+            Confirmar Entrada
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Diálogo de confirmación: check-out -->
+    <v-dialog
+      v-model="confirmCheckoutDialog"
+      max-width="500"
+    >
+      <v-card rounded="xl">
+        <v-card-text class="pa-6">
+          <div class="text-center mb-4">
+            <v-avatar
+              color="info"
+              size="56"
+              variant="tonal"
+              class="mb-4"
+            >
+              <v-icon icon="mdi-door-closed-outline" size="28" />
+            </v-avatar>
+            <h3 class="text-h6 font-weight-bold mb-2">Confirmar Check-out</h3>
+            <p class="text-body-2 text-medium-emphasis">
+              ¿El cliente desocupará la habitación ahora?
+            </p>
+          </div>
+
+          <!-- Detalles de la reserva -->
+          <v-alert
+            v-if="selectedReserva"
+            type="info"
+            variant="tonal"
+            class="mb-4"
+          >
+            <template #title>Reserva {{ selectedReserva.codigoConfirmacion }}</template>
+            <p class="text-caption mb-1">
+              Habitación: {{ selectedReserva.habitacion?.numeroHabitacion || 'Por asignar' }}
+            </p>
+            <p class="text-caption">
+              Cliente: {{ selectedReserva.nombreCliente }}
+            </p>
+          </v-alert>
+        </v-card-text>
+
+        <v-card-actions class="px-6 pb-5">
+          <v-btn
+            variant="text"
+            @click="confirmCheckoutDialog = false"
+            :disabled="checkoutLoading"
+          >
+            Cancelar
+          </v-btn>
+          <v-spacer />
+          <v-btn
+            color="info"
+            :loading="checkoutLoading"
+            @click="handleConfirmCheckout"
+          >
+            Confirmar Salida
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Diálogo de cancelación -->
+    <v-dialog
+      v-model="cancelDialog"
+      max-width="500"
+    >
+      <v-card rounded="xl">
+        <v-card-text class="pa-6">
+          <div class="text-center mb-4">
+            <v-avatar
+              color="error"
+              size="56"
+              variant="tonal"
+              class="mb-4"
+            >
+              <v-icon icon="mdi-alert-circle-outline" size="28" />
+            </v-avatar>
+            <h3 class="text-h6 font-weight-bold mb-2">Cancelar Reserva</h3>
+            <p class="text-body-2 text-medium-emphasis">
+              ¿Está seguro de que desea cancelar la reserva {{ selectedReserva?.codigoConfirmacion }}?
+            </p>
+          </div>
+
+          <!-- Motivo de cancelación -->
+          <v-text-field
+            v-model="cancelReason"
+            label="Motivo de cancelación (opcional)"
+            placeholder="Ej: Cancelación por solicitud del cliente"
+            outlined
+            dense
+            class="mb-4"
+          />
+        </v-card-text>
+
+        <v-card-actions class="px-6 pb-5">
+          <v-btn
+            variant="text"
+            @click="cancelDialog = false"
+            :disabled="cancelLoading"
+          >
+            No, mantener
+          </v-btn>
+          <v-spacer />
+          <v-btn
+            color="error"
+            :loading="cancelLoading"
+            @click="handleCancelReserva"
+          >
+            Sí, cancelar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useReservasStore } from '~/stores/reservas'
+import { useNotification } from '~/composables/useNotification'
+import { useAuthStore } from '~/stores/auth'
+import { UserRole } from '~/types/auth'
+import type { Reserva } from '~/types/api'
+
+definePageMeta({
+  middleware: ['auth', 'role'],
+  roles: [UserRole.RECEPCIONISTA],
+})
+
+useHead({ title: 'Gestión de Reservas' })
+
+const reservasStore = useReservasStore()
+const authStore = useAuthStore()
+const notification = useNotification()
+
+// ── State ──
+const selectedReserva = ref<Reserva | null>(null)
+const cedulaBusqueda = ref('')
+const cedulaConfirm = ref('')
+
+// Confirm checkin dialog
+const confirmCheckinDialog = ref(false)
+const checkinLoading = ref(false)
+
+// Confirm checkout dialog
+const confirmCheckoutDialog = ref(false)
+const checkoutLoading = ref(false)
+
+// Cancel dialog
+const cancelDialog = ref(false)
+const cancelLoading = ref(false)
+const cancelReason = ref('')
+
+// ── Carga inicial ──
+const loadReservas = async () => {
+  try {
+    const hotelId = authStore.user?.idHotel
+    if (hotelId) {
+      await reservasStore.fetchReservasByHotel(hotelId)
+    }
+  } catch (error: any) {
+    notification.error(error?.message || 'Error al cargar reservas')
+  }
+}
+
+onMounted(() => {
+  loadReservas()
+})
+
+// ── Handlers ──
+const onFilterChanged = () => {
+  // El filtro se aplica directamente en el store
+}
+
+const buscarPorCedula = async () => {
+  if (!cedulaBusqueda.value.trim()) {
+    notification.error('Ingrese una cédula para buscar')
+    return
+  }
+
+  try {
+    const hotelId = authStore.user?.idHotel
+    if (hotelId) {
+      await reservasStore.buscarReservasPorCedula(cedulaBusqueda.value, hotelId)
+      if (reservasStore.reservas.length === 0) {
+        notification.error(`No se encontraron reservas para la cédula ${cedulaBusqueda.value}`)
+      } else {
+        notification.success(`Se encontraron ${reservasStore.reservas.length} reserva(s)`)
+      }
+    }
+  } catch (error: any) {
+    notification.error(error?.message || 'Error al buscar reservas')
+  }
+}
+
+const openConfirmCheckinDialog = (reserva: Reserva) => {
+  selectedReserva.value = reserva
+  cedulaConfirm.value = ''
+  confirmCheckinDialog.value = true
+}
+
+const openConfirmCheckoutDialog = (reserva: Reserva) => {
+  selectedReserva.value = reserva
+  confirmCheckoutDialog.value = true
+}
+
+const openCancelDialog = (reserva: Reserva) => {
+  selectedReserva.value = reserva
+  cancelReason.value = ''
+  cancelDialog.value = true
+}
+
+const handleConfirmCheckin = async () => {
+  if (!selectedReserva.value || !cedulaConfirm.value.trim()) return
+
+  checkinLoading.value = true
+  try {
+    await reservasStore.confirmarReserva(selectedReserva.value.id, cedulaConfirm.value)
+    notification.success(
+      `Check-in confirmado para ${selectedReserva.value.codigoConfirmacion}`
+    )
+    confirmCheckinDialog.value = false
+    await loadReservas()
+  } catch (error: any) {
+    notification.error(
+      error?.message || 'Error al confirmar check-in'
+    )
+  } finally {
+    checkinLoading.value = false
+  }
+}
+
+const handleConfirmCheckout = async () => {
+  if (!selectedReserva.value) return
+
+  checkoutLoading.value = true
+  try {
+    await reservasStore.completarReserva(selectedReserva.value.id)
+    notification.success(
+      `Check-out confirmado para ${selectedReserva.value.codigoConfirmacion}`
+    )
+    confirmCheckoutDialog.value = false
+    await loadReservas()
+  } catch (error: any) {
+    notification.error(
+      error?.message || 'Error al confirmar check-out'
+    )
+  } finally {
+    checkoutLoading.value = false
+  }
+}
+
+const handleCancelReserva = async () => {
+  if (!selectedReserva.value) return
+
+  cancelLoading.value = true
+  try {
+    await reservasStore.cancelarReserva(
+      selectedReserva.value.id,
+      cancelReason.value || undefined
+    )
+    notification.success(
+      `Reserva ${selectedReserva.value.codigoConfirmacion} cancelada`
+    )
+    cancelDialog.value = false
+    await loadReservas()
+  } catch (error: any) {
+    notification.error(
+      error?.message || 'Error al cancelar reserva'
+    )
+  } finally {
+    cancelLoading.value = false
+  }
+}
+</script>

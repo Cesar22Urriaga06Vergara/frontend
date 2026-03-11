@@ -19,9 +19,11 @@ export const useApi = () => {
    * Petición base con inyección de token
    */
   const request = async <T = any>(endpoint: string, options: FetchOptions = {}): Promise<T> => {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      ...options.headers,
+    const headers: Record<string, string> = options.headers || {}
+
+    // No establecer Content-Type si es FormData (el navegador lo hace automáticamente)
+    if (!(options.body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json'
     }
 
     // Inyectar token si existe

@@ -1,9 +1,12 @@
 <template>
-  <v-dialog v-model="modelValue" max-width="700">
+  <v-dialog v-model="isOpen" max-width="700">
     <v-card v-if="reserva">
-      <v-card-title class="d-flex align-center justify-space-between">
-        <span>Detalle de Reserva</span>
-        <v-btn icon="mdi-close" size="small" variant="text" @click="$emit('update:modelValue', false)" />
+      <v-card-title class="d-flex align-center justify-space-between bg-primary-lighten-5">
+        <span>
+          <v-icon icon="mdi-information" color="primary" class="mr-2" />
+          Detalle de Reserva
+        </span>
+        <v-btn icon="mdi-close" size="small" variant="text" @click="isOpen = false" />
       </v-card-title>
 
       <v-divider />
@@ -152,7 +155,7 @@
 
       <v-card-actions class="pa-4">
         <v-spacer />
-        <v-btn color="primary" @click="$emit('update:modelValue', false)">
+        <v-btn color="primary" @click="isOpen = false">
           Cerrar
         </v-btn>
       </v-card-actions>
@@ -170,9 +173,17 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {})
 
-defineEmits<{
+const emit = defineEmits<{
   'update:modelValue': [value: boolean]
 }>()
+
+// Computed para manejar v-model correctamente
+const isOpen = computed({
+  get: () => props.modelValue,
+  set: (value: boolean) => {
+    emit('update:modelValue', value)
+  },
+})
 
 const numeroNoches = computed(() => {
   if (!props.reserva) return 0
@@ -211,12 +222,12 @@ const getImagenes = (imagenes?: string): string[] => {
 
 const getEstadoColor = (estado?: string): string => {
   const colores: Record<string, string> = {
+    reservada: 'warning',
     confirmada: 'success',
-    pendiente: 'warning',
     cancelada: 'error',
     completada: 'info',
   }
-  return colores[estado || 'pendiente'] || 'grey'
+  return colores[estado || 'reservada'] || 'grey'
 }
 
 const calcularTotal = (): number => {

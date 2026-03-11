@@ -88,7 +88,7 @@ export const useUsersStore = defineStore('users', {
     /**
      * Obtener usuario por ID
      */
-    async fetchUserById(id: number): Promise<User> {
+    async fetchUserById(id: number | string): Promise<User> {
       const api = useApi()
       const response = await api.get<UserResponse>(`/users/${id}`)
       this.currentUser = response.user
@@ -98,12 +98,13 @@ export const useUsersStore = defineStore('users', {
     /**
      * Actualizar usuario
      */
-    async updateUser(id: number, data: UpdateUserRequest): Promise<User> {
+    async updateUser(id: number | string, data: UpdateUserRequest): Promise<User> {
       const api = useApi()
       const response = await api.patch<UserResponse>(`/users/${id}`, data)
 
       // Actualizar en la lista local
-      const index = this.users.findIndex((u) => u.id === id)
+      const numId = typeof id === 'string' ? parseInt(id) : id
+      const index = this.users.findIndex((u) => u.id === numId)
       if (index !== -1) {
         this.users[index] = response.user
       }
@@ -115,12 +116,12 @@ export const useUsersStore = defineStore('users', {
     /**
      * Desactivar usuario
      */
-    async deactivateUser(id: number): Promise<User> {
+    async deactivateUser(id: number | string): Promise<User> {
       const api = useApi()
       const response = await api.del<UserResponse>(`/users/${id}`)
 
       // Actualizar en la lista local
-      const index = this.users.findIndex((u) => u.id === id)
+      const index = this.users.findIndex((u) => u.id === (typeof id === 'string' ? parseInt(id) : id))
       if (index !== -1) {
         this.users[index] = response.user
       }
@@ -131,12 +132,12 @@ export const useUsersStore = defineStore('users', {
     /**
      * Reactivar usuario
      */
-    async reactivateUser(id: number): Promise<User> {
+    async reactivateUser(id: number | string): Promise<User> {
       const api = useApi()
       const response = await api.post<UserResponse>(`/users/${id}/reactivate`)
 
       // Actualizar en la lista local
-      const index = this.users.findIndex((u) => u.id === id)
+      const index = this.users.findIndex((u) => u.id === (typeof id === 'string' ? parseInt(id) : id))
       if (index !== -1) {
         this.users[index] = response.user
       }

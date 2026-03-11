@@ -43,6 +43,7 @@ export const useAuthStore = defineStore('auth', {
       
       // Buscar en el mapa con el rol normalizado
       const routes: Record<string, string> = {
+        'superadmin': '/dashboard/superadmin/reservas',
         'admin': '/dashboard/admin/users',
         'recepcionista': '/dashboard/recepcionista',
         'cliente': '/dashboard/cliente',
@@ -169,7 +170,7 @@ export const useAuthStore = defineStore('auth', {
       if (!this.token) return
 
       const config = useRuntimeConfig()
-      const response = await $fetch<ProfileResponse>(`${config.public.apiBase}/auth/me`, {
+      const response = await $fetch<ProfileResponse>(`${config.public.apiBase}/auth/profile`, {
         headers: { Authorization: `Bearer ${this.token}` },
       })
 

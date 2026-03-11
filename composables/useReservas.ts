@@ -160,10 +160,10 @@ export const useReservas = () => {
   /**
    * Cancelar una reserva
    */
-  const cancelarReserva = async (id: number): Promise<boolean> => {
+  const cancelarReserva = async (id: number, motivo?: string): Promise<boolean> => {
     try {
       console.log(`🗑️ Cancelando reserva ${id}...`)
-      const response = await api.post(`/reservas/${id}/cancelar`, {})
+      const response = await api.post(`/reservas/${id}/cancelar`, { motivo: motivo || '' })
       console.log('✅ Reserva cancelada:', response)
       success('Reserva cancelada correctamente')
       return true
@@ -171,6 +171,41 @@ export const useReservas = () => {
       console.error('❌ Error cancelando reserva:', err)
       error(err?.message || 'Error al cancelar la reserva')
       return false
+    }
+  }
+
+  /**
+   * Confirmar una reserva (Check-in)
+   * Recepcionista verifica la cédula del cliente
+   */
+  const confirmarReserva = async (id: number, cedula: string): Promise<Reserva | null> => {
+    try {
+      console.log(`✔️ Confirmando reserva ${id} con cédula ${cedula}...`)
+      const response = await api.post<Reserva>(`/reservas/${id}/confirmar`, { cedula })
+      console.log('✅ Reserva confirmada:', response)
+      success('¡Reserva confirmada acceso permitido!')
+      return response
+    } catch (err: any) {
+      console.error('❌ Error confirmando reserva:', err)
+      error(err?.message || 'Error al confirmar la reserva')
+      return null
+    }
+  }
+
+  /**
+   * Completar una reserva (Check-out)
+   */
+  const completarReserva = async (id: number): Promise<Reserva | null> => {
+    try {
+      console.log(`🚪 Completando reserva ${id}...`)
+      const response = await api.post<Reserva>(`/reservas/${id}/completar`, {})
+      console.log('✅ Reserva completada:', response)
+      success('¡Reserva completada, gracias por su estancia!')
+      return response
+    } catch (err: any) {
+      console.error('❌ Error completando reserva:', err)
+      error(err?.message || 'Error al completar la reserva')
+      return null
     }
   }
 
@@ -209,6 +244,8 @@ export const useReservas = () => {
     obtenerReserva,
     obtenerReservaPorCodigo,
     cancelarReserva,
+    confirmarReserva,
+    completarReserva,
     calcularNoches,
     calcularPrecioTotal,
   }

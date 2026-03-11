@@ -1,6 +1,7 @@
 // types/auth.ts
 
 export enum UserRole {
+  SUPERADMIN = 'superadmin',
   ADMIN = 'admin',
   RECEPCIONISTA = 'recepcionista',
   CLIENTE = 'cliente',
@@ -8,6 +9,8 @@ export enum UserRole {
 
 export interface User {
   id: number
+  _id?: string | number
+  name?: string
   fullName: string
   email: string
   role: UserRole
@@ -15,9 +18,11 @@ export interface User {
   lastLogin?: string
   idEmpleado?: number
   idCliente?: number
+  idHotel?: number
   discoveredClues?: number[]
   createdAt?: string
   updatedAt?: string
+  totalScore?: number
 }
 
 // ── Request DTOs ──
@@ -28,12 +33,14 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-  fullName: string
+  nombre: string
+  apellido: string
   email: string
   password: string
   role?: UserRole
   idEmpleado?: number
   idCliente?: number
+  idHotel?: number
 }
 
 export interface RegisterClienteRequest {

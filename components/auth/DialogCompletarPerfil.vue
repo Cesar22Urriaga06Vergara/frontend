@@ -42,6 +42,8 @@
               v-model="formData.tipoDocumento"
               label="Tipo de Documento"
               :items="tiposDocumento"
+              item-title="title"
+              item-value="value"
               :rules="[v => !!v || 'Selecciona un tipo de documento']"
             />
           </v-col>
@@ -134,7 +136,13 @@ const emit = defineEmits<{
   guardar: [datos: any]
 }>()
 
-const tiposDocumento = ['Cédula', 'Pasaporte', 'Licencia', 'Otro']
+const tiposDocumento = [
+  { title: 'Cédula', value: 'CC' },
+  { title: 'Pasaporte', value: 'PEP' },
+  { title: 'Licencia', value: 'LI' },
+  { title: 'Tarjeta de Identidad', value: 'TI' },
+  { title: 'Cédula de Extranjería', value: 'CE' },
+]
 const idiomas = ['Español', 'Inglés', 'Francés', 'Portugués', 'Italiano']
 const paises = [
   { nombre: 'Colombia', codigo: 'CO' },
@@ -156,7 +164,7 @@ const cargando = ref(false)
 const formData = reactive({
   nombre: props.nombre || '',
   apellido: props.apellido || '',
-  tipoDocumento: 'Cédula',
+  tipoDocumento: 'CC',
   cedula: '',
   telefono: '',
   direccion: '',

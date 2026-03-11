@@ -77,11 +77,11 @@
             </v-btn>
             <v-spacer />
             <v-btn
-              v-if="['confirmada', 'pendiente'].includes(reserva.estadoReserva)"
+              v-if="['reservada', 'confirmada'].includes(reserva.estadoReserva)"
               variant="text"
               size="small"
               color="error"
-              @click="() => { console.log('CLICK EN CANCELAR'); handleCancelar(reserva) }"
+              @click="handleCancelar(reserva)"
             >
               <v-icon start icon="mdi-close" />
               Cancelar
@@ -125,12 +125,12 @@ const formatDate = (fecha?: Date | string): string => {
 
 const getEstadoColor = (estado?: string): string => {
   const colores: Record<string, string> = {
+    reservada: 'warning',
     confirmada: 'success',
-    pendiente: 'warning',
     cancelada: 'error',
     completada: 'info',
   }
-  return colores[estado || 'pendiente'] || 'grey'
+  return colores[estado || 'reservada'] || 'grey'
 }
 
 // Debug logging

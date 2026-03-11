@@ -62,7 +62,7 @@ import type { User } from '~/types/auth'
 
 definePageMeta({
   middleware: ['auth', 'role'],
-  roles: [UserRole.ADMIN, UserRole.MODERATOR],
+  roles: [UserRole.ADMIN, UserRole.SUPERADMIN],
 })
 
 useHead({ title: 'Gestión de Usuarios' })
@@ -141,7 +141,7 @@ const onUserSaved = () => {
 }
 
 const handleToggleStatus = async () => {
-  if (!selectedUser.value) return
+  if (!selectedUser.value || !selectedUser.value._id) return
 
   toggleStatusLoading.value = true
   try {
@@ -162,11 +162,11 @@ const handleToggleStatus = async () => {
 }
 
 const handleInvalidateTokens = async () => {
-  if (!selectedUser.value) return
+  if (!selectedUser.value || !selectedUser.value._id) return
 
   invalidateLoading.value = true
   try {
-    await usersStore.invalidateUserResetTokens(selectedUser.value._id)
+    await usersStore.invalidateUserResetTokens(selectedUser.value._id as string)
     notification.success(`Tokens de ${selectedUser.value.name} invalidados`)
     invalidateDialog.value = false
   } catch (error: any) {

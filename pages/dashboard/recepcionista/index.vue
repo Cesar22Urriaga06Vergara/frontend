@@ -1,110 +1,88 @@
 <template>
   <div>
-    <div class="mb-6">
-      <h1 class="text-h5 font-weight-bold mb-1">{{ nav.greeting.value }}</h1>
-      <p class="text-body-2 text-medium-emphasis">
-        Tu resumen de juego
-      </p>
+    <!-- Header -->
+    <div class="d-flex align-center justify-space-between mb-6 flex-wrap ga-2">
+      <div>
+        <h1 class="text-h5 font-weight-bold mb-1">Bienvenido, {{ authStore.userName }}</h1>
+        <p class="text-body-2 text-medium-emphasis">
+          {{ currentHour }}
+        </p>
+      </div>
     </div>
 
-    <!-- Stats cards -->
+    <!-- Stats bar -->
+    <RecepcionistaReservasStatsBar />
+
+    <!-- Quick actions -->
     <v-row class="mb-6">
       <v-col cols="12" sm="6" md="4">
-        <v-card class="card-glow pa-6">
-          <div class="d-flex align-center justify-space-between mb-3">
-            <div class="text-caption text-medium-emphasis text-uppercase font-weight-bold" style="letter-spacing: 0.06em">
-              Puntuación
-            </div>
-            <v-avatar color="warning" size="36" variant="tonal" rounded="lg">
-              <v-icon icon="mdi-star" size="18" />
-            </v-avatar>
-          </div>
-          <div class="text-h3 font-weight-bold text-gradient">
-            {{ authStore.user?.totalScore || 0 }}
-          </div>
-          <div class="text-caption text-medium-emphasis mt-1">puntos acumulados</div>
+        <v-card class="card-glow pa-5 text-center cursor-pointer" @click="navigateTo('/dashboard/recepcionista/reservas')">
+          <v-icon icon="mdi-calendar-check-outline" size="32" color="primary" class="mb-3" />
+          <h3 class="text-h6 font-weight-bold mb-2">Gestionar Reservas</h3>
+          <p class="text-body-2 text-medium-emphasis">
+            Ver todas las reservas del hotel
+          </p>
         </v-card>
       </v-col>
 
       <v-col cols="12" sm="6" md="4">
-        <v-card class="card-glow pa-6">
-          <div class="d-flex align-center justify-space-between mb-3">
-            <div class="text-caption text-medium-emphasis text-uppercase font-weight-bold" style="letter-spacing: 0.06em">
-              Pistas
-            </div>
-            <v-avatar color="primary" size="36" variant="tonal" rounded="lg">
-              <v-icon icon="mdi-magnify" size="18" />
-            </v-avatar>
-          </div>
-          <div class="text-h3 font-weight-bold">
-            {{ cluesCount }}
-          </div>
-          <div class="text-caption text-medium-emphasis mt-1">pistas descubiertas</div>
+        <v-card class="card-glow pa-5 text-center cursor-pointer" @click="goToProfile">
+          <v-icon icon="mdi-account-edit-outline" size="32" color="warning" class="mb-3" />
+          <h3 class="text-h6 font-weight-bold mb-2">Mi Perfil</h3>
+          <p class="text-body-2 text-medium-emphasis">
+            Actualizar mis datos personales
+          </p>
         </v-card>
       </v-col>
 
-      <v-col cols="12" md="4">
-        <v-card class="card-glow pa-6">
-          <div class="d-flex align-center justify-space-between mb-3">
-            <div class="text-caption text-medium-emphasis text-uppercase font-weight-bold" style="letter-spacing: 0.06em">
-              Último acceso
-            </div>
-            <v-avatar color="secondary" size="36" variant="tonal" rounded="lg">
-              <v-icon icon="mdi-clock-outline" size="18" />
-            </v-avatar>
-          </div>
-          <div class="text-h6 font-weight-bold">
-            {{ formatDate(authStore.user?.lastLogin) }}
-          </div>
-          <div class="text-caption text-medium-emphasis mt-1">última sesión</div>
+      <v-col cols="12" sm="6" md="4">
+        <v-card class="card-glow pa-5 text-center cursor-pointer" @click="handleLogout">
+          <v-icon icon="mdi-logout-variant" size="32" color="error" class="mb-3" />
+          <h3 class="text-h6 font-weight-bold mb-2">Cerrar Sesión</h3>
+          <p class="text-body-2 text-medium-emphasis">
+            Salir de la aplicación
+          </p>
         </v-card>
       </v-col>
     </v-row>
 
-    <!-- Quick actions -->
-    <h2 class="text-subtitle-1 font-weight-bold mb-3">Acciones rápidas</h2>
-    <v-row>
-      <v-col cols="12" sm="6">
-        <v-card
-          to="/dashboard/player/clues"
-          class="card-glow pa-5"
-          style="cursor: pointer"
-        >
-          <div class="d-flex align-center">
-            <v-avatar color="primary" size="44" variant="tonal" rounded="lg" class="mr-4">
-              <v-icon icon="mdi-magnify" size="22" />
-            </v-avatar>
-            <div>
-              <div class="text-subtitle-2 font-weight-bold">Ver mis pistas</div>
-              <div class="text-caption text-medium-emphasis">
-                {{ cluesCount }} pistas descubiertas hasta ahora
+    <!-- Información adicional -->
+    <v-row class="mb-6">
+      <v-col cols="12">
+        <v-card class="card-glow pa-6">
+          <h3 class="text-h6 font-weight-bold mb-4">Información del Sistema</h3>
+          <v-row>
+            <v-col cols="12" sm="6">
+              <div class="d-flex justify-space-between mb-3 pb-3 border-bottom">
+                <span class="text-body-2 text-medium-emphasis">Hotel:</span>
+                <span class="font-weight-medium">{{ authStore.user?.idHotel || 'N/A' }}</span>
               </div>
-            </div>
-            <v-spacer />
-            <v-icon icon="mdi-chevron-right" size="20" color="medium-emphasis" />
-          </div>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" sm="6">
-        <v-card
-          to="/dashboard/profile"
-          class="card-glow pa-5"
-          style="cursor: pointer"
-        >
-          <div class="d-flex align-center">
-            <v-avatar color="secondary" size="44" variant="tonal" rounded="lg" class="mr-4">
-              <v-icon icon="mdi-account-circle-outline" size="22" />
-            </v-avatar>
-            <div>
-              <div class="text-subtitle-2 font-weight-bold">Mi perfil</div>
-              <div class="text-caption text-medium-emphasis">
-                Editar información personal
+            </v-col>
+            <v-col cols="12" sm="6">
+              <div class="d-flex justify-space-between mb-3 pb-3 border-bottom">
+                <span class="text-body-2 text-medium-emphasis">Rol:</span>
+                <v-chip
+                  color="warning"
+                  size="small"
+                  variant="tonal"
+                >
+                  Recepcionista
+                </v-chip>
               </div>
-            </div>
-            <v-spacer />
-            <v-icon icon="mdi-chevron-right" size="20" color="medium-emphasis" />
-          </div>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <div class="d-flex justify-space-between">
+                <span class="text-body-2 text-medium-emphasis">Último acceso:</span>
+                <span class="font-weight-medium">{{ lastLoginTime }}</span>
+              </div>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <div class="d-flex justify-space-between">
+                <span class="text-body-2 text-medium-emphasis">Email:</span>
+                <span class="font-weight-medium">{{ authStore.user?.email }}</span>
+              </div>
+            </v-col>
+          </v-row>
         </v-card>
       </v-col>
     </v-row>
@@ -113,7 +91,8 @@
 
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/auth'
-import { useRoleNavigation } from '~/composables/useRoleNavigation'
+import { useReservasStore } from '~/stores/reservas'
+import { useNotification } from '~/composables/useNotification'
 import { UserRole } from '~/types/auth'
 
 definePageMeta({
@@ -121,20 +100,77 @@ definePageMeta({
   roles: [UserRole.RECEPCIONISTA],
 })
 
-useHead({ title: 'Panel Recepcionista' })
+useHead({ title: 'Dashboard - Recepcionista' })
 
+const router = useRouter()
 const authStore = useAuthStore()
-const nav = useRoleNavigation()
+const reservasStore = useReservasStore()
+const notification = useNotification()
 
-const cluesCount = computed(() => authStore.user?.discoveredClues?.length || 0)
+// ── Computed ──
+const currentHour = computed((): string => {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'Buenos días. Que tengas un excelente día.'
+  if (hour < 18) return 'Buenas tardes. Sigue adelante con tu trabajo.'
+  return 'Buenas noches. Que descanses bien pronto.'
+})
 
-const formatDate = (dateStr?: string) => {
-  if (!dateStr) return 'N/A'
-  return new Date(dateStr).toLocaleDateString('es-CO', {
+const lastLoginTime = computed((): string => {
+  if (!authStore.user?.lastLogin) return 'Primera vez'
+  const date = new Date(authStore.user.lastLogin)
+  return date.toLocaleDateString('es-CO', {
+    day: '2-digit',
     month: 'short',
-    day: 'numeric',
+    year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
   })
+})
+
+// ── Carga inicial ──
+const loadReservas = async () => {
+  try {
+    const hotelId = authStore.user?.idHotel
+    if (hotelId) {
+      await reservasStore.fetchReservasByHotel(hotelId)
+    }
+  } catch (error: any) {
+    notification.error(error?.message || 'Error al cargar reservas')
+  }
+}
+
+onMounted(() => {
+  loadReservas()
+})
+
+// ── Handlers ──
+const goToProfile = () => {
+  router.push('/dashboard/profile')
+}
+
+const handleLogout = async () => {
+  try {
+    await authStore.logout()
+    notification.success('Sesión cerrada correctamente')
+    router.push('/login')
+  } catch (error: any) {
+    notification.error(error?.message || 'Error al cerrar sesión')
+  }
 }
 </script>
+
+<style scoped>
+.border-bottom {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.cursor-pointer {
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  }
+}
+</style>

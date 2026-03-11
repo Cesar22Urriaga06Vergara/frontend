@@ -7,8 +7,13 @@ export const useCliente = () => {
    */
   const actualizarCliente = async (idCliente: number, datos: any): Promise<boolean> => {
     try {
-      await api.patch(`/clientes/${idCliente}`, datos)
-      success('Datos actualizados correctamente')
+      // Usar el endpoint de completar perfil
+      await api.put(`/auth/me/complete-profile`, {
+        cedula: datos.cedula,
+        tipoDocumento: datos.tipoDocumento,
+        telefono: datos.telefono,
+      })
+      success('Datos actualizados con éxito')
       return true
     } catch (err: any) {
       error(err?.message || 'Error al actualizar datos')

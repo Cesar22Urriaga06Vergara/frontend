@@ -81,7 +81,7 @@
             class="mr-3"
           >
             <span class="text-caption font-weight-bold">
-              {{ getInitials(item.name) }}
+              {{ getInitials(item.name || item.fullName || '?') }}
             </span>
           </v-avatar>
           <div>
@@ -214,10 +214,10 @@ const filterStatus = ref<string | null>(null)
 
 // ── Opciones de filtro ──
 const roleOptions = [
-  { title: 'Admin', value: 'admin' },
-  { title: 'Moderador', value: 'moderator' },
-  { title: 'Jugador', value: 'player' },
-  { title: 'Sponsor', value: 'sponsor' },
+  { title: 'Superadmin', value: 'superadmin' },
+  { title: 'Administrador', value: 'admin' },
+  { title: 'Recepcionista', value: 'recepcionista' },
+  { title: 'Cliente', value: 'cliente' },
 ]
 
 const statusOptions = [

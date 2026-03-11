@@ -29,9 +29,9 @@
         <v-icon start icon="mdi-check-circle" />
         Confirmadas
       </v-tab>
-      <v-tab value="pendientes">
-        <v-icon start icon="mdi-clock" />
-        Pendientes
+      <v-tab value="reservadas">
+        <v-icon start icon="mdi-bookmark-outline" />
+        Reservadas
       </v-tab>
       <v-tab value="completadas">
         <v-icon start icon="mdi-history" />
@@ -56,10 +56,10 @@
         />
       </v-window-item>
 
-      <!-- Pendientes -->
-      <v-window-item value="pendientes">
+      <!-- Reservadas -->
+      <v-window-item value="reservadas">
         <ReservasGrid
-          :reservas="filteredReservas('pendiente')"
+          :reservas="filteredReservas('reservada')"
           :loading="loading"
           empty-message="No tienes reservas pendientes"
           @ver-detalle="verDetalle"
@@ -106,6 +106,9 @@
 
 <script setup lang="ts">
 import type { Reserva } from '~/types/api'
+import DialogCancelarReserva from '~/components/reservas/DialogCancelarReserva.vue'
+import DialogDetalleReserva from '~/components/reservas/DialogDetalleReserva.vue'
+import ReservasGrid from '~/components/reservas/ReservasGrid.vue'
 
 definePageMeta({
   middleware: ['auth'],
@@ -158,27 +161,15 @@ const verDetalle = (reserva: Reserva) => {
 /**
  * Mostrar diálogo de cancelación
  */
-const mostrarDialogoCancelar = async (reserva: Reserva) => {
-  console.log('📌 mostrarDialogoCancelar llamado con:', reserva)
-  
-  // Confirmación simple del navegador
-  const confirmado = confirm(`¿Seguro que deseas cancelar la reserva de ${reserva.tipoHabitacion?.nombreTipo}?`)
-  
-  if (confirmado) {
-    console.log('✅ Usuario confirmó la cancelación')
-    reservaSeleccionada.value = reserva
-    await confirmarCancelar()
-  } else {
-    console.log('❌ Usuario canceló la operación')
-  }
+const mostrarDialogoCancelar = (reserva: Reserva) => {
+  reservaSeleccionada.value = reserva
+  showDialogoCancelar.value = true
 }
 
 /**
  * Confirmar cancelación
  */
-const confirmarCancelar = async () => {
-  console.log('🗑️ confirmarCancelar llamado')
-  console.log('🗑️ reservaSeleccionada.value:', reservaSeleccionada.value)
+const confirmarCancelar = async (motivo: string) => {
   if (!reservaSeleccionada.value) {
     console.error('ERROR: No hay reserva seleccionada')
     return
@@ -186,13 +177,16 @@ const confirmarCancelar = async () => {
 
   cancelando.value = true
   try {
-    console.log(`🗑️ Llamando a cancelarReserva con ID: ${reservaSeleccionada.value.id}`)
-    const success = await cancelarReserva(reservaSeleccionada.value.id)
-    console.log('🗑️ Respuesta de cancelarReserva:', success)
+    const success = await cancelarReserva(reservaSeleccionada.value.id, motivo)
     if (success) {
       showDialogoCancelar.value = false
       await cargarReservas()
+    } else {
+      // Si falla, mantener abierto para reintentar
+      console.error('Error al cancelar la reserva')
     }
+  } catch (error) {
+    console.error('Error al cancelar la reserva:', error)
   } finally {
     cancelando.value = false
   }

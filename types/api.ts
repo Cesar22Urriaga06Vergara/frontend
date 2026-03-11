@@ -84,7 +84,7 @@ export interface UpdateHabitacionDto extends Partial<CreateHabitacionDto> {}
 
 // Reserva
 export enum EstadoReserva {
-  PENDIENTE = 'pendiente',
+  RESERVADA = 'reservada',
   CONFIRMADA = 'confirmada',
   CANCELADA = 'cancelada',
   RECHAZADA = 'rechazada',
@@ -113,6 +113,9 @@ export interface Reserva {
   codigoConfirmacion: string
   precioNocheSnapshot?: number
   observaciones?: string
+  cedulaCliente?: string
+  nombreCliente?: string
+  emailCliente?: string
   habitacion?: Habitacion
   tipoHabitacion?: TipoHabitacion
   createdAt?: Date
@@ -127,6 +130,9 @@ export interface CreateReservaDto {
   checkoutPrevisto: string
   numeroHuespedes: number
   observaciones?: string
+  cedulaCliente?: string
+  nombreCliente?: string
+  emailCliente?: string
 }
 
 export interface UpdateReservaDto extends Partial<CreateReservaDto> {
@@ -163,4 +169,14 @@ export interface DisponibilidadResponseDto {
     nombre: string
     cantidad: number
   }>
+}
+
+// Reservas API Response Types
+export interface ReservaResponse {
+  reserva: Reserva
+}
+
+export interface ReservasListResponse {
+  reservas: Reserva[]
+  count: number
 }

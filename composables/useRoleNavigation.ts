@@ -26,7 +26,14 @@ export interface BreadcrumbItem {
 const ROUTE_META: Record<string, { title: string; parent?: string }> = {
   '/dashboard': { title: 'Dashboard' },
   '/dashboard/profile': { title: 'Mi Perfil', parent: '/dashboard' },
+  '/dashboard/superadmin/reservas': { title: 'Gestión de Reservas', parent: '/dashboard' },
+  '/dashboard/superadmin/hoteles': { title: 'Hoteles', parent: '/dashboard' },
+  '/dashboard/superadmin/empleados': { title: 'Empleados', parent: '/dashboard' },
+  '/dashboard/superadmin/habitaciones': { title: 'Habitaciones', parent: '/dashboard' },
+  '/dashboard/superadmin/amenidades': { title: 'Amenidades', parent: '/dashboard' },
+  '/dashboard/superadmin/tipos-habitacion': { title: 'Tipos de Habitación', parent: '/dashboard' },
   '/dashboard/admin/users': { title: 'Usuarios', parent: '/dashboard' },
+  '/dashboard/admin/reservas': { title: 'Gestión de Reservas', parent: '/dashboard' },
   '/dashboard/admin/reset-stats': { title: 'Reset Stats', parent: '/dashboard' },
   '/dashboard/admin/amenidades': { title: 'Amenidades', parent: '/dashboard' },
   '/dashboard/admin/tipos-habitacion': { title: 'Tipos de Habitación', parent: '/dashboard' },
@@ -35,6 +42,8 @@ const ROUTE_META: Record<string, { title: string; parent?: string }> = {
   '/dashboard/player': { title: 'Dashboard', parent: '/dashboard' },
   '/dashboard/player/clues': { title: 'Mis Pistas', parent: '/dashboard/player' },
   '/dashboard/sponsor': { title: 'Dashboard', parent: '/dashboard' },
+  '/dashboard/recepcionista': { title: 'Dashboard - Recepcionista', parent: '/dashboard' },
+  '/dashboard/recepcionista/reservas': { title: 'Gestión de Reservas', parent: '/dashboard/recepcionista' },
   '/reservas/nueva': { title: 'Nueva Reserva' },
   '/reservas/confirmacion': { title: 'Confirmación de Reserva', parent: '/reservas/nueva' },
 }
@@ -72,12 +81,50 @@ export const useRoleNavigation = () => {
     }
 
     switch (role) {
+      case UserRole.SUPERADMIN:
+        return [
+          {
+            title: 'Principal',
+            items: [
+              { title: 'Dashboard', icon: 'mdi-view-dashboard-outline', to: '/dashboard' },
+            ],
+          },
+          {
+            title: 'Operaciones',
+            items: [
+              { title: 'Gestión de Reservas', icon: 'mdi-calendar-check-outline', to: '/dashboard/superadmin/reservas' },
+            ],
+          },
+          {
+            title: 'Configuración Hotel',
+            items: [
+              { title: 'Hoteles', icon: 'mdi-building-outline', to: '/dashboard/superadmin/hoteles' },
+              { title: 'Habitaciones', icon: 'mdi-door', to: '/dashboard/superadmin/habitaciones' },
+              { title: 'Tipos de Habitación', icon: 'mdi-bed-outline', to: '/dashboard/superadmin/tipos-habitacion' },
+              { title: 'Amenidades', icon: 'mdi-star-outline', to: '/dashboard/superadmin/amenidades' },
+            ],
+          },
+          {
+            title: 'Administración',
+            items: [
+              { title: 'Empleados', icon: 'mdi-account-group-outline', to: '/dashboard/superadmin/empleados' },
+            ],
+          },
+          accountSection,
+        ]
+
       case UserRole.ADMIN:
         return [
           {
             title: 'Principal',
             items: [
               { title: 'Inicio', icon: 'mdi-view-dashboard-outline', to: '/dashboard' },
+            ],
+          },
+          {
+            title: 'Operaciones',
+            items: [
+              { title: 'Gestión de Reservas', icon: 'mdi-calendar-check-outline', to: '/dashboard/admin/reservas' },
             ],
           },
           {
@@ -103,13 +150,13 @@ export const useRoleNavigation = () => {
           {
             title: 'Principal',
             items: [
-              { title: 'Inicio', icon: 'mdi-view-dashboard-outline', to: '/dashboard' },
+              { title: 'Inicio', icon: 'mdi-view-dashboard-outline', to: '/dashboard/recepcionista' },
             ],
           },
           {
             title: 'Gestión',
             items: [
-              { title: 'Usuarios por Rol', icon: 'mdi-filter-variant', to: '/dashboard/admin/users' },
+              { title: 'Reservas', icon: 'mdi-calendar-check-outline', to: '/dashboard/recepcionista/reservas' },
             ],
           },
           accountSection,

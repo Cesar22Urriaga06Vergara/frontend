@@ -124,6 +124,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const { consultarDisponibilidad, obtenerHabitacionesDisponibles, crearReserva, loadingDisponibilidad, loadingHabitaciones, creandoReserva, disponibilidad, habitacionesDisponibles } = useReservas()
 const { actualizarCliente } = useCliente()
+const notification = useNotification()
 
 // Estado del componente
 const tiposHabitacion = ref<TipoHabitacion[]>([])
@@ -213,7 +214,10 @@ const handleConfirmarReserva = async (reservaData: any) => {
  * Guardar datos del cliente
  */
 const guardarDatosCliente = async (datos: any) => {
-  if (!authStore.user?.idCliente) return
+  if (!authStore.user?.idCliente) {
+    notification.error('No se encontró el ID del cliente')
+    return
+  }
 
   const success = await actualizarCliente(authStore.user.idCliente, datos)
   

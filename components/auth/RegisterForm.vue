@@ -1,15 +1,29 @@
 <template>
   <v-form ref="formRef" @submit.prevent="handleRegister" lazy-validation>
-    <v-text-field
-      v-model="form.name"
-      label="Nombre completo"
-      placeholder="Tu nombre"
-      prepend-inner-icon="mdi-account-outline"
-      :rules="nameRules"
-      :disabled="loading"
-      autocomplete="name"
-      class="mb-1"
-    />
+    <v-row>
+      <v-col cols="12" sm="6">
+        <v-text-field
+          v-model="form.nombre"
+          label="Nombre"
+          placeholder="Tu nombre"
+          prepend-inner-icon="mdi-account-outline"
+          :rules="nameRules"
+          :disabled="loading"
+          autocomplete="given-name"
+        />
+      </v-col>
+      <v-col cols="12" sm="6">
+        <v-text-field
+          v-model="form.apellido"
+          label="Apellido"
+          placeholder="Tu apellido"
+          prepend-inner-icon="mdi-account-outline"
+          :rules="nameRules"
+          :disabled="loading"
+          autocomplete="family-name"
+        />
+      </v-col>
+    </v-row>
 
     <v-text-field
       v-model="form.email"
@@ -47,6 +61,10 @@
       class="mb-4"
     />
 
+    <p class="text-caption text-medium-emphasis mb-4">
+      Nota: Los datos adicionales (cédula, teléfono, etc.) se pueden completar después al hacer tu primera reserva.
+    </p>
+
     <v-btn
       type="submit"
       block
@@ -77,7 +95,8 @@ const showPassword = ref(false)
 const loading = ref(false)
 
 const form = reactive({
-  name: '',
+  nombre: '',
+  apellido: '',
   email: '',
   password: '',
   confirmPassword: '',
@@ -95,7 +114,8 @@ const handleRegister = async () => {
   loading.value = true
   try {
     await authStore.register({
-      fullName: form.name,
+      nombre: form.nombre,
+      apellido: form.apellido,
       email: form.email,
       password: form.password,
     })
