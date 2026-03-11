@@ -97,7 +97,7 @@
                 </template>
                 <v-list density="compact">
                   <v-list-item
-                    v-if="reserva.estadoReserva === 'confirmada' && !reserva.checkinReal"
+                    v-if="['reservada', 'confirmada'].includes(reserva.estadoReserva as string) && !reserva.checkinReal"
                     @click="openConfirmCheckinDialog(reserva)"
                   >
                     <template #prepend>

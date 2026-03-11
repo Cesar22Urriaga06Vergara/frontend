@@ -121,9 +121,22 @@
       <!-- Acciones -->
       <template #item.actions="{ item }">
         <div class="d-flex ga-1">
+          <!-- Confirmar reserva (cambiar estado a confirmada) -->
+          <v-btn
+            v-if="item.estadoReserva?.toLowerCase() === 'reservada'"
+            icon
+            variant="text"
+            size="x-small"
+            color="warning"
+            @click="$emit('confirm-reserva', item)"
+          >
+            <v-icon icon="mdi-calendar-check-outline" size="18" />
+            <v-tooltip activator="parent" location="top">Confirmar reserva</v-tooltip>
+          </v-btn>
+
           <!-- Confirmar checkin -->
           <v-btn
-            v-if="item.estadoReserva === 'confirmada' && !item.checkinReal"
+            v-if="item.estadoReserva?.toLowerCase() === 'confirmada' && !item.checkinReal"
             icon
             variant="text"
             size="x-small"
@@ -149,7 +162,7 @@
 
           <!-- Cancelar -->
           <v-btn
-            v-if="['confirmada', 'pendiente'].includes(item.estadoReserva as string)"
+            v-if="['reservada', 'confirmada'].includes(item.estadoReserva?.toLowerCase())"
             icon
             variant="text"
             size="x-small"
@@ -188,6 +201,7 @@ defineProps<{
 }>()
 
 defineEmits<{
+  'confirm-reserva': [reserva: Reserva]
   'confirm-checkin': [reserva: Reserva]
   'confirm-checkout': [reserva: Reserva]
   cancel: [reserva: Reserva]
@@ -203,10 +217,10 @@ const filterEstado = ref<string | null>(null)
 
 // ── Opciones de filtro ──
 const estadoOptions = [
+  { title: 'Reservada', value: EstadoReserva.RESERVADA },
   { title: 'Confirmada', value: EstadoReserva.CONFIRMADA },
   { title: 'Completada', value: EstadoReserva.COMPLETADA },
   { title: 'Cancelada', value: EstadoReserva.CANCELADA },
-  { title: 'Pendiente', value: EstadoReserva.PENDIENTE },
 ]
 
 // ── Headers de la tabla ──
@@ -233,10 +247,10 @@ const filteredReservas = computed(() => {
 // ── Helpers ──
 const getEstadoLabel = (estado: string): string => {
   const labels: Record<string, string> = {
+    [EstadoReserva.RESERVADA]: 'Reservada',
     [EstadoReserva.CONFIRMADA]: 'Confirmada',
     [EstadoReserva.COMPLETADA]: 'Completada',
     [EstadoReserva.CANCELADA]: 'Cancelada',
-    [EstadoReserva.PENDIENTE]: 'Pendiente',
     [EstadoReserva.RECHAZADA]: 'Rechazada',
   }
   return labels[estado] || estado
@@ -244,10 +258,10 @@ const getEstadoLabel = (estado: string): string => {
 
 const getEstadoColor = (estado: string): string => {
   const colors: Record<string, string> = {
-    [EstadoReserva.CONFIRMADA]: 'info',
-    [EstadoReserva.COMPLETADA]: 'success',
+    [EstadoReserva.RESERVADA]: 'warning',
+    [EstadoReserva.CONFIRMADA]: 'success',
+    [EstadoReserva.COMPLETADA]: 'info',
     [EstadoReserva.CANCELADA]: 'error',
-    [EstadoReserva.PENDIENTE]: 'warning',
     [EstadoReserva.RECHAZADA]: 'error',
   }
   return colors[estado] || 'default'
@@ -255,10 +269,10 @@ const getEstadoColor = (estado: string): string => {
 
 const getEstadoIcon = (estado: string): string => {
   const icons: Record<string, string> = {
-    [EstadoReserva.CONFIRMADA]: 'mdi-check-outline',
-    [EstadoReserva.COMPLETADA]: 'mdi-check-circle-outline',
+    [EstadoReserva.RESERVADA]: 'mdi-calendar-check-outline',
+    [EstadoReserva.CONFIRMADA]: 'mdi-check-circle-outline',
+    [EstadoReserva.COMPLETADA]: 'mdi-check-all',
     [EstadoReserva.CANCELADA]: 'mdi-close-circle-outline',
-    [EstadoReserva.PENDIENTE]: 'mdi-clock-outline',
     [EstadoReserva.RECHAZADA]: 'mdi-alert-circle-outline',
   }
   return icons[estado] || 'mdi-calendar-outline'

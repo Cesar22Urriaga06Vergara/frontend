@@ -5,11 +5,11 @@
       <div>
         <h1 class="text-h5 font-weight-bold mb-1">Gestión de Reservas</h1>
         <p class="text-body-2 text-medium-emphasis">
-          {{ reservasStore.totalCount }} reservas registradas en el hotel
+          Busca las reservas por cédula del cliente
         </p>
       </div>
       <v-btn
-        @click="loadReservas"
+        @click="cedulaBusqueda.trim() ? buscarPorCedula() : notification.info('Ingrese una cédula para buscar')"
         :loading="reservasStore.loading"
         color="primary"
         prepend-icon="mdi-refresh"
@@ -48,12 +48,75 @@
 
     <!-- Tabla de reservas -->
     <RecepcionistaReservasTable
+      @confirm-reserva="openConfirmReservaDialog"
       @confirm-checkin="openConfirmCheckinDialog"
       @confirm-checkout="openConfirmCheckoutDialog"
       @cancel="openCancelDialog"
-      @refresh="loadReservas"
+      @refresh="reloadCurrentSearch"
       @filter-changed="onFilterChanged"
     />
+
+    <!-- Diálogo de confirmación: confirmar reserva -->
+    <v-dialog
+      v-model="confirmReservaDialog"
+      max-width="500"
+    >
+      <v-card rounded="xl">
+        <v-card-text class="pa-6">
+          <div class="text-center mb-4">
+            <v-avatar
+              color="warning"
+              size="56"
+              variant="tonal"
+              class="mb-4"
+            >
+              <v-icon icon="mdi-calendar-check-outline" size="28" />
+            </v-avatar>
+            <h3 class="text-h6 font-weight-bold mb-2">Confirmar Reserva</h3>
+            <p class="text-body-2 text-medium-emphasis">
+              ¿Deseas confirmar esta reserva y cambiar su estado a confirmada?
+            </p>
+          </div>
+
+          <!-- Detalles de la reserva -->
+          <v-alert
+            v-if="selectedReserva"
+            type="warning"
+            variant="tonal"
+            class="mb-4"
+          >
+            <template #title>Reserva {{ selectedReserva.codigoConfirmacion }}</template>
+            <p class="text-caption mb-1">
+              Habitación: {{ selectedReserva.habitacion?.numeroHabitacion || 'Por asignar' }}
+            </p>
+            <p class="text-caption mb-1">
+              Check-in: {{ new Date(selectedReserva.checkinPrevisto).toLocaleDateString('es-CO') }}
+            </p>
+            <p class="text-caption">
+              Cliente: {{ selectedReserva.nombreCliente || 'No especificado' }}
+            </p>
+          </v-alert>
+        </v-card-text>
+
+        <v-card-actions class="px-6 pb-5">
+          <v-btn
+            variant="text"
+            @click="confirmReservaDialog = false"
+            :disabled="confirmReservaLoading"
+          >
+            Cancelar
+          </v-btn>
+          <v-spacer />
+          <v-btn
+            color="warning"
+            :loading="confirmReservaLoading"
+            @click="handleConfirmReserva"
+          >
+            Confirmar Reserva
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- Diálogo de confirmación: check-in -->
     <v-dialog
@@ -268,6 +331,10 @@ const selectedReserva = ref<Reserva | null>(null)
 const cedulaBusqueda = ref('')
 const cedulaConfirm = ref('')
 
+// Confirm reserva dialog
+const confirmReservaDialog = ref(false)
+const confirmReservaLoading = ref(false)
+
 // Confirm checkin dialog
 const confirmCheckinDialog = ref(false)
 const checkinLoading = ref(false)
@@ -294,12 +361,25 @@ const loadReservas = async () => {
 }
 
 onMounted(() => {
-  loadReservas()
+  // No cargar automáticamente - esperar a que recepcionista busque por cédula
 })
 
 // ── Handlers ──
 const onFilterChanged = () => {
   // El filtro se aplica directamente en el store
+}
+
+const reloadCurrentSearch = async () => {
+  if (cedulaBusqueda.value.trim()) {
+    const hotelId = authStore.user?.idHotel
+    if (hotelId) {
+      try {
+        await reservasStore.buscarReservasPorCedula(cedulaBusqueda.value, hotelId)
+      } catch (error: any) {
+        notification.error('Error al recargar reservas')
+      }
+    }
+  }
 }
 
 const buscarPorCedula = async () => {
@@ -313,7 +393,7 @@ const buscarPorCedula = async () => {
     if (hotelId) {
       await reservasStore.buscarReservasPorCedula(cedulaBusqueda.value, hotelId)
       if (reservasStore.reservas.length === 0) {
-        notification.error(`No se encontraron reservas para la cédula ${cedulaBusqueda.value}`)
+        notification.info(`No se encontraron reservas para la cédula ${cedulaBusqueda.value}`)
       } else {
         notification.success(`Se encontraron ${reservasStore.reservas.length} reserva(s)`)
       }
@@ -321,6 +401,11 @@ const buscarPorCedula = async () => {
   } catch (error: any) {
     notification.error(error?.message || 'Error al buscar reservas')
   }
+}
+
+const openConfirmReservaDialog = (reserva: Reserva) => {
+  selectedReserva.value = reserva
+  confirmReservaDialog.value = true
 }
 
 const openConfirmCheckinDialog = (reserva: Reserva) => {
@@ -340,6 +425,26 @@ const openCancelDialog = (reserva: Reserva) => {
   cancelDialog.value = true
 }
 
+const handleConfirmReserva = async () => {
+  if (!selectedReserva.value) return
+
+  confirmReservaLoading.value = true
+  try {
+    await reservasStore.confirmarReservaEstado(selectedReserva.value.id)
+    notification.success(
+      `Reserva confirmada para ${selectedReserva.value.codigoConfirmacion}`
+    )
+    confirmReservaDialog.value = false
+    await reloadCurrentSearch()
+  } catch (error: any) {
+    notification.error(
+      error?.message || 'Error al confirmar reserva'
+    )
+  } finally {
+    confirmReservaLoading.value = false
+  }
+}
+
 const handleConfirmCheckin = async () => {
   if (!selectedReserva.value || !cedulaConfirm.value.trim()) return
 
@@ -350,7 +455,7 @@ const handleConfirmCheckin = async () => {
       `Check-in confirmado para ${selectedReserva.value.codigoConfirmacion}`
     )
     confirmCheckinDialog.value = false
-    await loadReservas()
+    await reloadCurrentSearch()
   } catch (error: any) {
     notification.error(
       error?.message || 'Error al confirmar check-in'
@@ -370,7 +475,7 @@ const handleConfirmCheckout = async () => {
       `Check-out confirmado para ${selectedReserva.value.codigoConfirmacion}`
     )
     confirmCheckoutDialog.value = false
-    await loadReservas()
+    await reloadCurrentSearch()
   } catch (error: any) {
     notification.error(
       error?.message || 'Error al confirmar check-out'
@@ -393,7 +498,7 @@ const handleCancelReserva = async () => {
       `Reserva ${selectedReserva.value.codigoConfirmacion} cancelada`
     )
     cancelDialog.value = false
-    await loadReservas()
+    await reloadCurrentSearch()
   } catch (error: any) {
     notification.error(
       error?.message || 'Error al cancelar reserva'

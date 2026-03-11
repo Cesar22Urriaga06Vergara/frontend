@@ -223,8 +223,29 @@ export const useReservasStore = defineStore('reservas', {
     async confirmarReserva(id: number, cedula: string): Promise<Reserva> {
       const api = useApi()
       const response = await api.post<ReservaResponse>(
-        `/reservas/${id}/confirmar`,
+        `/reservas/${id}/checkin`,
         { cedula }
+      )
+
+      // Actualizar en la lista local
+      const index = this.reservas.findIndex((r) => r.id === id)
+      if (index !== -1) {
+        this.reservas[index] = response.reserva
+      }
+      this.currentReserva = response.reserva
+
+      return response.reserva
+    },
+
+    /**
+     * Confirmar reserva (cambiar estado de 'reservada' a 'confirmada')
+     * Sin necesidad de verificar datos del cliente
+     */
+    async confirmarReservaEstado(id: number): Promise<Reserva> {
+      const api = useApi()
+      const response = await api.post<ReservaResponse>(
+        `/reservas/${id}/confirmar`,
+        {}
       )
 
       // Actualizar en la lista local

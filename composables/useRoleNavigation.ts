@@ -44,6 +44,7 @@ const ROUTE_META: Record<string, { title: string; parent?: string }> = {
   '/dashboard/sponsor': { title: 'Dashboard', parent: '/dashboard' },
   '/dashboard/recepcionista': { title: 'Dashboard - Recepcionista', parent: '/dashboard' },
   '/dashboard/recepcionista/reservas': { title: 'Gestión de Reservas', parent: '/dashboard/recepcionista' },
+  '/dashboard/recepcionista/checkout': { title: 'Gestión de Check-out', parent: '/dashboard/recepcionista' },
   '/reservas/nueva': { title: 'Nueva Reserva' },
   '/reservas/confirmacion': { title: 'Confirmación de Reserva', parent: '/reservas/nueva' },
 }
@@ -157,6 +158,7 @@ export const useRoleNavigation = () => {
             title: 'Gestión',
             items: [
               { title: 'Reservas', icon: 'mdi-calendar-check-outline', to: '/dashboard/recepcionista/reservas' },
+              { title: 'Check-out', icon: 'mdi-door-closed-outline', to: '/dashboard/recepcionista/checkout' },
             ],
           },
           accountSection,

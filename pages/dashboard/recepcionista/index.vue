@@ -20,7 +20,17 @@
           <v-icon icon="mdi-calendar-check-outline" size="32" color="primary" class="mb-3" />
           <h3 class="text-h6 font-weight-bold mb-2">Gestionar Reservas</h3>
           <p class="text-body-2 text-medium-emphasis">
-            Ver todas las reservas del hotel
+            Confirmar y buscar reservas
+          </p>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" sm="6" md="4">
+        <v-card class="card-glow pa-5 text-center cursor-pointer" @click="navigateTo('/dashboard/recepcionista/checkout')">
+          <v-icon icon="mdi-door-closed-outline" size="32" color="success" class="mb-3" />
+          <h3 class="text-h6 font-weight-bold mb-2">Gestionar Check-out</h3>
+          <p class="text-body-2 text-medium-emphasis">
+            Administrar salidas de huéspedes
           </p>
         </v-card>
       </v-col>
