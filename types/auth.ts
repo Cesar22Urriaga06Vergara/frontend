@@ -5,6 +5,10 @@ export enum UserRole {
   ADMIN = 'admin',
   RECEPCIONISTA = 'recepcionista',
   CLIENTE = 'cliente',
+  CAFETERIA = 'cafeteria',
+  LAVANDERIA = 'lavanderia',
+  SPA = 'spa',
+  ROOM_SERVICE = 'room_service',
 }
 
 export interface User {

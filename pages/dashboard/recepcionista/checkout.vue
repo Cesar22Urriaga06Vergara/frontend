@@ -347,7 +347,8 @@
     <!-- Diálogo de confirmación: check-out -->
     <v-dialog
       v-model="confirmCheckoutDialog"
-      max-width="500"
+      max-width="700"
+      persistent
     >
       <v-card rounded="xl">
         <v-card-text class="pa-6">
@@ -384,13 +385,54 @@
               Cliente: {{ selectedReserva.nombreCliente }}
             </p>
           </v-alert>
+
+          <!-- Información de servicios (si está disponible) -->
+          <v-card v-if="cuentaSeleccionada" variant="outlined" class="mb-4">
+            <v-card-title class="text-subtitle-2">Desglose de Cobro</v-card-title>
+            <v-divider />
+            <v-card-text class="pt-3 pb-0">
+              <v-table dense>
+                <tbody>
+                  <tr>
+                    <td class="text-caption">Hospedaje ({{ cuentaSeleccionada.noches }} noche/s)</td>
+                    <td class="text-right font-weight-bold">
+                      ${{ formatearPrecio(cuentaSeleccionada.subtotalHabitacion) }}
+                    </td>
+                  </tr>
+                  <tr v-for="(monto, categoria) in cuentaSeleccionada.resumenPorCategoria" :key="categoria">
+                    <td class="text-caption">{{ formatearCategoria(categoria) }}</td>
+                    <td class="text-right font-weight-bold">
+                      ${{ formatearPrecio(monto) }}
+                    </td>
+                  </tr>
+                  <tr v-if="cuentaSeleccionada.subtotalServicios > 0" class="border-top">
+                    <td class="text-caption font-weight-bold">Subtotal Servicios</td>
+                    <td class="text-right font-weight-bold">
+                      ${{ formatearPrecio(cuentaSeleccionada.subtotalServicios) }}
+                    </td>
+                  </tr>
+                  <tr class="bg-success-lighten-5">
+                    <td class="text-caption font-weight-bold">TOTAL A PAGAR</td>
+                    <td class="text-right text-h6 font-weight-bold text-success">
+                      ${{ formatearPrecio(cuentaSeleccionada.totalGeneral) }}
+                    </td>
+                  </tr>
+                </tbody>
+              </v-table>
+            </v-card-text>
+          </v-card>
+
+          <v-alert type="warning" v-if="cuentaCargando">
+            <v-progress-circular indeterminate size="20" class="mr-2" />
+            <span class="text-caption">Cargando información de servicios...</span>
+          </v-alert>
         </v-card-text>
 
         <v-card-actions class="px-6 pb-5">
           <v-btn
             variant="text"
             @click="confirmCheckoutDialog = false"
-            :disabled="checkoutLoading"
+            :disabled="checkoutLoading || cuentaCargando"
           >
             Cancelar
           </v-btn>
@@ -399,6 +441,7 @@
             color="info"
             :loading="checkoutLoading"
             @click="handleConfirmCheckout"
+            :disabled="cuentaCargando"
           >
             Confirmar Salida
           </v-btn>
@@ -410,10 +453,12 @@
 
 <script setup lang="ts">
 import { useReservasStore } from '~/stores/reservas'
+import { useServiciosStore } from '~/stores/servicios'
 import { useNotification } from '~/composables/useNotification'
 import { useAuthStore } from '~/stores/auth'
 import { UserRole } from '~/types/auth'
 import type { Reserva } from '~/types/api'
+import type { CuentaReserva } from '~/types/servicios'
 
 definePageMeta({
   middleware: ['auth', 'role'],
@@ -423,6 +468,7 @@ definePageMeta({
 useHead({ title: 'Gestión de Check-out' })
 
 const reservasStore = useReservasStore()
+const serviciosStore = useServiciosStore()
 const authStore = useAuthStore()
 const notification = useNotification()
 
@@ -431,6 +477,8 @@ const selectedReserva = ref<Reserva | null>(null)
 const cedulaConfirm = ref('')
 const search = ref('')
 const filterEtapa = ref<string | null>(null)
+const cuentaSeleccionada = ref<CuentaReserva | null>(null)
+const cuentaCargando = ref(false)
 
 // Confirm checkin dialog
 const confirmCheckinDialog = ref(false)
@@ -517,9 +565,22 @@ const openConfirmCheckinDialog = (reserva: Reserva) => {
   confirmCheckinDialog.value = true
 }
 
-const openConfirmCheckoutDialog = (reserva: Reserva) => {
+const openConfirmCheckoutDialog = async (reserva: Reserva) => {
   selectedReserva.value = reserva
   confirmCheckoutDialog.value = true
+
+  // Cargar información de servicios y cuenta
+  cuentaCargando.value = true
+  cuentaSeleccionada.value = null
+  try {
+    await serviciosStore.cargarCuenta(reserva.id)
+    cuentaSeleccionada.value = serviciosStore.cuentaActual
+  } catch (error: any) {
+    console.error('Error cargando cuenta:', error)
+    notification.warning('No se pudo cargar información de servicios')
+  } finally {
+    cuentaCargando.value = false
+  }
 }
 
 const handleConfirmCheckin = async () => {
@@ -594,6 +655,25 @@ const getEtapaColor = (reserva: Reserva): string => {
     completada: 'info',
   }
   return colors[etapa] || 'default'
+}
+
+const formatearCategoria = (cat: string): string => {
+  const map: Record<string, string> = {
+    cafeteria: 'Cafetería ☕',
+    lavanderia: 'Lavandería 👔',
+    spa: 'Spa 💆',
+    room_service: 'Room Service 🛎️',
+    minibar: 'Minibar 🍷',
+    otros: 'Otros',
+  }
+  return map[cat] || cat
+}
+
+const formatearPrecio = (precio: number): string => {
+  return new Intl.NumberFormat('es-CO', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(precio)
 }
 </script>
 

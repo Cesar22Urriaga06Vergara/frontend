@@ -138,6 +138,7 @@ export const useRoleNavigation = () => {
           {
             title: 'Hotel',
             items: [
+              { title: 'Catálogo de Servicios', icon: 'mdi-shopping-outline', to: '/dashboard/admin/servicios' },
               { title: 'Amenidades', icon: 'mdi-star-outline', to: '/dashboard/admin/amenidades' },
               { title: 'Tipos de Habitación', icon: 'mdi-bed-outline', to: '/dashboard/admin/tipos-habitacion' },
               { title: 'Habitaciones', icon: 'mdi-door', to: '/dashboard/admin/habitaciones' },
@@ -167,10 +168,36 @@ export const useRoleNavigation = () => {
       case UserRole.CLIENTE:
         return [
           {
+            title: 'Mis Servicios',
+            items: [
+              { title: 'Servicios', icon: 'mdi-shopping-outline', to: '/dashboard/cliente/servicios' },
+              { title: 'Mis Pedidos', icon: 'mdi-list-status', to: '/dashboard/cliente/servicios/mis-pedidos' },
+              { title: 'Mi Cuenta', icon: 'mdi-receipt-text-outline', to: '/dashboard/cliente/cuenta' },
+            ],
+          },
+          {
             title: 'Reservas',
             items: [
               { title: 'Nueva Reserva', icon: 'mdi-calendar-plus', to: '/reservas/nueva' },
               { title: 'Mis Reservas', icon: 'mdi-calendar-check', to: '/reservas/mis-reservas' },
+            ],
+          },
+          accountSection,
+        ]
+
+      case 'cafeteria':
+      case 'lavanderia':
+      case 'spa':
+      case 'room_service':
+      case UserRole.CAFETERIA:
+      case UserRole.LAVANDERIA:
+      case UserRole.SPA:
+      case UserRole.ROOM_SERVICE:
+        return [
+          {
+            title: 'Área de Trabajo',
+            items: [
+              { title: 'Mi Panel', icon: 'mdi-view-dashboard-outline', to: '/dashboard/area' },
             ],
           },
           accountSection,
