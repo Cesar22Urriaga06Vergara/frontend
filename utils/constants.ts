@@ -35,8 +35,8 @@ export const ROLE_ICONS: Record<string, string> = {
 }
 
 export const ROLE_DEFAULT_ROUTE: Record<string, string> = {
-  [UserRole.SUPERADMIN]: '/dashboard/empleados/reservas',
-  [UserRole.ADMIN]: '/dashboard/empleados/usuarios',
+  [UserRole.SUPERADMIN]: '/dashboard/empleados/superadmin',
+  [UserRole.ADMIN]: '/dashboard/empleados/admin',
   [UserRole.RECEPCIONISTA]: '/dashboard/empleados/recepcionista',
   [UserRole.CLIENTE]: '/dashboard/cliente',
   [UserRole.CAFETERIA]: '/dashboard/empleados/area',

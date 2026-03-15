@@ -176,7 +176,7 @@ import type { Reserva } from '~/types/api'
 definePageMeta({
   layout: 'default',
   middleware: ['auth', 'role'],
-  roles: [UserRole.RECEPCIONISTA, UserRole.ADMIN, UserRole.SUPERADMIN],
+  roles: [UserRole.RECEPCIONISTA],
 })
 
 useHead({ title: 'Registrar Entrada de Huéspedes' })
