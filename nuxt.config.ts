@@ -2,7 +2,7 @@
 import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 
 export default defineNuxtConfig({
-  ssr: false, // SPA mode — ideal para dashboards con auth
+  ssr: true, // SPA mode — ideal para dashboards con auth
 
   devtools: { enabled: true },
 
