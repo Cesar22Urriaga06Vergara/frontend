@@ -1,4 +1,5 @@
 // composables/useNotification.ts
+import { nextTick, reactive } from 'vue'
 
 interface NotificationState {
   show: boolean

@@ -31,6 +31,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { emailRules } from '~/utils/validators'
 import type { PasswordResetRequestResponse } from '~/types/auth'
 

@@ -1,14 +1,14 @@
 <template>
   <v-app>
     <!-- Navigation Drawer -->
-    <LayoutNavigationDrawer
+    <NavigationDrawer
       v-model="drawer"
       :rail="rail"
       @toggle-rail="rail = !rail"
     />
 
     <!-- App Bar -->
-    <LayoutAppBar @toggle-drawer="handleDrawerToggle" />
+    <AppBar @toggle-drawer="handleDrawerToggle" />
 
     <!-- Main Content -->
     <v-main>
@@ -22,39 +22,14 @@
       </v-container>
     </v-main>
 
-    <!-- Snackbar global -->
-    <v-snackbar
-      v-model="notification.state.show"
-      :color="notification.state.color"
-      :timeout="notification.state.timeout"
-      location="top right"
-      rounded="lg"
-    >
-      <div class="d-flex align-center">
-        <v-icon
-          :icon="snackbarIcon"
-          class="mr-2"
-          size="20"
-        />
-        {{ notification.state.message }}
-      </div>
-      <template #actions>
-        <v-btn
-          variant="text"
-          size="small"
-          icon="mdi-close"
-          @click="notification.state.show = false"
-        />
-      </template>
-    </v-snackbar>
+    <!-- Snackbar global — Componente compartido -->
+    <GlobalSnackbar />
   </v-app>
 </template>
 
 <script setup lang="ts">
 import { useDisplay, useTheme } from 'vuetify'
-import { useNotification } from '~/composables/useNotification'
 
-const notification = useNotification()
 const { mobile } = useDisplay()
 const theme = useTheme()
 
@@ -99,6 +74,6 @@ const snackbarIcon = computed(() => {
     warning: 'mdi-alert',
     info: 'mdi-information',
   }
-  return icons[notification.state.color] || 'mdi-information'
+  return icons
 })
 </script>

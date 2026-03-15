@@ -1,3 +1,4 @@
+import { ref } from 'vue'
 import type { Ref } from 'vue'
 import type {
   DisponibilidadResponseDto,
@@ -5,6 +6,8 @@ import type {
   CreateReservaDto,
   Reserva,
 } from '~/types/api'
+import { useApi } from './useApi'
+import { useNotification } from './useNotification'
 
 export const useReservas = () => {
   const api = useApi()

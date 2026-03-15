@@ -108,10 +108,11 @@
 </template>
 
 <script setup lang="ts">
+import { computed, ref, onMounted } from 'vue'
 import type { TipoHabitacion, HabitacionDisponibleDto } from '~/types/api'
-import FormularioBusqueda from '~/components/reservas/FormularioBusqueda.vue'
-import HabitacionesGrid from '~/components/reservas/HabitacionesGrid.vue'
-import DialogConfirmarReserva from '~/components/reservas/DialogConfirmarReserva.vue'
+import FormularioBusqueda from '~/components/shared/reservas/FormularioBusqueda.vue'
+import HabitacionesGrid from '~/components/shared/reservas/HabitacionesGrid.vue'
+import DialogConfirmarReserva from '~/components/shared/reservas/DialogConfirmarReserva.vue'
 import DialogCompletarPerfil from '~/components/auth/DialogCompletarPerfil.vue'
 
 definePageMeta({

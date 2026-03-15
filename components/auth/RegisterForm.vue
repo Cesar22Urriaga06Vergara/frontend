@@ -80,6 +80,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, reactive } from 'vue'
 import { useAuthStore } from '~/stores/auth'
 import { emailRules, passwordRules, nameRules, passwordMatch } from '~/utils/validators'
 

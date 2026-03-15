@@ -162,39 +162,7 @@ export const useReservasStore = defineStore('reservas', {
       return response.reserva
     },
 
-    /**
-     * Confirmar check-in de una reserva
-     */
-    async confirmarCheckin(id: number): Promise<Reserva> {
-      const api = useApi()
-      const response = await api.post<ReservaResponse>(`/reservas/${id}/checkin`)
 
-      // Actualizar en la lista local
-      const index = this.reservas.findIndex((r) => r.id === id)
-      if (index !== -1) {
-        this.reservas[index] = response.reserva
-      }
-      this.currentReserva = response.reserva
-
-      return response.reserva
-    },
-
-    /**
-     * Confirmar check-out de una reserva
-     */
-    async confirmarCheckout(id: number): Promise<Reserva> {
-      const api = useApi()
-      const response = await api.post<ReservaResponse>(`/reservas/${id}/checkout`)
-
-      // Actualizar en la lista local
-      const index = this.reservas.findIndex((r) => r.id === id)
-      if (index !== -1) {
-        this.reservas[index] = response.reserva
-      }
-      this.currentReserva = response.reserva
-
-      return response.reserva
-    },
 
     /**
      * Cancelar una reserva
@@ -218,13 +186,13 @@ export const useReservasStore = defineStore('reservas', {
 
     /**
      * Confirmar entrada de una reserva (Check-in)
-     * Recepcionista verifica la cédula del cliente
+     * No requiere parámetros adicionales - el backend registra la hora actual
      */
-    async confirmarReserva(id: number, cedula: string): Promise<Reserva> {
+    async confirmarCheckin(id: number): Promise<Reserva> {
       const api = useApi()
       const response = await api.post<ReservaResponse>(
         `/reservas/${id}/checkin`,
-        { cedula }
+        {}
       )
 
       // Actualizar en la lista local
@@ -235,6 +203,13 @@ export const useReservasStore = defineStore('reservas', {
       this.currentReserva = response.reserva
 
       return response.reserva
+    },
+
+    /**
+     * Alias para compatibilidad legacy - confirmar entrada (Check-in)
+     */
+    async confirmarReserva(id: number, cedula?: string): Promise<Reserva> {
+      return this.confirmarCheckin(id)
     },
 
     /**
@@ -260,11 +235,12 @@ export const useReservasStore = defineStore('reservas', {
 
     /**
      * Completar una reserva (Check-out)
+     * Registra la salida del huésped
      */
-    async completarReserva(id: number): Promise<Reserva> {
+    async confirmarCheckout(id: number): Promise<Reserva> {
       const api = useApi()
       const response = await api.post<ReservaResponse>(
-        `/reservas/${id}/completar`,
+        `/reservas/${id}/checkout`,
         {}
       )
 
@@ -276,6 +252,13 @@ export const useReservasStore = defineStore('reservas', {
       this.currentReserva = response.reserva
 
       return response.reserva
+    },
+
+    /**
+     * Alias para compatibilidad legacy - completar reserva (Check-out)
+     */
+    async completarReserva(id: number): Promise<Reserva> {
+      return this.confirmarCheckout(id)
     },
 
     /**

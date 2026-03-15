@@ -29,12 +29,6 @@
               Regístrate
             </NuxtLink>
           </p>
-          <p class="text-body-2 text-medium-emphasis mt-2">
-            ¿Eres sponsor?
-            <NuxtLink to="/register-sponsor" class="text-secondary text-decoration-none font-weight-medium">
-              Registro de Sponsor
-            </NuxtLink>
-          </p>
         </div>
       </v-col>
     </v-container>

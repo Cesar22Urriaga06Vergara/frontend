@@ -43,6 +43,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, reactive } from 'vue'
 import { passwordRules, passwordMatch } from '~/utils/validators'
 import type { PasswordResetConfirmResponse } from '~/types/auth'
 

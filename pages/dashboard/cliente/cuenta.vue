@@ -193,6 +193,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed, ref } from 'vue'
 import { onMounted } from 'vue';
 import { useServiciosStore } from '~/stores/servicios';
 import { useReservasStore } from '~/stores/reservas';

@@ -25,26 +25,25 @@ export interface BreadcrumbItem {
 // Mapa completo de rutas con metadata para breadcrumbs
 const ROUTE_META: Record<string, { title: string; parent?: string }> = {
   '/dashboard': { title: 'Dashboard' },
+  '/dashboard/staff': { title: 'Panel de Control', parent: '/dashboard' },
+  '/dashboard/staff/users': { title: 'Usuarios', parent: '/dashboard/staff' },
+  '/dashboard/staff/users-[id]': { title: 'Editar Usuario', parent: '/dashboard/staff/users' },
+  '/dashboard/staff/reservas': { title: 'Gestión de Reservas', parent: '/dashboard/staff' },
+  '/dashboard/staff/rooms': { title: 'Habitaciones', parent: '/dashboard/staff' },
+  '/dashboard/staff/room-types': { title: 'Tipos de Habitación', parent: '/dashboard/staff' },
+  '/dashboard/staff/amenidades': { title: 'Amenidades', parent: '/dashboard/staff' },
+  '/dashboard/staff/services': { title: 'Catálogo de Servicios', parent: '/dashboard/staff' },
+  '/dashboard/staff/orders': { title: 'Gestión de Pedidos', parent: '/dashboard/staff' },
+  '/dashboard/staff/reset-stats': { title: 'Reset Stats', parent: '/dashboard/staff' },
+  '/dashboard/staff/recepcionista': { title: 'Dashboard - Recepcionista', parent: '/dashboard/staff' },
+  '/dashboard/staff/recepcionista/reservas': { title: 'Gestión de Reservas', parent: '/dashboard/staff/recepcionista' },
+  '/dashboard/staff/recepcionista/checkout': { title: 'Gestión de Check-out', parent: '/dashboard/staff/recepcionista' },
+  '/dashboard/staff/checkin': { title: 'Check-in de Huéspedes', parent: '/dashboard/staff' },
+  '/dashboard/staff/checkout': { title: 'Check-out de Huéspedes', parent: '/dashboard/staff' },
+  '/dashboard/staff/reports': { title: 'Reportes y Análisis', parent: '/dashboard/staff' },
+  '/dashboard/staff/area': { title: 'Gestión de Área', parent: '/dashboard/staff' },
   '/dashboard/profile': { title: 'Mi Perfil', parent: '/dashboard' },
-  '/dashboard/superadmin/reservas': { title: 'Gestión de Reservas', parent: '/dashboard' },
-  '/dashboard/superadmin/hoteles': { title: 'Hoteles', parent: '/dashboard' },
-  '/dashboard/superadmin/empleados': { title: 'Empleados', parent: '/dashboard' },
-  '/dashboard/superadmin/habitaciones': { title: 'Habitaciones', parent: '/dashboard' },
-  '/dashboard/superadmin/amenidades': { title: 'Amenidades', parent: '/dashboard' },
-  '/dashboard/superadmin/tipos-habitacion': { title: 'Tipos de Habitación', parent: '/dashboard' },
-  '/dashboard/admin/users': { title: 'Usuarios', parent: '/dashboard' },
-  '/dashboard/admin/reservas': { title: 'Gestión de Reservas', parent: '/dashboard' },
-  '/dashboard/admin/reset-stats': { title: 'Reset Stats', parent: '/dashboard' },
-  '/dashboard/admin/amenidades': { title: 'Amenidades', parent: '/dashboard' },
-  '/dashboard/admin/tipos-habitacion': { title: 'Tipos de Habitación', parent: '/dashboard' },
-  '/dashboard/admin/habitaciones': { title: 'Habitaciones', parent: '/dashboard' },
   '/dashboard/cliente': { title: 'Dashboard', parent: '/dashboard' },
-  '/dashboard/player': { title: 'Dashboard', parent: '/dashboard' },
-  '/dashboard/player/clues': { title: 'Mis Pistas', parent: '/dashboard/player' },
-  '/dashboard/sponsor': { title: 'Dashboard', parent: '/dashboard' },
-  '/dashboard/recepcionista': { title: 'Dashboard - Recepcionista', parent: '/dashboard' },
-  '/dashboard/recepcionista/reservas': { title: 'Gestión de Reservas', parent: '/dashboard/recepcionista' },
-  '/dashboard/recepcionista/checkout': { title: 'Gestión de Check-out', parent: '/dashboard/recepcionista' },
   '/reservas/nueva': { title: 'Nueva Reserva' },
   '/reservas/confirmacion': { title: 'Confirmación de Reserva', parent: '/reservas/nueva' },
 }
@@ -87,28 +86,27 @@ export const useRoleNavigation = () => {
           {
             title: 'Principal',
             items: [
-              { title: 'Dashboard', icon: 'mdi-view-dashboard-outline', to: '/dashboard' },
+              { title: 'Dashboard', icon: 'mdi-view-dashboard-outline', to: '/dashboard/staff' },
             ],
           },
           {
             title: 'Operaciones',
             items: [
-              { title: 'Gestión de Reservas', icon: 'mdi-calendar-check-outline', to: '/dashboard/superadmin/reservas' },
+              { title: 'Gestión de Reservas', icon: 'mdi-calendar-check-outline', to: '/dashboard/staff/reservas' },
             ],
           },
           {
             title: 'Configuración Hotel',
             items: [
-              { title: 'Hoteles', icon: 'mdi-building-outline', to: '/dashboard/superadmin/hoteles' },
-              { title: 'Habitaciones', icon: 'mdi-door', to: '/dashboard/superadmin/habitaciones' },
-              { title: 'Tipos de Habitación', icon: 'mdi-bed-outline', to: '/dashboard/superadmin/tipos-habitacion' },
-              { title: 'Amenidades', icon: 'mdi-star-outline', to: '/dashboard/superadmin/amenidades' },
+              { title: 'Habitaciones', icon: 'mdi-door', to: '/dashboard/staff/rooms' },
+              { title: 'Tipos de Habitación', icon: 'mdi-bed-outline', to: '/dashboard/staff/room-types' },
+              { title: 'Amenidades', icon: 'mdi-star-outline', to: '/dashboard/staff/amenidades' },
             ],
           },
           {
             title: 'Administración',
             items: [
-              { title: 'Empleados', icon: 'mdi-account-group-outline', to: '/dashboard/superadmin/empleados' },
+              { title: 'Usuarios', icon: 'mdi-account-group-outline', to: '/dashboard/staff/users' },
             ],
           },
           accountSection,
@@ -119,29 +117,29 @@ export const useRoleNavigation = () => {
           {
             title: 'Principal',
             items: [
-              { title: 'Inicio', icon: 'mdi-view-dashboard-outline', to: '/dashboard' },
+              { title: 'Inicio', icon: 'mdi-view-dashboard-outline', to: '/dashboard/staff' },
             ],
           },
           {
             title: 'Operaciones',
             items: [
-              { title: 'Gestión de Reservas', icon: 'mdi-calendar-check-outline', to: '/dashboard/admin/reservas' },
+              { title: 'Gestión de Reservas', icon: 'mdi-calendar-check-outline', to: '/dashboard/staff/reservas' },
             ],
           },
           {
             title: 'Administración',
             items: [
-              { title: 'Usuarios', icon: 'mdi-account-group-outline', to: '/dashboard/admin/users' },
-              { title: 'Reset Stats', icon: 'mdi-chart-bar', to: '/dashboard/admin/reset-stats' },
+              { title: 'Usuarios', icon: 'mdi-account-group-outline', to: '/dashboard/staff/users' },
+              { title: 'Reset Stats', icon: 'mdi-chart-bar', to: '/dashboard/staff/reset-stats' },
             ],
           },
           {
             title: 'Hotel',
             items: [
-              { title: 'Catálogo de Servicios', icon: 'mdi-shopping-outline', to: '/dashboard/admin/servicios' },
-              { title: 'Amenidades', icon: 'mdi-star-outline', to: '/dashboard/admin/amenidades' },
-              { title: 'Tipos de Habitación', icon: 'mdi-bed-outline', to: '/dashboard/admin/tipos-habitacion' },
-              { title: 'Habitaciones', icon: 'mdi-door', to: '/dashboard/admin/habitaciones' },
+              { title: 'Catálogo de Servicios', icon: 'mdi-shopping-outline', to: '/dashboard/staff/services' },
+              { title: 'Amenidades', icon: 'mdi-star-outline', to: '/dashboard/staff/amenidades' },
+              { title: 'Tipos de Habitación', icon: 'mdi-bed-outline', to: '/dashboard/staff/room-types' },
+              { title: 'Habitaciones', icon: 'mdi-door', to: '/dashboard/staff/rooms' },
             ],
           },
           accountSection,
@@ -152,14 +150,15 @@ export const useRoleNavigation = () => {
           {
             title: 'Principal',
             items: [
-              { title: 'Inicio', icon: 'mdi-view-dashboard-outline', to: '/dashboard/recepcionista' },
+              { title: 'Inicio', icon: 'mdi-view-dashboard-outline', to: '/dashboard/staff/recepcionista' },
             ],
           },
           {
             title: 'Gestión',
             items: [
-              { title: 'Reservas', icon: 'mdi-calendar-check-outline', to: '/dashboard/recepcionista/reservas' },
-              { title: 'Check-out', icon: 'mdi-door-closed-outline', to: '/dashboard/recepcionista/checkout' },
+              { title: 'Check-in', icon: 'mdi-login-variant', to: '/dashboard/staff/checkin' },
+              { title: 'Reservas', icon: 'mdi-calendar-check-outline', to: '/dashboard/staff/recepcionista/reservas' },
+              { title: 'Check-out', icon: 'mdi-logout-variant', to: '/dashboard/staff/checkout' },
             ],
           },
           accountSection,
@@ -197,7 +196,7 @@ export const useRoleNavigation = () => {
           {
             title: 'Área de Trabajo',
             items: [
-              { title: 'Mi Panel', icon: 'mdi-view-dashboard-outline', to: '/dashboard/area' },
+              { title: 'Gestión de Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/staff/orders' },
             ],
           },
           accountSection,
@@ -244,12 +243,12 @@ export const useRoleNavigation = () => {
   })
 
   /**
-   * Intentar hacer match de rutas dinámicas (ej: /dashboard/admin/users/123)
+   * Intentar hacer match de rutas dinámicas (ej: /dashboard/staff/users/123)
    */
   const matchDynamicRoute = (path: string): { title: string; parent?: string } | null => {
-    // /dashboard/admin/users/:id
-    if (/^\/dashboard\/admin\/users\/[^/]+$/.test(path)) {
-      return { title: 'Detalle de Usuario', parent: '/dashboard/admin/users' }
+    // /dashboard/staff/users/:id
+    if (/^\/dashboard\/staff\/users\/[^/]+$/.test(path)) {
+      return { title: 'Detalle de Usuario', parent: '/dashboard/staff/users' }
     }
     return null
   }

@@ -41,15 +41,8 @@ export const useAuthStore = defineStore('auth', {
       const role = this.user?.role?.toLowerCase()
       if (!role) return '/dashboard'
       
-      // Buscar en el mapa con el rol normalizado
-      const routes: Record<string, string> = {
-        'superadmin': '/dashboard/superadmin/reservas',
-        'admin': '/dashboard/admin/users',
-        'recepcionista': '/dashboard/recepcionista',
-        'cliente': '/dashboard/cliente',
-      }
-      
-      return routes[role] || '/dashboard'
+      // ✅ Una sola fuente de verdad: ROLE_DEFAULT_ROUTE
+      return ROLE_DEFAULT_ROUTE[role as UserRole] || '/dashboard/staff'
     },
   },
 

@@ -46,6 +46,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue'
 import type { PasswordResetVerifyResponse } from '~/types/auth'
 
 const props = defineProps<{

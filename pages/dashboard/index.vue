@@ -107,6 +107,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useAuthStore } from '~/stores/auth'
 import { useRoleNavigation } from '~/composables/useRoleNavigation'
 import { UserRole } from '~/types/auth'
@@ -160,14 +161,14 @@ const quickActions = computed((): QuickAction[] => {
           title: 'Gestionar Usuarios',
           description: 'Administrar cuentas del sistema',
           icon: 'mdi-account-group-outline',
-          to: '/dashboard/admin/users',
+          to: '/dashboard/staff/users',
           color: 'error',
         },
         {
           title: 'Reset Stats',
           description: 'Estadísticas de recuperación',
           icon: 'mdi-chart-bar',
-          to: '/dashboard/admin/reset-stats',
+          to: '/dashboard/staff/reset-stats',
           color: 'warning',
         },
         ...base,
@@ -179,7 +180,7 @@ const quickActions = computed((): QuickAction[] => {
           title: 'Usuarios por Rol',
           description: 'Filtrar y consultar usuarios',
           icon: 'mdi-filter-variant',
-          to: '/dashboard/admin/users',
+          to: '/dashboard/staff/users',
           color: 'warning',
         },
         ...base,

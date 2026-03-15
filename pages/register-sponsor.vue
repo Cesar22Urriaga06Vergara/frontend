@@ -93,6 +93,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, reactive } from 'vue'
 import { useAuthStore } from '~/stores/auth'
 import { useNotification } from '~/composables/useNotification'
 import { emailRules, passwordRules, nameRules } from '~/utils/validators'

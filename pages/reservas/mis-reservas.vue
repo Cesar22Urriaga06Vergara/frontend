@@ -105,10 +105,11 @@
 </template>
 
 <script setup lang="ts">
+import { computed, ref, onMounted } from 'vue'
 import type { Reserva } from '~/types/api'
-import DialogCancelarReserva from '~/components/reservas/DialogCancelarReserva.vue'
-import DialogDetalleReserva from '~/components/reservas/DialogDetalleReserva.vue'
-import ReservasGrid from '~/components/reservas/ReservasGrid.vue'
+import DialogCancelarReserva from '~/components/shared/reservas/DialogCancelarReserva.vue'
+import DialogDetalleReserva from '~/components/shared/reservas/DialogDetalleReserva.vue'
+import ReservasGrid from '~/components/shared/reservas/ReservasGrid.vue'
 
 definePageMeta({
   middleware: ['auth'],

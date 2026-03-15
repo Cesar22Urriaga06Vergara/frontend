@@ -24,9 +24,11 @@ export default defineNuxtRouteMiddleware((to, _from) => {
       return navigateTo('/login')
     }
 
-    // Comparar en minúsculas para evitar problemas de case
+    // Normalizar roles a minúsculas para comparación consistente
     const allowed = allowedRoles.map((r) => String(r).toLowerCase())
-    if (!allowed.includes(userRole)) {
+    const normalizedUserRole = String(userRole).toLowerCase()
+    
+    if (!allowed.includes(normalizedUserRole)) {
       // Sin permiso — redirigir a su ruta por defecto
       return navigateTo(authStore.defaultRoute)
     }

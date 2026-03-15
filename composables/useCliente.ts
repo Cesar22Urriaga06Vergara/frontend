@@ -1,3 +1,6 @@
+import { useApi } from './useApi'
+import { useNotification } from './useNotification'
+
 export const useCliente = () => {
   const api = useApi()
   const { success, error } = useNotification()
