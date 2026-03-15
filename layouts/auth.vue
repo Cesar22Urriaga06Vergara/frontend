@@ -5,7 +5,7 @@
     </v-main>
 
     <!-- Snackbar global — Componente compartido -->
-    <GlobalSnackbar />
+    <SharedGlobalSnackbar />
   </v-app>
 </template>
 
