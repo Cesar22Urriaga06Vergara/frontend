@@ -5,18 +5,9 @@
       <div>
         <h1 class="text-h5 font-weight-bold mb-1">Registrar Entrada de Huéspedes</h1>
         <p class="text-body-2 text-medium-emphasis">
-          Registrar llegada de clientes al hotel
+          Busca por cédula del cliente y confirma su entrada
         </p>
       </div>
-      <v-btn
-        prepend-icon="mdi-refresh"
-        color="primary"
-        variant="tonal"
-        @click="refrescarReservas"
-        :loading="loading"
-      >
-        Actualizar
-      </v-btn>
     </div>
 
     <!-- Búsqueda por cédula -->
@@ -25,7 +16,7 @@
       <v-row>
         <v-col cols="12" sm="8">
           <v-text-field
-            v-model="numeroReserva"
+            v-model="cedula"
             label="Cédula del Cliente"
             placeholder="Ej: 1234567890"
             prepend-inner-icon="mdi-card-account-details"
@@ -50,64 +41,84 @@
     <!-- Reservas próximas a check-in -->
     <v-card class="card-glow mb-6">
       <v-card-title class="text-subtitle-1 font-weight-bold">
-        Reservas Disponibles para Entrada
+        Detalles de la Reserva
       </v-card-title>
-      <v-card-text v-if="proximasReservas.length > 0" class="pa-0">
-        <v-data-table
-          :headers="headers"
-          :items="proximasReservas"
-          :loading="loading"
-          class="elevation-0"
-          :items-per-page="10"
-        >
-          <template #item.cliente="{ item }">
-            <div>
-              <div class="font-weight-bold">{{ item.nombreCliente }}</div>
-              <div class="text-caption text-medium-emphasis">{{ item.emailCliente }}</div>
-            </div>
-          </template>
-
-          <template #item.habitacion="{ item }">
+      <v-card-text v-if="reservaEncontrada" class="pa-6">
+        <v-row>
+          <v-col cols="12" sm="6">
+            <div class="text-caption text-medium-emphasis">Cliente</div>
+            <div class="text-h6 font-weight-bold mb-4">{{ reservaEncontrada.nombreCliente }}</div>
+          </v-col>
+          <v-col cols="12" sm="6">
+            <div class="text-caption text-medium-emphasis">Cédula</div>
+            <div class="text-h6 font-weight-bold mb-4">{{ reservaEncontrada.cedulaCliente }}</div>
+          </v-col>
+          <v-col cols="12" sm="6">
+            <div class="text-caption text-medium-emphasis">Habitación</div>
             <v-chip color="info" variant="tonal" size="small">
-              Hab. {{ item.habitacion?.numeroHabitacion }}
+              Hab. {{ reservaEncontrada.habitacion?.numeroHabitacion }}
             </v-chip>
-          </template>
-
-          <template #item.acciones="{ item }">
-            <v-btn
-              icon="mdi-login-variant"
-              size="small"
-              variant="text"
-              color="success"
-              @click="abrirCheckin(item)"
-              title="Registrar Check-in"
-            />
-          </template>
-        </v-data-table>
+          </v-col>
+          <v-col cols="12" sm="6">
+            <div class="text-caption text-medium-emphasis">Tipo</div>
+            <div class="text-body-2">{{ reservaEncontrada.tipoHabitacion?.nombreTipo }}</div>
+          </v-col>
+          <v-col cols="12" sm="6">
+            <div class="text-caption text-medium-emphasis">Entrada</div>
+            <div class="text-body-2">{{ new Date(reservaEncontrada.checkinPrevisto).toLocaleDateString('es-CO') }}</div>
+          </v-col>
+          <v-col cols="12" sm="6">
+            <div class="text-caption text-medium-emphasis">Salida</div>
+            <div class="text-body-2">{{ new Date(reservaEncontrada.checkoutPrevisto).toLocaleDateString('es-CO') }}</div>
+          </v-col>
+          <v-col cols="12" sm="6">
+            <div class="text-caption text-medium-emphasis">Email</div>
+            <div class="text-body-2">{{ reservaEncontrada.emailCliente }}</div>
+          </v-col>
+          <v-col cols="12" sm="6">
+            <div class="text-caption text-medium-emphasis">Estado</div>
+            <v-chip :color="estadoColor" size="small" variant="tonal">
+              {{ reservaEncontrada.estadoReserva }}
+            </v-chip>
+          </v-col>
+        </v-row>
+        <v-divider class="my-4" />
+        <div class="d-flex justify-end gap-2">
+          <v-btn variant="text" @click="limpiarBusqueda">
+            Limpiar
+          </v-btn>
+          <v-btn
+            color="success"
+            @click="abrirCheckin"
+            prepend-icon="mdi-login-variant"
+            :disabled="reservaEncontrada.checkinReal !== null"
+          >
+            Confirmar Entrada
+          </v-btn>
+        </div>
       </v-card-text>
       <v-card-text v-else class="text-center py-8 text-medium-emphasis">
-        No hay reservas disponibles para registrar entrada en este momento
+        Busca una cédula para ver los detalles de la reserva
       </v-card-text>
     </v-card>
 
     <!-- Diálogo de Registrar Entrada -->
-    <v-dialog v-model="checkinDialog" max-width="600px">
-      <v-card v-if="reservaSeleccionada">
-        <v-card-title>Registrar Entrada — {{ reservaSeleccionada.nombreCliente }}</v-card-title>
+    <v-dialog v-model="checkinDialog" max-width="500px">
+      <v-card v-if="reservaEncontrada">
+        <v-card-title>Registrar Entrada — {{ reservaEncontrada.nombreCliente }}</v-card-title>
         <v-card-text class="pa-6">
           <v-row>
-            <v-col cols="12" sm="6">
-              <div class="text-caption text-medium-emphasis">Habitación</div>
-              <div class="text-h6 font-weight-bold">
-                {{ reservaSeleccionada.habitacion?.numeroHabitacion }}
+            <v-col cols="12">
+              <div class="text-subtitle-2 font-weight-bold mb-2">Información de la Reserva</div>
+              <div class="text-body-2 mb-1">
+                <strong>Habitación:</strong> {{ reservaEncontrada.habitacion?.numeroHabitacion }}
+              </div>
+              <div class="text-body-2 mb-4">
+                <strong>Tipo:</strong> {{ reservaEncontrada.tipoHabitacion?.nombreTipo }}
               </div>
             </v-col>
-            <v-col cols="12" sm="6">
-              <div class="text-caption text-medium-emphasis">Tipo</div>
-              <div class="text-h6 font-weight-bold">
-                {{ reservaSeleccionada.tipoHabitacion?.nombreTipo }}
-              </div>
-            </v-col>
+
+            <!-- Verificación de documento -->
             <v-col cols="12">
               <v-checkbox
                 v-model="documentoVerificado"
@@ -115,13 +126,8 @@
                 color="success"
               />
             </v-col>
-            <v-col cols="12">
-              <v-checkbox
-                v-model="metodoPagoConfirmado"
-                label="Método de pago confirmado"
-                color="success"
-              />
-            </v-col>
+
+            <!-- Notas opcionales -->
             <v-col cols="12">
               <v-text-field
                 v-model="notasCheckin"
@@ -129,6 +135,13 @@
                 placeholder="Ej: Cliente requiere cuna, etc."
                 variant="outlined"
               />
+            </v-col>
+
+            <!-- Información sobre validación de pago -->
+            <v-col cols="12">
+              <v-alert type="info" variant="tonal">
+                El método de pago será validado al momento de la salida del cliente.
+              </v-alert>
             </v-col>
           </v-row>
         </v-card-text>
@@ -140,8 +153,9 @@
           <v-btn
             color="success"
             @click="confirmarCheckin"
-            :disabled="!documentoVerificado || !metodoPagoConfirmado"
+            :disabled="!documentoVerificado"
             :loading="confirmandoCheckin"
+            prepend-icon="mdi-check"
           >
             Confirmar Entrada
           </v-btn>
@@ -173,35 +187,20 @@ const { success, error } = useNotification()
 
 const loading = ref(false)
 const confirmandoCheckin = ref(false)
-const numeroReserva = ref('')
+const cedula = ref('')
 const checkinDialog = ref(false)
-const reservaSeleccionada = ref<Reserva | null>(null)
+const reservaEncontrada = ref<Reserva | null>(null)
 const documentoVerificado = ref(false)
-const metodoPagoConfirmado = ref(false)
 const notasCheckin = ref('')
 
-const headers = [
-  { title: 'Cliente', key: 'cliente', width: '250px' },
-  { title: 'Habitación', key: 'habitacion', width: '150px' },
-  { title: 'Entrada', key: 'fechaEntrada' },
-  { title: 'Acciones', key: 'acciones', width: '80px' },
-]
-
-// Cargar reservas confirmadas sin checkin realizado
-const proximasReservas = computed(() =>
-  reservasStore.reservas.filter(r =>
-    r.estadoReserva?.toLowerCase() === 'confirmada' && !r.checkinReal
-  )
-)
-
-// Al montar, cargar reservas del hotel
+// Al montar, cargar reservas del hotel actual
 onMounted(async () => {
   if (authStore.user?.idHotel) {
-    await refrescarReservas()
+    await cargarReservas()
   }
 })
 
-const refrescarReservas = async () => {
+const cargarReservas = async () => {
   loading.value = true
   try {
     if (authStore.user?.idHotel) {
@@ -214,51 +213,78 @@ const refrescarReservas = async () => {
   }
 }
 
+// Computada para color del estado
+const estadoColor = computed<string>(() => {
+  if (!reservaEncontrada.value) return 'grey'
+  const estado = reservaEncontrada.value.estadoReserva?.toLowerCase()
+  switch (estado) {
+    case 'reservada':
+      return 'warning'
+    case 'confirmada':
+      return 'success'
+    case 'cancelada':
+      return 'error'
+    default:
+      return 'grey'
+  }
+})
+
 const buscarReserva = async () => {
-  if (!numeroReserva.value) {
-    error('Ingrese cédula del cliente')
+  if (!cedula.value) {
+    error('Ingrese la cédula del cliente')
     return
   }
-  loading.value = true
-  try {
-    // Buscar reserva por cédula del cliente en el hotel del usuario
-    const resultados = await reservasStore.fetchReservasByCedula(
-      numeroReserva.value,
-      authStore.user?.idHotel
-    )
-    if (resultados.length === 0) {
-      error('No se encontraron reservas para esa cédula')
-    }
-  } catch (err: any) {
-    error(err?.message || 'Error al buscar reserva')
-  } finally {
-    loading.value = false
+
+  // Filtrar localmente desde las reservas cargadas
+  const reserva = reservasStore.reservas.find(r =>
+    r.cedulaCliente === cedula.value &&
+    (r.estadoReserva?.toLowerCase() === 'confirmada' ||
+      r.estadoReserva?.toLowerCase() === 'reservada') &&
+    !r.checkinReal
+  )
+
+  if (!reserva) {
+    error('No hay reserva disponible para esa cédula')
+    reservaEncontrada.value = null
+    return
   }
+
+  reservaEncontrada.value = reserva
+  success(`Reserva encontrada: ${reserva.nombreCliente}`)
 }
 
-const abrirCheckin = (reserva: Reserva) => {
-  reservaSeleccionada.value = reserva
+const limpiarBusqueda = () => {
+  cedula.value = ''
+  reservaEncontrada.value = null
+}
+
+const abrirCheckin = () => {
+  if (!reservaEncontrada.value) return
   documentoVerificado.value = false
-  metodoPagoConfirmado.value = false
   notasCheckin.value = ''
   checkinDialog.value = true
 }
 
 const confirmarCheckin = async () => {
-  if (!reservaSeleccionada.value) return
-  if (!documentoVerificado.value || !metodoPagoConfirmado.value) {
-    error('Complete los requisitos de check-in')
+  if (!reservaEncontrada.value) return
+  if (!documentoVerificado.value) {
+    error('Debe verificar el documento del cliente')
     return
   }
 
   confirmandoCheckin.value = true
   try {
-    // Llamar API para registrar check-in
-    await reservasStore.confirmarCheckin(reservaSeleccionada.value.id)
+    // Paso 1: Confirmar estado de la reserva (cambiar de 'reservada' a 'confirmada')
+    await reservasStore.confirmarReservaEstado(reservaEncontrada.value.id)
+    
+    // Paso 2: Registrar el check-in
+    await reservasStore.confirmarCheckin(reservaEncontrada.value.id)
+    
     success('Check-in registrado exitosamente')
     checkinDialog.value = false
-    // Recargar lista
-    await refrescarReservas()
+    limpiarBusqueda()
+    // Recargar reservas
+    await cargarReservas()
   } catch (err: any) {
     error(err?.message || 'Error al registrar check-in')
   } finally {

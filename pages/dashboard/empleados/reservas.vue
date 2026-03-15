@@ -1,33 +1,102 @@
 <template>
   <div>
-    <!-- Header -->
-    <div class="d-flex align-center justify-space-between mb-6 flex-wrap ga-2">
-      <div>
-        <h1 class="text-h5 font-weight-bold mb-1">Gestión de Reservas</h1>
-        <p class="text-body-2 text-medium-emphasis">
-          {{ reservasStore.totalCount }} reservas registradas
-        </p>
+    <!-- Header con Estadísticas -->
+    <div class="mb-6">
+      <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
+        <div>
+          <h1 class="text-h5 font-weight-bold mb-1">Gestión de Reservas</h1>
+          <p class="text-body-2 text-medium-emphasis">
+            Total: {{ reservasStore.totalCount }} reservas | Actualizado hace poco
+          </p>
+        </div>
+        <v-btn
+          @click="loadReservas"
+          :loading="reservasStore.loading"
+          color="primary"
+          prepend-icon="mdi-refresh"
+        >
+          Actualizar
+        </v-btn>
       </div>
-      <v-btn
-        @click="loadReservas"
-        :loading="reservasStore.loading"
-        color="primary"
-        prepend-icon="mdi-refresh"
-      >
-        Actualizar
-      </v-btn>
+
+      <!-- Cards de Resumen por Estado -->
+      <v-row class="ga-2">
+        <v-col cols="12" sm="6" md="3">
+          <v-card class="card-glow">
+            <v-card-text class="pa-4">
+              <div class="d-flex align-center justify-space-between">
+                <div>
+                  <p class="text-caption text-medium-emphasis">Reservadas</p>
+                  <p class="text-h6 font-weight-bold">{{ countByEstado.reservada || 0 }}</p>
+                </div>
+                <v-avatar color="warning" variant="tonal" size="40">
+                  <v-icon icon="mdi-calendar" />
+                </v-avatar>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+
+        <v-col cols="12" sm="6" md="3">
+          <v-card class="card-glow">
+            <v-card-text class="pa-4">
+              <div class="d-flex align-center justify-space-between">
+                <div>
+                  <p class="text-caption text-medium-emphasis">Confirmadas</p>
+                  <p class="text-h6 font-weight-bold">{{ countByEstado.confirmada || 0 }}</p>
+                </div>
+                <v-avatar color="success" variant="tonal" size="40">
+                  <v-icon icon="mdi-check-circle" />
+                </v-avatar>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+
+        <v-col cols="12" sm="6" md="3">
+          <v-card class="card-glow">
+            <v-card-text class="pa-4">
+              <div class="d-flex align-center justify-space-between">
+                <div>
+                  <p class="text-caption text-medium-emphasis">En Ocupancia</p>
+                  <p class="text-h6 font-weight-bold">{{ countByEstado.ocupada || 0 }}</p>
+                </div>
+                <v-avatar color="info" variant="tonal" size="40">
+                  <v-icon icon="mdi-door-open" />
+                </v-avatar>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+
+        <v-col cols="12" sm="6" md="3">
+          <v-card class="card-glow">
+            <v-card-text class="pa-4">
+              <div class="d-flex align-center justify-space-between">
+                <div>
+                  <p class="text-caption text-medium-emphasis">Canceladas</p>
+                  <p class="text-h6 font-weight-bold">{{ countByEstado.cancelada || 0 }}</p>
+                </div>
+                <v-avatar color="error" variant="tonal" size="40">
+                  <v-icon icon="mdi-cancel" />
+                </v-avatar>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
     </div>
 
-    <!-- Búsqueda por cédula -->
+    <!-- Búsqueda y Filtros Avanzados -->
     <v-card class="card-glow mb-6 pa-6">
-      <div class="text-subtitle-2 font-weight-bold mb-4">Buscar por Cédula del Cliente</div>
+      <div class="text-subtitle-2 font-weight-bold mb-4">Buscar y Filtrar Reservas</div>
       <v-row>
         <v-col cols="12" sm="8">
           <v-text-field
             v-model="cedulaBusqueda"
-            label="Ingrese la cédula del cliente"
-            placeholder="Ej: 1234567890"
-            prepend-inner-icon="mdi-card-account-details-outline"
+            label="Buscar por cédula, nombre o código de confirmación"
+            placeholder="Ej: 1234567890 o Juan Pérez"
+            prepend-inner-icon="mdi-magnify"
             clearable
             @keyup.enter="buscarPorCedula"
           />
@@ -38,10 +107,31 @@
             :loading="reservasStore.loading"
             color="primary"
             block
-            prepend-icon="mdi-magnify"
+            prepend-icon="mdi-search-web"
           >
             Buscar
           </v-btn>
+        </v-col>
+        <v-col cols="12">
+          <div class="d-flex gap-2 flex-wrap">
+            <v-btn
+              v-for="estado in filtroEstadoOpcionesRapidas"
+              :key="estado.value"
+              size="small"
+              :variant="filtroEstadoSeleccionado === estado.value ? 'elevated' : 'tonal'"
+              :color="estado.color"
+              @click="filtrarPorEstado(estado.value)"
+            >
+              {{ estado.label }}
+            </v-btn>
+            <v-btn
+              size="small"
+              variant="text"
+              @click="limpiarFiltros"
+            >
+              Limpiar filtros
+            </v-btn>
+          </div>
         </v-col>
       </v-row>
     </v-card>
@@ -309,7 +399,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useReservasStore } from '~/stores/reservas'
 import { useNotification } from '~/composables/useNotification'
 import { useAuthStore } from '~/stores/auth'
@@ -333,6 +423,7 @@ const notification = useNotification()
 const selectedReserva = ref<Reserva | null>(null)
 const cedulaBusqueda = ref('')
 const cedulaConfirm = ref('')
+const filtroEstadoSeleccionado = ref<string | null>(null)
 
 // Confirm reserva dialog
 const confirmReservaDialog = ref(false)
@@ -350,6 +441,33 @@ const checkoutLoading = ref(false)
 const cancelDialog = ref(false)
 const cancelLoading = ref(false)
 const cancelReason = ref('')
+
+// ── Opciones de filtro rápido ──
+const filtroEstadoOpcionesRapidas = [
+  { label: 'Reservadas', value: 'reservada', color: 'warning' },
+  { label: 'Confirmadas', value: 'confirmada', color: 'success' },
+  { label: 'En Ocupancia', value: 'ocupada', color: 'info' },
+  { label: 'Canceladas', value: 'cancelada', color: 'error' },
+]
+
+// ── Computadas ──
+const countByEstado = computed(() => {
+  const counts: Record<string, number> = {
+    reservada: 0,
+    confirmada: 0,
+    ocupada: 0,
+    cancelada: 0,
+  }
+
+  reservasStore.reservas.forEach((r) => {
+    const estado = r.estadoReserva?.toLowerCase() || 'reservada'
+    if (estado in counts) {
+      counts[estado]++
+    }
+  })
+
+  return counts
+})
 
 // ── Carga inicial ──
 const loadReservas = async () => {
@@ -390,7 +508,7 @@ const reloadCurrentSearch = async () => {
 
 const buscarPorCedula = async () => {
   if (!cedulaBusqueda.value.trim()) {
-    notification.warning('Ingrese una cédula para buscar')
+    notification.warning('Ingrese cédula, nombre o código de confirmación para buscar')
     return
   }
 
@@ -399,9 +517,21 @@ const buscarPorCedula = async () => {
     if (hotelId) {
       await reservasStore.fetchReservasByCedula(cedulaBusqueda.value, hotelId)
     }
+    filtroEstadoSeleccionado.value = null
   } catch (error: any) {
     notification.error(error?.message || 'Error al buscar reservas')
   }
+}
+
+const filtrarPorEstado = async (estado: string) => {
+  filtroEstadoSeleccionado.value = filtroEstadoSeleccionado.value === estado ? null : estado
+  cedulaBusqueda.value = ''
+}
+
+const limpiarFiltros = async () => {
+  cedulaBusqueda.value = ''
+  filtroEstadoSeleccionado.value = null
+  await loadReservas()
 }
 
 const openConfirmReservaDialog = (reserva: Reserva) => {
@@ -504,3 +634,9 @@ const onFilterChanged = () => {
   // Aquí se pueden manejar cambios en filtros de la tabla si es necesario
 }
 </script>
+
+<style scoped>
+.card-glow {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+</style>
