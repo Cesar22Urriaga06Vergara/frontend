@@ -127,19 +127,22 @@ export const useReservasStore = defineStore('reservas', {
     },
 
     /**
-     * Buscar reservas por cédula del cliente
+     * Buscar reservas por cédula del cliente (filtra localmente de las reservas cargadas)
      */
     async fetchReservasByCedula(cedula: string, idHotel?: number): Promise<Reserva[]> {
       this.loading = true
       try {
-        const api = useApi()
-        const endpoint = idHotel
-          ? `/reservas/cedula/${cedula}/${idHotel}`
-          : `/reservas/cedula/${cedula}`
-        const response = await api.get<ReservasListResponse>(endpoint)
-        this.reservas = response.reservas
-        this.totalCount = response.count
-        return response.reservas
+        // Si no hay reservas cargadas y tenemos idHotel, cargamos primero
+        if (this.reservas.length === 0 && idHotel) {
+          await this.fetchReservasByHotel(idHotel)
+        }
+        
+        // Filtrar las reservas cargadas por cédula
+        const reservasFiltradas = this.reservas.filter(r => 
+          r.cedulaCliente?.toString() === cedula.toString()
+        )
+        
+        return reservasFiltradas
       } finally {
         this.loading = false
       }

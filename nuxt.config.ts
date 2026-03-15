@@ -2,13 +2,11 @@
 import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 
 export default defineNuxtConfig({
-  ssr: true, // SPA mode — ideal para dashboards con auth
+  ssr: false, // SPA mode — ideal para dashboards con auth
 
   devtools: { enabled: true },
 
   css: [
-    'vuetify/lib/styles/main.sass',
-    '@mdi/font/css/materialdesignicons.min.css',
     '~/assets/styles/main.scss',
   ],
 
@@ -29,6 +27,15 @@ export default defineNuxtConfig({
     storesDirs: ['./stores/**'],
   },
 
+  components: {
+    dirs: [
+      {
+        path: '~/components',
+        pathPrefix: true,   // Todos con prefijo: SharedGlobalSnackbar, NavigationDrawer, AppBar, AuthLoginForm, etc.
+      },
+    ],
+  },
+
   vite: {
     vue: {
       template: {
@@ -41,6 +48,12 @@ export default defineNuxtConfig({
     public: {
       apiBase: 'http://localhost:3001',
     },
+  },
+
+  routeRules: {
+    // Cache some routes when deployed
+    '/': { cache: { maxAge: 60 * 10 } },
+    '/login': { cache: { maxAge: 60 * 10 } },
   },
 
   compatibilityDate: '2024-11-01',

@@ -38,6 +38,7 @@
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/auth'
 import { useNotification } from '~/composables/useNotification'
+import AuthLoginForm from '~/components/auth/LoginForm.vue'
 
 definePageMeta({
   layout: 'auth',

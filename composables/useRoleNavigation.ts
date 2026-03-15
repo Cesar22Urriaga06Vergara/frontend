@@ -38,8 +38,8 @@ const ROUTE_META: Record<string, { title: string; parent?: string }> = {
   '/dashboard/empleados/recepcionista': { title: 'Dashboard - Recepcionista', parent: '/dashboard/empleados' },
   '/dashboard/empleados/recepcionista/reservas': { title: 'Gestión de Reservas', parent: '/dashboard/empleados/recepcionista' },
   '/dashboard/empleados/recepcionista/checkout': { title: 'Gestión de Check-out', parent: '/dashboard/empleados/recepcionista' },
-  '/dashboard/empleados/checkin': { title: 'Check-in de Huéspedes', parent: '/dashboard/empleados' },
-  '/dashboard/empleados/checkout': { title: 'Check-out de Huéspedes', parent: '/dashboard/empleados' },
+  '/dashboard/empleados/checkin': { title: 'Registrar Entrada de Huéspedes', parent: '/dashboard/empleados' },
+  '/dashboard/empleados/checkout': { title: 'Registrar Salida de Huéspedes', parent: '/dashboard/empleados' },
   '/dashboard/empleados/reportes': { title: 'Reportes y Análisis', parent: '/dashboard/empleados' },
   '/dashboard/empleados/area': { title: 'Gestión de Área', parent: '/dashboard/empleados' },
   '/dashboard/profile': { title: 'Mi Perfil', parent: '/dashboard' },
@@ -156,9 +156,8 @@ export const useRoleNavigation = () => {
           {
             title: 'Gestión',
             items: [
-              { title: 'Check-in', icon: 'mdi-login-variant', to: '/dashboard/empleados/checkin' },
-              { title: 'Reservas', icon: 'mdi-calendar-check-outline', to: '/dashboard/empleados/recepcionista/reservas' },
-              { title: 'Check-out', icon: 'mdi-logout-variant', to: '/dashboard/empleados/checkout' },
+              { title: 'Entrada del Cliente', icon: 'mdi-login-variant', to: '/dashboard/empleados/checkin' },
+              { title: 'Salida del Cliente', icon: 'mdi-logout-variant', to: '/dashboard/empleados/checkout' },
             ],
           },
           accountSection,

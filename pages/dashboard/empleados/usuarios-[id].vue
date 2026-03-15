@@ -197,14 +197,14 @@
     </template>
 
     <!-- Edit dialog -->
-    <StaffUserEditDialog
+    <EmpleadosUserEditDialog
       v-model="editDialog"
       :user="user"
       @saved="onUserSaved"
     />
 
     <!-- Toggle status dialog -->
-    <StaffConfirmDialog
+    <EmpleadosConfirmDialog
       v-if="user"
       v-model="toggleStatusDialog"
       :title="user.isActive ? 'Desactivar usuario' : 'Reactivar usuario'"

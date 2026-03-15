@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="d-flex align-center justify-space-between mb-6 flex-wrap ga-2">
       <div>
-        <h1 class="text-h5 font-weight-bold mb-1">Check-out de Huéspedes</h1>
+        <h1 class="text-h5 font-weight-bold mb-1">Registrar Salida de Huéspedes</h1>
         <p class="text-body-2 text-medium-emphasis">
           Registrar salida y procesar pagos finales
         </p>
@@ -19,16 +19,16 @@
       </v-btn>
     </div>
 
-    <!-- Búsqueda por habitación -->
+    <!-- Búsqueda por cédula -->
     <v-card class="card-glow mb-6 pa-6">
-      <div class="text-subtitle-2 font-weight-bold mb-4">Buscar por Habitación</div>
+      <div class="text-subtitle-2 font-weight-bold mb-4">Buscar por Cédula del Cliente</div>
       <v-row>
         <v-col cols="12" sm="8">
           <v-text-field
             v-model="numeroHabitacion"
-            label="Número de Habitación"
-            placeholder="Ej: 101"
-            prepend-inner-icon="mdi-door"
+            label="Cédula del Cliente"
+            placeholder="Ej: 1234567890"
+            prepend-inner-icon="mdi-card-account-details"
             clearable
             @keyup.enter="buscarHabitacion"
           />
@@ -47,10 +47,10 @@
       </v-row>
     </v-card>
 
-    <!-- Huéspedes para check-out -->
+    <!-- Huéspedes para registrar salida -->
     <v-card class="card-glow mb-6">
       <v-card-title class="text-subtitle-1 font-weight-bold">
-        Pendientes de Check-out
+        Reservas Disponibles para Salida
       </v-card-title>
       <v-card-text v-if="reservasCheckin.length > 0" class="pa-0">
         <v-data-table
@@ -58,6 +58,7 @@
           :items="reservasCheckin"
           :loading="loading"
           class="elevation-0"
+          :items-per-page="10"
         >
           <template #item.cliente="{ item }">
             <div>
@@ -79,20 +80,20 @@
               variant="text"
               color="error"
               @click="abrirCheckout(item)"
-              title="Registrar Check-out"
+              title="Registrar Salida"
             />
           </template>
         </v-data-table>
       </v-card-text>
       <v-card-text v-else class="text-center py-8 text-medium-emphasis">
-        No hay huéspedes pendientes de check-out
+        No hay reservas disponibles para registrar salida en este momento
       </v-card-text>
     </v-card>
 
-    <!-- Diálogo de Check-out -->
+    <!-- Diálogo de Registrar Salida -->
     <v-dialog v-model="checkoutDialog" max-width="600px">
       <v-card v-if="reservaSeleccionada">
-        <v-card-title>Check-out — {{ reservaSeleccionada.nombreCliente }}</v-card-title>
+        <v-card-title>Registrar Salida — {{ reservaSeleccionada.nombreCliente }}</v-card-title>
         <v-card-text class="pa-6">
           <v-row>
             <v-col cols="12" sm="6">
@@ -148,7 +149,7 @@
             :disabled="!inspeccionRealizada"
             :loading="confirmandoCheckout"
           >
-            Confirmar Check-out
+            Confirmar Salida
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -171,7 +172,7 @@ definePageMeta({
   roles: [UserRole.RECEPCIONISTA, UserRole.ADMIN, UserRole.SUPERADMIN],
 })
 
-useHead({ title: 'Check-out de Huéspedes' })
+useHead({ title: 'Registrar Salida de Huéspedes' })
 
 const authStore = useAuthStore()
 const reservasStore = useReservasStore()
@@ -236,19 +237,19 @@ const refrescarReservas = async () => {
 
 const buscarHabitacion = async () => {
   if (!numeroHabitacion.value) {
-    error('Ingrese número de habitación')
+    error('Ingrese cédula del cliente')
     return
   }
   loading.value = true
   try {
-    // Buscar la habitación ocupada en las reservas con checkin
+    // Buscar por cédula del cliente
     const reserva = reservasCheckin.value.find(r =>
-      r.habitacion?.numeroHabitacion?.toString() === numeroHabitacion.value
+      r.cedulaCliente?.toString() === numeroHabitacion.value
     )
     if (reserva) {
       abrirCheckout(reserva)
     } else {
-      error('No se encontró habitación ocupada con ese número')
+      error('No se encontró reserva con esa cédula o no ha realizado check-in')
     }
   } finally {
     loading.value = false

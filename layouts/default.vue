@@ -1,14 +1,14 @@
 <template>
   <v-app>
     <!-- Navigation Drawer -->
-    <NavigationDrawer
+    <SharedNavigationDrawer
       v-model="drawer"
       :rail="rail"
       @toggle-rail="rail = !rail"
     />
 
     <!-- App Bar -->
-    <AppBar @toggle-drawer="handleDrawerToggle" />
+    <SharedAppBar @toggle-drawer="handleDrawerToggle" />
 
     <!-- Main Content -->
     <v-main>
@@ -28,6 +28,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, watch, computed, onMounted } from 'vue'
 import { useDisplay, useTheme } from 'vuetify'
 
 const { mobile } = useDisplay()

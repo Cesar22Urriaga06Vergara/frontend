@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="d-flex align-center justify-space-between mb-6 flex-wrap ga-2">
       <div>
-        <h1 class="text-h5 font-weight-bold mb-1">Check-in de Huéspedes</h1>
+        <h1 class="text-h5 font-weight-bold mb-1">Registrar Entrada de Huéspedes</h1>
         <p class="text-body-2 text-medium-emphasis">
           Registrar llegada de clientes al hotel
         </p>
@@ -19,16 +19,16 @@
       </v-btn>
     </div>
 
-    <!-- Búsqueda por reserva -->
+    <!-- Búsqueda por cédula -->
     <v-card class="card-glow mb-6 pa-6">
-      <div class="text-subtitle-2 font-weight-bold mb-4">Buscar Reserva</div>
+      <div class="text-subtitle-2 font-weight-bold mb-4">Buscar por Cédula del Cliente</div>
       <v-row>
         <v-col cols="12" sm="8">
           <v-text-field
             v-model="numeroReserva"
-            label="Número de Reserva"
-            placeholder="Ej: RES-2026-001"
-            prepend-inner-icon="mdi-calendar-check"
+            label="Cédula del Cliente"
+            placeholder="Ej: 1234567890"
+            prepend-inner-icon="mdi-card-account-details"
             clearable
             @keyup.enter="buscarReserva"
           />
@@ -50,7 +50,7 @@
     <!-- Reservas próximas a check-in -->
     <v-card class="card-glow mb-6">
       <v-card-title class="text-subtitle-1 font-weight-bold">
-        Próximas a Check-in (Hoy)
+        Reservas Disponibles para Entrada
       </v-card-title>
       <v-card-text v-if="proximasReservas.length > 0" class="pa-0">
         <v-data-table
@@ -58,6 +58,7 @@
           :items="proximasReservas"
           :loading="loading"
           class="elevation-0"
+          :items-per-page="10"
         >
           <template #item.cliente="{ item }">
             <div>
@@ -85,14 +86,14 @@
         </v-data-table>
       </v-card-text>
       <v-card-text v-else class="text-center py-8 text-medium-emphasis">
-        No hay reservas próximas a check-in en este momento
+        No hay reservas disponibles para registrar entrada en este momento
       </v-card-text>
     </v-card>
 
-    <!-- Diálogo de Check-in -->
+    <!-- Diálogo de Registrar Entrada -->
     <v-dialog v-model="checkinDialog" max-width="600px">
       <v-card v-if="reservaSeleccionada">
-        <v-card-title>Check-in — {{ reservaSeleccionada.nombreCliente }}</v-card-title>
+        <v-card-title>Registrar Entrada — {{ reservaSeleccionada.nombreCliente }}</v-card-title>
         <v-card-text class="pa-6">
           <v-row>
             <v-col cols="12" sm="6">
@@ -124,7 +125,7 @@
             <v-col cols="12">
               <v-text-field
                 v-model="notasCheckin"
-                label="Notas adicionales (opcional)"
+                label="Notas de entrada (opcional)"
                 placeholder="Ej: Cliente requiere cuna, etc."
                 variant="outlined"
               />
@@ -142,7 +143,7 @@
             :disabled="!documentoVerificado || !metodoPagoConfirmado"
             :loading="confirmandoCheckin"
           >
-            Confirmar Check-in
+            Confirmar Entrada
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -164,7 +165,7 @@ definePageMeta({
   roles: [UserRole.RECEPCIONISTA, UserRole.ADMIN, UserRole.SUPERADMIN],
 })
 
-useHead({ title: 'Check-in de Huéspedes' })
+useHead({ title: 'Registrar Entrada de Huéspedes' })
 
 const authStore = useAuthStore()
 const reservasStore = useReservasStore()
@@ -215,13 +216,19 @@ const refrescarReservas = async () => {
 
 const buscarReserva = async () => {
   if (!numeroReserva.value) {
-    error('Ingrese número de reserva o cédula')
+    error('Ingrese cédula del cliente')
     return
   }
   loading.value = true
   try {
-    // Buscar reserva por cédula del cliente
-    await reservasStore.fetchReservasByCedula(numeroReserva.value)
+    // Buscar reserva por cédula del cliente en el hotel del usuario
+    const resultados = await reservasStore.fetchReservasByCedula(
+      numeroReserva.value,
+      authStore.user?.idHotel
+    )
+    if (resultados.length === 0) {
+      error('No se encontraron reservas para esa cédula')
+    }
   } catch (err: any) {
     error(err?.message || 'Error al buscar reserva')
   } finally {
