@@ -305,11 +305,12 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { usePedidosAreaStore } from '~/stores/pedidosArea';
 import { useAuthStore } from '~/stores/auth';
 import { useNotification } from '~/composables/useNotification';
+import { UserRole } from '~/types/auth';
 import type { Pedido } from '~/types/servicios';
 
 definePageMeta({
   middleware: ['auth', 'role'],
-  roles: ['cafeteria', 'lavanderia', 'spa', 'room_service'],
+  roles: [UserRole.CAFETERIA, UserRole.LAVANDERIA, UserRole.SPA, UserRole.ROOM_SERVICE, UserRole.ADMIN, UserRole.SUPERADMIN],
 });
 
 useHead({ title: 'Mi Panel' });
