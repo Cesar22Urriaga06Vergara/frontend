@@ -83,12 +83,14 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { UserRole } from '~/types/auth'
 import { useAuthStore } from '~/stores/auth'
 import { usePermissions } from '~/composables/usePermissions'
 
 definePageMeta({
+  layout: 'default',
   middleware: ['auth', 'role'],
-  roles: ['superadmin', 'admin', 'recepcionista', 'cafeteria', 'lavanderia', 'spa', 'room_service'],
+  roles: [UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.RECEPCIONISTA, UserRole.CAFETERIA, UserRole.LAVANDERIA, UserRole.SPA, UserRole.ROOM_SERVICE],
 })
 
 useHead({ title: 'Panel de Control - Staff' })

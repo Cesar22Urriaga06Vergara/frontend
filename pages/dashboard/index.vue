@@ -113,6 +113,7 @@ import { useRoleNavigation } from '~/composables/useRoleNavigation'
 import { UserRole } from '~/types/auth'
 
 definePageMeta({
+  layout: 'default',
   middleware: 'auth',
 })
 

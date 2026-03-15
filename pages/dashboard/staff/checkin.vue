@@ -152,13 +152,15 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { UserRole } from '~/types/auth'
 import { useAuthStore } from '~/stores/auth'
 import { useReservas } from '~/composables/useReservas'
 import { useNotification } from '~/composables/useNotification'
 
 definePageMeta({
+  layout: 'default',
   middleware: ['auth', 'role'],
-  roles: ['recepcionista', 'admin', 'superadmin'],
+  roles: [UserRole.RECEPCIONISTA, UserRole.ADMIN, UserRole.SUPERADMIN],
 })
 
 useHead({ title: 'Check-in de Huéspedes' })

@@ -157,13 +157,15 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { UserRole } from '~/types/auth'
 import { useAuthStore } from '~/stores/auth'
 import { usePedidosAreaStore } from '~/stores/pedidosArea'
 import type { Pedido } from '~/types/servicios'
 
 definePageMeta({
+  layout: 'default',
   middleware: ['auth', 'role'],
-  roles: ['cafeteria', 'lavanderia', 'spa', 'room_service'],
+  roles: [UserRole.CAFETERIA, UserRole.LAVANDERIA, UserRole.SPA, UserRole.ROOM_SERVICE, UserRole.ADMIN, UserRole.SUPERADMIN],
 })
 
 useHead({ title: 'Gestión de Pedidos' })

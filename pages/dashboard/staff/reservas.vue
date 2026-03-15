@@ -318,6 +318,7 @@ import type { Reserva } from '~/types/api'
 import RecepcionistaReservasTable from '~/components/shared/RecepcionistaReservasTable.vue'
 
 definePageMeta({
+  layout: 'default',
   middleware: ['auth', 'role'],
   roles: [UserRole.ADMIN, UserRole.SUPERADMIN],
 })

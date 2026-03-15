@@ -195,13 +195,15 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { onMounted } from 'vue';
+import { UserRole } from '~/types/auth'
 import { useServiciosStore } from '~/stores/servicios';
 import { useReservasStore } from '~/stores/reservas';
 import { useAuthStore } from '~/stores/auth';
 
 definePageMeta({
+  layout: 'default',
   middleware: ['auth', 'role'],
-  roles: ['cliente'],
+  roles: [UserRole.CLIENTE],
 });
 
 useHead({ title: 'Mi Cuenta' });

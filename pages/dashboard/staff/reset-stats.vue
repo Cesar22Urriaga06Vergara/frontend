@@ -41,6 +41,7 @@ import { UserRole } from '~/types/auth'
 import StaffResetTokenStats from '~/components/staff/StaffResetTokenStats.vue'
 
 definePageMeta({
+  layout: 'default',
   middleware: ['auth', 'role'],
   roles: [UserRole.ADMIN],
 })

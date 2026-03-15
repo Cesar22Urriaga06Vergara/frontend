@@ -462,6 +462,7 @@ import type { Reserva } from '~/types/api'
 import type { CuentaReserva } from '~/types/servicios'
 
 definePageMeta({
+  layout: 'default',
   middleware: ['auth', 'role'],
   roles: [UserRole.RECEPCIONISTA],
 })

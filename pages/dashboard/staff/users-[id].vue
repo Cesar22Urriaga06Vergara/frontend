@@ -229,6 +229,7 @@ import type { User } from '~/types/auth'
 import { ROLE_LABELS, ROLE_COLORS } from '~/utils/constants'
 
 definePageMeta({
+  layout: 'default',
   middleware: ['auth', 'role'],
   roles: [UserRole.ADMIN],
 })

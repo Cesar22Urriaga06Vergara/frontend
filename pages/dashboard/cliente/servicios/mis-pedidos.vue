@@ -205,6 +205,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { UserRole } from '~/types/auth';
 import { useRouter } from 'vue-router';
 import { useRoute } from 'vue-router';
 import { useServiciosStore } from '~/stores/servicios';
@@ -214,8 +215,9 @@ import { useNotification } from '~/composables/useNotification';
 import type { Pedido } from '~/types/servicios';
 
 definePageMeta({
+  layout: 'default',
   middleware: ['auth', 'role'],
-  roles: ['cliente'],
+  roles: [UserRole.CLIENTE],
 });
 
 useHead({ title: 'Mis Pedidos' });

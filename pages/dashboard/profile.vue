@@ -120,6 +120,7 @@ import { useNotification } from '~/composables/useNotification'
 import { ROLE_LABELS, ROLE_COLORS, ROLE_ICONS } from '~/utils/constants'
 
 definePageMeta({
+  layout: 'default',
   middleware: 'auth',
 })
 

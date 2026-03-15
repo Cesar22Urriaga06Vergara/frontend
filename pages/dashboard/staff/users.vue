@@ -67,6 +67,7 @@ import StaffUserEditDialog from '~/components/staff/StaffUserEditDialog.vue'
 import StaffConfirmDialog from '~/components/staff/StaffConfirmDialog.vue'
 
 definePageMeta({
+  layout: 'default',
   middleware: ['auth', 'role'],
   roles: [UserRole.ADMIN, UserRole.SUPERADMIN],
 })

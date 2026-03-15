@@ -6,11 +6,12 @@
 </template>
 
 <script setup lang="ts">
+import { UserRole } from '~/types/auth'
 import StaffRoomTypesTable from '~/components/staff/StaffRoomTypesTable.vue'
 
 definePageMeta({
   layout: 'default',
   middleware: ['auth', 'role'],
-  requiredRole: 'admin'
+  roles: [UserRole.ADMIN, UserRole.SUPERADMIN],
 })
 </script>

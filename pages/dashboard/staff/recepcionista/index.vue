@@ -119,6 +119,7 @@ import { UserRole } from '~/types/auth'
 import RecepcionistaReservasStatsBar from '~/components/shared/RecepcionistaReservasStatsBar.vue'
 
 definePageMeta({
+  layout: 'default',
   middleware: ['auth', 'role'],
   roles: [UserRole.RECEPCIONISTA],
 })

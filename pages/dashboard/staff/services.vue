@@ -228,14 +228,16 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { UserRole } from '~/types/auth';
 import { useAuthStore } from '~/stores/auth';
 import { useApi } from '~/composables/useApi';
 import { useNotification } from '~/composables/useNotification';
 import type { Servicio } from '~/types/servicios';
 
 definePageMeta({
+  layout: 'default',
   middleware: ['auth', 'role'],
-  roles: ['admin', 'superadmin'],
+  roles: [UserRole.ADMIN, UserRole.SUPERADMIN],
 });
 
 useHead({ title: 'Catálogo de Servicios' });

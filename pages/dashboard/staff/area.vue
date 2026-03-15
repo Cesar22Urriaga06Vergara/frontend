@@ -309,6 +309,7 @@ import { UserRole } from '~/types/auth';
 import type { Pedido } from '~/types/servicios';
 
 definePageMeta({
+  layout: 'default',
   middleware: ['auth', 'role'],
   roles: [UserRole.CAFETERIA, UserRole.LAVANDERIA, UserRole.SPA, UserRole.ROOM_SERVICE, UserRole.ADMIN, UserRole.SUPERADMIN],
 });

@@ -97,6 +97,7 @@ import { useAuthStore } from '~/stores/auth'
 import { UserRole } from '~/types/auth'
 
 definePageMeta({
+  layout: 'default',
   middleware: ['auth', 'role'],
   roles: [UserRole.CLIENTE],
 })

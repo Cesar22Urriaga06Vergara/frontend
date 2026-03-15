@@ -185,6 +185,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeMount } from 'vue';
+import { UserRole } from '~/types/auth';
 import { useRouter } from 'vue-router';
 import { useServiciosStore } from '~/stores/servicios';
 import { useReservasStore } from '~/stores/reservas';
@@ -192,8 +193,9 @@ import { useAuthStore } from '~/stores/auth';
 import type { Servicio } from '~/types/servicios';
 
 definePageMeta({
+  layout: 'default',
   middleware: ['auth', 'role'],
-  roles: ['cliente'],
+  roles: [UserRole.CLIENTE],
 });
 
 useHead({ title: 'Servicios' });

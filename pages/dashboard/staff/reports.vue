@@ -154,10 +154,12 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { UserRole } from '~/types/auth'
 
 definePageMeta({
+  layout: 'default',
   middleware: ['auth', 'role'],
-  roles: ['admin', 'superadmin'],
+  roles: [UserRole.ADMIN, UserRole.SUPERADMIN],
 })
 
 useHead({ title: 'Reportes y Análisis' })
