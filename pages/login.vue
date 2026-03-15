@@ -5,7 +5,7 @@
         <!-- Logo -->
         <div class="text-center mb-8">
           <v-avatar color="primary" size="56" rounded="xl" class="mb-4">
-            <v-icon icon="mdi-puzzle" size="28" />
+            <v-icon icon="mdi-hotel" size="28" />
           </v-avatar>
           <h1 class="text-h5 font-weight-bold mb-1">Bienvenido</h1>
           <p class="text-body-2 text-medium-emphasis">

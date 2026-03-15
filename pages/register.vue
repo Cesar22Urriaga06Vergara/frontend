@@ -5,11 +5,11 @@
         <!-- Logo -->
         <div class="text-center mb-8">
           <v-avatar color="primary" size="56" rounded="xl" class="mb-4">
-            <v-icon icon="mdi-gamepad-variant" size="28" />
+            <v-icon icon="mdi-account-plus" size="28" />
           </v-avatar>
           <h1 class="text-h5 font-weight-bold mb-1">Crear cuenta</h1>
           <p class="text-body-2 text-medium-emphasis">
-            Regístrate como jugador para comenzar
+            Crea tu cuenta para acceder al sistema
           </p>
         </div>
 
