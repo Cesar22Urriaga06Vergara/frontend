@@ -43,7 +43,11 @@ const ROUTE_META: Record<string, { title: string; parent?: string }> = {
   '/dashboard/staff/reports': { title: 'Reportes y Análisis', parent: '/dashboard/staff' },
   '/dashboard/staff/area': { title: 'Gestión de Área', parent: '/dashboard/staff' },
   '/dashboard/profile': { title: 'Mi Perfil', parent: '/dashboard' },
-  '/dashboard/cliente': { title: 'Dashboard', parent: '/dashboard' },
+  '/dashboard/cliente': { title: 'Mi Panel', parent: '/dashboard' },
+  '/dashboard/cliente/cuenta': { title: 'Mi Cuenta', parent: '/dashboard/cliente' },
+  '/dashboard/cliente/servicios': { title: 'Servicios', parent: '/dashboard/cliente' },
+  '/dashboard/cliente/servicios/carrito': { title: 'Carrito', parent: '/dashboard/cliente/servicios' },
+  '/dashboard/cliente/servicios/mis-pedidos': { title: 'Mis Pedidos', parent: '/dashboard/cliente/servicios' },
   '/reservas/nueva': { title: 'Nueva Reserva' },
   '/reservas/confirmacion': { title: 'Confirmación de Reserva', parent: '/reservas/nueva' },
 }
