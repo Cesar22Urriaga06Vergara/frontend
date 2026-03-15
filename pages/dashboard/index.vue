@@ -162,58 +162,15 @@ const quickActions = computed((): QuickAction[] => {
           title: 'Gestionar Usuarios',
           description: 'Administrar cuentas del sistema',
           icon: 'mdi-account-group-outline',
-          to: '/dashboard/staff/users',
+          to: '/dashboard/empleados/usuarios',
           color: 'error',
         },
         {
           title: 'Reset Stats',
           description: 'Estadísticas de recuperación',
           icon: 'mdi-chart-bar',
-          to: '/dashboard/staff/reset-stats',
+          to: '/dashboard/empleados/reset-stats',
           color: 'warning',
-        },
-        ...base,
-      ]
-
-    case UserRole.MODERATOR:
-      return [
-        {
-          title: 'Usuarios por Rol',
-          description: 'Filtrar y consultar usuarios',
-          icon: 'mdi-filter-variant',
-          to: '/dashboard/staff/users',
-          color: 'warning',
-        },
-        ...base,
-      ]
-
-    case UserRole.PLAYER:
-      return [
-        {
-          title: 'Mi Panel de Juego',
-          description: 'Ver tu progreso y puntuación',
-          icon: 'mdi-gamepad-variant-outline',
-          to: '/dashboard/player',
-          color: 'primary',
-        },
-        {
-          title: 'Mis Pistas',
-          description: 'Pistas que has descubierto',
-          icon: 'mdi-magnify',
-          to: '/dashboard/player/clues',
-          color: 'secondary',
-        },
-        ...base,
-      ]
-
-    case UserRole.SPONSOR:
-      return [
-        {
-          title: 'Panel de Sponsor',
-          description: 'Información de patrocinio',
-          icon: 'mdi-handshake-outline',
-          to: '/dashboard/sponsor',
-          color: 'secondary',
         },
         ...base,
       ]

@@ -61,14 +61,14 @@
         >
           <template #item.cliente="{ item }">
             <div>
-              <div class="font-weight-bold">{{ item.cliente?.fullName }}</div>
-              <div class="text-caption text-medium-emphasis">{{ item.cliente?.email }}</div>
+              <div class="font-weight-bold">{{ item.nombreCliente }}</div>
+              <div class="text-caption text-medium-emphasis">{{ item.emailCliente }}</div>
             </div>
           </template>
 
           <template #item.habitacion="{ item }">
             <v-chip color="warning" variant="tonal" size="small">
-              Hab. {{ item.reserva?.habitacion?.numeroHabitacion }}
+              Hab. {{ item.habitacion?.numeroHabitacion }}
             </v-chip>
           </template>
 
@@ -92,13 +92,13 @@
     <!-- Diálogo de Check-out -->
     <v-dialog v-model="checkoutDialog" max-width="600px">
       <v-card v-if="reservaSeleccionada">
-        <v-card-title>Check-out — {{ reservaSeleccionada.cliente?.fullName }}</v-card-title>
+        <v-card-title>Check-out — {{ reservaSeleccionada.nombreCliente }}</v-card-title>
         <v-card-text class="pa-6">
           <v-row>
             <v-col cols="12" sm="6">
               <div class="text-caption text-medium-emphasis">Habitación</div>
               <div class="text-h6 font-weight-bold">
-                {{ reservaSeleccionada.reserva?.habitacion?.numeroHabitacion }}
+                {{ reservaSeleccionada.habitacion?.numeroHabitacion }}
               </div>
             </v-col>
             <v-col cols="12" sm="6">
@@ -157,10 +157,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { UserRole } from '~/types/auth'
 import { useAuthStore } from '~/stores/auth'
+import { useReservasStore } from '~/stores/reservas'
+import { useServiciosStore } from '~/stores/servicios'
 import { useNotification } from '~/composables/useNotification'
+import type { Reserva } from '~/types/api'
 
 definePageMeta({
   layout: 'default',
@@ -171,13 +174,15 @@ definePageMeta({
 useHead({ title: 'Check-out de Huéspedes' })
 
 const authStore = useAuthStore()
+const reservasStore = useReservasStore()
+const serviciosStore = useServiciosStore()
 const { success, error } = useNotification()
 
 const loading = ref(false)
 const confirmandoCheckout = ref(false)
 const numeroHabitacion = ref('')
 const checkoutDialog = ref(false)
-const reservaSeleccionada = ref<any>(null)
+const reservaSeleccionada = ref<Reserva | null>(null)
 const estadoHabitacion = ref('')
 const inspeccionRealizada = ref(false)
 const notasCheckout = ref('')
@@ -195,19 +200,35 @@ const headers = [
   { title: 'Acciones', key: 'acciones', width: '80px' },
 ]
 
-// Reservas que ya han hecho check-in
-const reservasCheckin = computed<any[]>(() => [])
+// Reservas que ya han hecho check-in pero no checkout
+const reservasCheckin = computed(() =>
+  reservasStore.reservas.filter(r =>
+    r.checkinReal && !r.checkoutReal
+  )
+)
 
 const diasEstancia = computed(() => {
   if (!reservaSeleccionada.value) return 0
-  // Calcular días
-  return 1
+  const entrada = new Date(reservaSeleccionada.value.checkinPrevisto || new Date())
+  const salida = new Date(reservaSeleccionada.value.checkoutPrevisto || new Date())
+  const diff = Math.ceil((salida.getTime() - entrada.getTime()) / (1000 * 60 * 60 * 24))
+  return Math.max(1, diff)
+})
+
+onMounted(async () => {
+  if (authStore.user?.idHotel) {
+    await refrescarReservas()
+  }
 })
 
 const refrescarReservas = async () => {
   loading.value = true
   try {
-    // Cargar reservas con check-in
+    if (authStore.user?.idHotel) {
+      await reservasStore.fetchReservasByHotel(authStore.user.idHotel)
+    }
+  } catch (err: any) {
+    error(err?.message || 'Error al cargar reservas')
   } finally {
     loading.value = false
   }
@@ -218,18 +239,40 @@ const buscarHabitacion = async () => {
     error('Ingrese número de habitación')
     return
   }
-  // Buscar la habitación ocupada
+  loading.value = true
+  try {
+    // Buscar la habitación ocupada en las reservas con checkin
+    const reserva = reservasCheckin.value.find(r =>
+      r.habitacion?.numeroHabitacion?.toString() === numeroHabitacion.value
+    )
+    if (reserva) {
+      abrirCheckout(reserva)
+    } else {
+      error('No se encontró habitación ocupada con ese número')
+    }
+  } finally {
+    loading.value = false
+  }
 }
 
-const abrirCheckout = (reserva: any) => {
+const abrirCheckout = async (reserva: Reserva) => {
   reservaSeleccionada.value = reserva
   estadoHabitacion.value = ''
   inspeccionRealizada.value = false
   notasCheckout.value = ''
+
+  // Cargar cuenta del cliente (servicios + habitación)
+  try {
+    await serviciosStore.cargarCuenta(reserva.id)
+  } catch (err: any) {
+    error('Error al cargar la cuenta del cliente')
+  }
+
   checkoutDialog.value = true
 }
 
 const confirmarCheckout = async () => {
+  if (!reservaSeleccionada.value) return
   if (!inspeccionRealizada.value) {
     error('Debe realizar la inspección de la habitación')
     return
@@ -237,9 +280,11 @@ const confirmarCheckout = async () => {
 
   confirmandoCheckout.value = true
   try {
-    // Llamar API para registrar check-out
+    // Registrar check-out en el store
+    await reservasStore.confirmarCheckout(reservaSeleccionada.value.id)
     success('Check-out registrado exitosamente')
     checkoutDialog.value = false
+    // Recargar reservas
     await refrescarReservas()
   } catch (err: any) {
     error(err?.message || 'Error al registrar check-out')

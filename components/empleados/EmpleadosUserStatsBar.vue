@@ -47,17 +47,5 @@ const stats = computed(() => [
     color: 'error',
     icon: 'mdi-account-off-outline',
   },
-  {
-    label: 'Jugadores',
-    value: usersStore.countByRole['player'] || 0,
-    color: 'info',
-    icon: 'mdi-gamepad-variant-outline',
-  },
-  {
-    label: 'Sponsors',
-    value: usersStore.countByRole['sponsor'] || 0,
-    color: 'secondary',
-    icon: 'mdi-handshake-outline',
-  },
 ])
 </script>

@@ -42,7 +42,7 @@ export const useAuthStore = defineStore('auth', {
       if (!role) return '/dashboard'
       
       // ✅ Una sola fuente de verdad: ROLE_DEFAULT_ROUTE
-      return ROLE_DEFAULT_ROUTE[role as UserRole] || '/dashboard/staff'
+      return ROLE_DEFAULT_ROUTE[role as UserRole] || '/dashboard/empleados'
     },
   },
 

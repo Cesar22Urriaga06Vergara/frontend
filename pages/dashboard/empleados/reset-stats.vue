@@ -25,7 +25,7 @@
     </div>
 
     <!-- Stats + herramientas -->
-    <StaffResetTokenStats
+    <EmpleadosResetTokenStats
       :stats="usersStore.resetStats"
       :loading="loading"
       @refresh="loadStats"
@@ -38,7 +38,7 @@ import { ref, onMounted } from 'vue'
 import { useUsersStore } from '~/stores/users'
 import { useNotification } from '~/composables/useNotification'
 import { UserRole } from '~/types/auth'
-import StaffResetTokenStats from '~/components/staff/StaffResetTokenStats.vue'
+import EmpleadosResetTokenStats from '~/components/empleados/EmpleadosResetTokenStats.vue'
 
 definePageMeta({
   layout: 'default',

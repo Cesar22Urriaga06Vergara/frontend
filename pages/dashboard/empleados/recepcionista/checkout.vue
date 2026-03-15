@@ -245,7 +245,7 @@
               variant="text"
               size="x-small"
               color="primary"
-              :to="`/dashboard/staff/recepcionista/reservas?cedula=${item.cedulaCliente}`"
+              :to="`/dashboard/empleados/recepcionista/reservas?cedula=${item.cedulaCliente}`"
             >
               <v-icon icon="mdi-eye-outline" size="18" />
               <v-tooltip activator="parent" location="top">Ver detalles</v-tooltip>

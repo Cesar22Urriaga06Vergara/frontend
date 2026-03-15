@@ -35,12 +35,12 @@ export const ROLE_ICONS: Record<string, string> = {
 }
 
 export const ROLE_DEFAULT_ROUTE: Record<string, string> = {
-  [UserRole.SUPERADMIN]: '/dashboard/staff/reservas',
-  [UserRole.ADMIN]: '/dashboard/staff/users',
-  [UserRole.RECEPCIONISTA]: '/dashboard/staff/recepcionista',
+  [UserRole.SUPERADMIN]: '/dashboard/empleados/reservas',
+  [UserRole.ADMIN]: '/dashboard/empleados/usuarios',
+  [UserRole.RECEPCIONISTA]: '/dashboard/empleados/recepcionista',
   [UserRole.CLIENTE]: '/dashboard/cliente',
-  [UserRole.CAFETERIA]: '/dashboard/staff/orders',
-  [UserRole.LAVANDERIA]: '/dashboard/staff/orders',
-  [UserRole.SPA]: '/dashboard/staff/orders',
-  [UserRole.ROOM_SERVICE]: '/dashboard/staff/orders',
+  [UserRole.CAFETERIA]: '/dashboard/empleados/area',
+  [UserRole.LAVANDERIA]: '/dashboard/empleados/area',
+  [UserRole.SPA]: '/dashboard/empleados/area',
+  [UserRole.ROOM_SERVICE]: '/dashboard/empleados/area',
 }

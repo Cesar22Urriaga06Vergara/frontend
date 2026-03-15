@@ -71,7 +71,7 @@
       <!-- Nombre + Email -->
       <template #item.name="{ item }">
         <NuxtLink
-          :to="`/dashboard/staff/users/${item._id}`"
+          :to="`/dashboard/empleados/usuarios/${item._id}`"
           class="d-flex align-center py-2 text-decoration-none"
           style="color: inherit"
         >

@@ -7,7 +7,7 @@
       size="small"
       class="mb-4"
       prepend-icon="mdi-arrow-left"
-      to="/dashboard/staff/users"
+      to="/dashboard/empleados/usuarios"
     >
       Volver a usuarios
     </v-btn>
@@ -190,7 +190,7 @@
       <v-card class="card-glow pa-8 text-center">
         <v-icon icon="mdi-account-question-outline" size="64" color="error" class="mb-4" />
         <h3 class="text-h6 font-weight-medium mb-2">Usuario no encontrado</h3>
-        <v-btn color="primary" to="/dashboard/staff/users" class="mt-2">
+        <v-btn color="primary" to="/dashboard/empleados/usuarios" class="mt-2">
           Volver a la lista
         </v-btn>
       </v-card>

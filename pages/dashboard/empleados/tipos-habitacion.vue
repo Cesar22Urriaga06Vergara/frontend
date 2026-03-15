@@ -1,13 +1,13 @@
 <template>
   <div>
-    <h1 class="text-h4 font-weight-bold mb-6">Amenidades</h1>
-    <StaffAmenitiesTable />
+    <h1 class="text-h4 font-weight-bold mb-6">Tipos de Habitación</h1>
+    <EmpleadosRoomTypesTable />
   </div>
 </template>
 
 <script setup lang="ts">
 import { UserRole } from '~/types/auth'
-import StaffAmenitiesTable from '~/components/staff/StaffAmenitiesTable.vue'
+import EmpleadosRoomTypesTable from '~/components/empleados/EmpleadosRoomTypesTable.vue'
 
 definePageMeta({
   layout: 'default',

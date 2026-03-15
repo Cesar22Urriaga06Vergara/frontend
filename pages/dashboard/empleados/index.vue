@@ -12,7 +12,7 @@
     <v-row class="mb-6">
       <!-- Acceso para Superadmin y Admin -->
       <v-col v-if="canAccessUsers" cols="12" sm="6" md="3">
-        <router-link to="/dashboard/staff/users" custom v-slot="{ navigate }">
+        <router-link to="/dashboard/empleados/usuarios" custom v-slot="{ navigate }">
           <v-card class="card-glow pa-4 h-100 cursor-pointer" @click="navigate">
             <div class="d-flex flex-column align-center text-center">
               <v-avatar color="primary" size="60" variant="tonal" class="mb-3" rounded="lg">
@@ -26,7 +26,7 @@
       </v-col>
 
       <v-col cols="12" sm="6" md="3">
-        <router-link to="/dashboard/staff/reservas" custom v-slot="{ navigate }">
+        <router-link to="/dashboard/empleados/reservas" custom v-slot="{ navigate }">
           <v-card class="card-glow pa-4 h-100 cursor-pointer" @click="navigate">
             <div class="d-flex flex-column align-center text-center">
               <v-avatar color="warning" size="60" variant="tonal" class="mb-3" rounded="lg">
@@ -40,7 +40,7 @@
       </v-col>
 
       <v-col v-if="canAccessRooms" cols="12" sm="6" md="3">
-        <router-link to="/dashboard/staff/rooms" custom v-slot="{ navigate }">
+        <router-link to="/dashboard/empleados/habitaciones" custom v-slot="{ navigate }">
           <v-card class="card-glow pa-4 h-100 cursor-pointer" @click="navigate">
             <div class="d-flex flex-column align-center text-center">
               <v-avatar color="info" size="60" variant="tonal" class="mb-3" rounded="lg">
@@ -54,7 +54,7 @@
       </v-col>
 
       <v-col v-if="canAccessOrders" cols="12" sm="6" md="3">
-        <router-link to="/dashboard/staff/orders" custom v-slot="{ navigate }">
+        <router-link to="/dashboard/empleados/pedidos" custom v-slot="{ navigate }">
           <v-card class="card-glow pa-4 h-100 cursor-pointer" @click="navigate">
             <div class="d-flex flex-column align-center text-center">
               <v-avatar color="success" size="60" variant="tonal" class="mb-3" rounded="lg">
@@ -93,7 +93,7 @@ definePageMeta({
   roles: [UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.RECEPCIONISTA, UserRole.CAFETERIA, UserRole.LAVANDERIA, UserRole.SPA, UserRole.ROOM_SERVICE],
 })
 
-useHead({ title: 'Panel de Control - Staff' })
+useHead({ title: 'Panel de Control' })
 
 const authStore = useAuthStore()
 const { hasRole, hasAnyRole } = usePermissions()

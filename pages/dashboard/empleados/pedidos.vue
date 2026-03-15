@@ -116,7 +116,7 @@
         class="elevation-0"
       >
         <template #item.id="{ item }">
-          <router-link :to="`/dashboard/staff/orders/${item.id}`" class="font-weight-bold text-primary">
+          <router-link :to="`/dashboard/empleados/pedidos/${item.id}`" class="font-weight-bold text-primary">
             #{{ item.id }}
           </router-link>
         </template>
@@ -279,7 +279,7 @@ const refrescarPedidos = async () => {
 
 const abrirDetalle = (pedido: Pedido) => {
   // Navegar a detalle o abrir modal
-  navigateTo(`/dashboard/staff/orders/${pedido.id}`)
+  navigateTo(`/dashboard/empleados/pedidos/${pedido.id}`)
 }
 </script>
 

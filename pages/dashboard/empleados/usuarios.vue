@@ -11,10 +11,10 @@
     </div>
 
     <!-- Stats bar -->
-    <StaffUserStatsBar />
+    <EmpleadosUserStatsBar />
 
     <!-- Tabla de usuarios -->
-    <StaffUsersTable
+    <EmpleadosUsersTable
       @edit="openEditDialog"
       @toggle-status="openToggleStatusDialog"
       @invalidate-tokens="openInvalidateTokensDialog"
@@ -22,14 +22,14 @@
     />
 
     <!-- Diálogo de edición -->
-    <StaffUserEditDialog
+    <EmpleadosUserEditDialog
       v-model="editDialog"
       :user="selectedUser"
       @saved="onUserSaved"
     />
 
     <!-- Diálogo de confirmación: activar/desactivar -->
-    <StaffConfirmDialog
+    <EmpleadosConfirmDialog
       v-model="toggleStatusDialog"
       :title="toggleStatusTitle"
       :message="toggleStatusMessage"
@@ -41,7 +41,7 @@
     />
 
     <!-- Diálogo de confirmación: invalidar tokens -->
-    <StaffConfirmDialog
+    <EmpleadosConfirmDialog
       v-model="invalidateDialog"
       title="Invalidar tokens de reset"
       :message="`¿Estás seguro de invalidar todos los tokens de recuperación de contraseña de ${selectedUser?.name}? El usuario deberá solicitar un nuevo código si necesita resetear su contraseña.`"
@@ -61,10 +61,10 @@ import { useNotification } from '~/composables/useNotification'
 import { UserRole } from '~/types/auth'
 import type { User } from '~/types/auth'
 import { ROLE_LABELS, ROLE_COLORS } from '~/utils/constants'
-import StaffUserStatsBar from '~/components/staff/StaffUserStatsBar.vue'
-import StaffUsersTable from '~/components/staff/StaffUsersTable.vue'
-import StaffUserEditDialog from '~/components/staff/StaffUserEditDialog.vue'
-import StaffConfirmDialog from '~/components/staff/StaffConfirmDialog.vue'
+import EmpleadosUserStatsBar from '~/components/empleados/EmpleadosUserStatsBar.vue'
+import EmpleadosUsersTable from '~/components/empleados/EmpleadosUsersTable.vue'
+import EmpleadosUserEditDialog from '~/components/empleados/EmpleadosUserEditDialog.vue'
+import EmpleadosConfirmDialog from '~/components/empleados/EmpleadosConfirmDialog.vue'
 
 definePageMeta({
   layout: 'default',

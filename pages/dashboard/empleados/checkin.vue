@@ -61,14 +61,14 @@
         >
           <template #item.cliente="{ item }">
             <div>
-              <div class="font-weight-bold">{{ item.cliente?.fullName }}</div>
-              <div class="text-caption text-medium-emphasis">{{ item.cliente?.email }}</div>
+              <div class="font-weight-bold">{{ item.nombreCliente }}</div>
+              <div class="text-caption text-medium-emphasis">{{ item.emailCliente }}</div>
             </div>
           </template>
 
           <template #item.habitacion="{ item }">
             <v-chip color="info" variant="tonal" size="small">
-              Hab. {{ item.reserva?.habitacion?.numeroHabitacion }}
+              Hab. {{ item.habitacion?.numeroHabitacion }}
             </v-chip>
           </template>
 
@@ -92,19 +92,19 @@
     <!-- Diálogo de Check-in -->
     <v-dialog v-model="checkinDialog" max-width="600px">
       <v-card v-if="reservaSeleccionada">
-        <v-card-title>Check-in — {{ reservaSeleccionada.cliente?.fullName }}</v-card-title>
+        <v-card-title>Check-in — {{ reservaSeleccionada.nombreCliente }}</v-card-title>
         <v-card-text class="pa-6">
           <v-row>
             <v-col cols="12" sm="6">
               <div class="text-caption text-medium-emphasis">Habitación</div>
               <div class="text-h6 font-weight-bold">
-                {{ reservaSeleccionada.reserva?.habitacion?.numeroHabitacion }}
+                {{ reservaSeleccionada.habitacion?.numeroHabitacion }}
               </div>
             </v-col>
             <v-col cols="12" sm="6">
               <div class="text-caption text-medium-emphasis">Tipo</div>
               <div class="text-h6 font-weight-bold">
-                {{ reservaSeleccionada.reserva?.habitacion?.tipoHabitacion?.nombre }}
+                {{ reservaSeleccionada.tipoHabitacion?.nombreTipo }}
               </div>
             </v-col>
             <v-col cols="12">
@@ -151,11 +151,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { UserRole } from '~/types/auth'
 import { useAuthStore } from '~/stores/auth'
-import { useReservas } from '~/composables/useReservas'
+import { useReservasStore } from '~/stores/reservas'
 import { useNotification } from '~/composables/useNotification'
+import type { Reserva } from '~/types/api'
 
 definePageMeta({
   layout: 'default',
@@ -166,13 +167,14 @@ definePageMeta({
 useHead({ title: 'Check-in de Huéspedes' })
 
 const authStore = useAuthStore()
+const reservasStore = useReservasStore()
 const { success, error } = useNotification()
 
 const loading = ref(false)
 const confirmandoCheckin = ref(false)
 const numeroReserva = ref('')
 const checkinDialog = ref(false)
-const reservaSeleccionada = ref<any>(null)
+const reservaSeleccionada = ref<Reserva | null>(null)
 const documentoVerificado = ref(false)
 const metodoPagoConfirmado = ref(false)
 const notasCheckin = ref('')
@@ -184,13 +186,28 @@ const headers = [
   { title: 'Acciones', key: 'acciones', width: '80px' },
 ]
 
-// Aquí irían las reservas del día — por ahora simulado
-const proximasReservas = computed<any[]>(() => [])
+// Cargar reservas confirmadas sin checkin realizado
+const proximasReservas = computed(() =>
+  reservasStore.reservas.filter(r =>
+    r.estadoReserva?.toLowerCase() === 'confirmada' && !r.checkinReal
+  )
+)
+
+// Al montar, cargar reservas del hotel
+onMounted(async () => {
+  if (authStore.user?.idHotel) {
+    await refrescarReservas()
+  }
+})
 
 const refrescarReservas = async () => {
   loading.value = true
   try {
-    // Cargar reservas del día
+    if (authStore.user?.idHotel) {
+      await reservasStore.fetchReservasByHotel(authStore.user.idHotel)
+    }
+  } catch (err: any) {
+    error(err?.message || 'Error al cargar reservas')
   } finally {
     loading.value = false
   }
@@ -198,13 +215,21 @@ const refrescarReservas = async () => {
 
 const buscarReserva = async () => {
   if (!numeroReserva.value) {
-    error('Ingrese número de reserva')
+    error('Ingrese número de reserva o cédula')
     return
   }
-  // Buscar la reserva
+  loading.value = true
+  try {
+    // Buscar reserva por cédula del cliente
+    await reservasStore.fetchReservasByCedula(numeroReserva.value)
+  } catch (err: any) {
+    error(err?.message || 'Error al buscar reserva')
+  } finally {
+    loading.value = false
+  }
 }
 
-const abrirCheckin = (reserva: any) => {
+const abrirCheckin = (reserva: Reserva) => {
   reservaSeleccionada.value = reserva
   documentoVerificado.value = false
   metodoPagoConfirmado.value = false
@@ -213,6 +238,7 @@ const abrirCheckin = (reserva: any) => {
 }
 
 const confirmarCheckin = async () => {
+  if (!reservaSeleccionada.value) return
   if (!documentoVerificado.value || !metodoPagoConfirmado.value) {
     error('Complete los requisitos de check-in')
     return
@@ -221,8 +247,10 @@ const confirmarCheckin = async () => {
   confirmandoCheckin.value = true
   try {
     // Llamar API para registrar check-in
+    await reservasStore.confirmarCheckin(reservaSeleccionada.value.id)
     success('Check-in registrado exitosamente')
     checkinDialog.value = false
+    // Recargar lista
     await refrescarReservas()
   } catch (err: any) {
     error(err?.message || 'Error al registrar check-in')

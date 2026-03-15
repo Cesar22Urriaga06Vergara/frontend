@@ -16,7 +16,7 @@
     <!-- Quick actions -->
     <v-row class="mb-6">
       <v-col cols="12" sm="6" md="4">
-        <v-card class="card-glow pa-5 text-center cursor-pointer" @click="navigateTo('/dashboard/staff/checkin')">
+        <v-card class="card-glow pa-5 text-center cursor-pointer" @click="navigateTo('/dashboard/empleados/checkin')">
           <v-icon icon="mdi-login-variant" size="32" color="info" class="mb-3" />
           <h3 class="text-h6 font-weight-bold mb-2">Gestionar Check-in</h3>
           <p class="text-body-2 text-medium-emphasis">
@@ -26,7 +26,7 @@
       </v-col>
 
       <v-col cols="12" sm="6" md="4">
-        <v-card class="card-glow pa-5 text-center cursor-pointer" @click="navigateTo('/dashboard/staff/recepcionista/reservas')">
+        <v-card class="card-glow pa-5 text-center cursor-pointer" @click="navigateTo('/dashboard/empleados/recepcionista/reservas')">
           <v-icon icon="mdi-calendar-check-outline" size="32" color="primary" class="mb-3" />
           <h3 class="text-h6 font-weight-bold mb-2">Gestionar Reservas</h3>
           <p class="text-body-2 text-medium-emphasis">
@@ -36,7 +36,7 @@
       </v-col>
 
       <v-col cols="12" sm="6" md="4">
-        <v-card class="card-glow pa-5 text-center cursor-pointer" @click="navigateTo('/dashboard/staff/checkout')">
+        <v-card class="card-glow pa-5 text-center cursor-pointer" @click="navigateTo('/dashboard/empleados/checkout')">
           <v-icon icon="mdi-logout-variant" size="32" color="success" class="mb-3" />
           <h3 class="text-h6 font-weight-bold mb-2">Gestionar Check-out</h3>
           <p class="text-body-2 text-medium-emphasis">
