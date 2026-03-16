@@ -26,16 +26,17 @@ export const useApi = () => {
       headers['Content-Type'] = 'application/json'
     }
 
-    // Inyectar token si existe
-    if (authStore.token) {
-      headers['Authorization'] = `Bearer ${authStore.token}`
+    // Inyectar token SI EXISTE - obtener en el momento de la petición
+    const token = authStore.token
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
     }
 
     try {
       const response = await $fetch<T>(`${baseURL}${endpoint}`, {
         method: options.method || 'GET',
         headers,
-        body: options.body,
+        body: options.body ? (typeof options.body === 'string' ? options.body : JSON.stringify(options.body)) : undefined,
         query: options.query,
       })
 
@@ -50,7 +51,7 @@ export const useApi = () => {
           return await $fetch<T>(`${baseURL}${endpoint}`, {
             method: options.method || 'GET',
             headers,
-            body: options.body,
+            body: options.body ? (typeof options.body === 'string' ? options.body : JSON.stringify(options.body)) : undefined,
             query: options.query,
           })
         }
