@@ -7,7 +7,8 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@mdi/font": "^7.4.0",
@@ -21,7 +22,10 @@
     "vuetify": "^3.7.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
     "@nuxt/devtools": "latest",
+    "husky": "^9.1.7",
     "sass": "^1.80.0",
     "typescript": "^5.6.0"
   }
