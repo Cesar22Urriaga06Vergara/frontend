@@ -19,6 +19,21 @@
             @success="onLoginSuccess"
             @error="onLoginError"
           />
+
+          <v-divider class="my-4">
+            <span class="text-caption text-medium-emphasis px-2">o continúa con</span>
+          </v-divider>
+
+          <v-btn
+            variant="outlined"
+            color="default"
+            block
+            size="large"
+            :href="`${runtimeConfig.public.apiBase}/auth/google`"
+            prepend-icon="mdi-google"
+          >
+            Continuar con Google
+          </v-btn>
         </v-card>
 
         <!-- Links -->
@@ -47,6 +62,7 @@ definePageMeta({
 
 const authStore = useAuthStore()
 const notification = useNotification()
+const runtimeConfig = useRuntimeConfig()
 
 const onLoginSuccess = async () => {
   notification.success(`¡Bienvenido, ${authStore.userName}!`)
