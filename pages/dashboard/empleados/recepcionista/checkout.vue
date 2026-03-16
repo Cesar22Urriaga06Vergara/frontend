@@ -453,6 +453,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useReservasStore } from '~/stores/reservas'
 import { useServiciosStore } from '~/stores/servicios'
 import { useNotification } from '~/composables/useNotification'
@@ -469,6 +470,7 @@ definePageMeta({
 
 useHead({ title: 'Gestión de Check-out' })
 
+const router = useRouter()
 const reservasStore = useReservasStore()
 const serviciosStore = useServiciosStore()
 const authStore = useAuthStore()
@@ -609,6 +611,12 @@ const handleConfirmCheckout = async () => {
     await reservasStore.confirmarCheckout(selectedReserva.value.id)
     notification.success('Check-out confirmado exitosamente')
     confirmCheckoutDialog.value = false
+    
+    // Redirigir a la página de factura
+    await router.push({
+      path: '/dashboard/empleados/recepcionista/factura-checkout',
+      query: { idReserva: selectedReserva.value.id },
+    })
   } catch (error: any) {
     notification.error(error?.message || 'Error al confirmar check-out')
   } finally {

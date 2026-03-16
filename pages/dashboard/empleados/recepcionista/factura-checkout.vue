@@ -196,7 +196,7 @@ const formatoPrecio = (precio: number): string => {
 const cargarFactura = async () => {
   try {
     const idReserva = route.query.idReserva || route.params.idReserva
-    factura.value = await api(`/facturas/reserva/${idReserva}`)
+    factura.value = await api.get(`/facturas/reserva/${idReserva}`)
   } catch (err: any) {
     error('No se encontró la factura')
   }
@@ -204,7 +204,7 @@ const cargarFactura = async () => {
 
 const cargarMediosPago = async () => {
   try {
-    mediosPago.value = await api('/medios-pago')
+    mediosPago.value = await api.get('/medios-pago')
   } catch (err: any) {
     error('Error al cargar medios de pago')
   }
@@ -215,14 +215,11 @@ const registrarPago = async () => {
 
   registrando.value = true
   try {
-    await api('/pagos', {
-      method: 'POST',
-      body: {
-        idFactura: factura.value.id,
-        idMedioPago: medioPagoId.value,
-        monto: montoPago.value,
-        referenciaPago: referenciaPago.value || undefined,
-      },
+    await api.post('/pagos', {
+      idFactura: factura.value.id,
+      idMedioPago: medioPagoId.value,
+      monto: montoPago.value,
+      referenciaPago: referenciaPago.value || undefined,
     })
 
     success('Pago registrado exitosamente')

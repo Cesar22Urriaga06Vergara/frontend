@@ -208,7 +208,7 @@ const cargarFacturas = async () => {
   cargando.value = true
   try {
     if (authStore.user?.idCliente) {
-      facturas.value = await api(`/facturas/cliente/${authStore.user.idCliente}`)
+      facturas.value = await api.get(`/facturas/cliente/${authStore.user.idCliente}`)
     }
   } catch (err: any) {
     error('Error al cargar facturas')

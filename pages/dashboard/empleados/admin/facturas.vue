@@ -290,7 +290,7 @@ const getEstadoColor = (estado: string): string => {
 const cargarFacturas = async () => {
   loading.value = true
   try {
-    facturas.value = await api(`/facturas`)
+    facturas.value = await api.get(`/facturas`)
   } catch (err: any) {
     error(err.message || 'Error al cargar facturas')
   } finally {
@@ -309,7 +309,7 @@ const abrirDetalle = (factura: any) => {
 
 const emitirFactura = async (id: number) => {
   try {
-    await api(`/facturas/${id}/emitir`, { method: 'PATCH' })
+    await api.patch(`/facturas/${id}/emitir`)
     success('Factura emitida exitosamente')
     cargarFacturas()
   } catch (err: any) {
@@ -331,9 +331,8 @@ const confirmarAnular = async () => {
 
   anulando.value = true
   try {
-    await api(`/facturas/${facturaSeleccionada.value.id}/anular`, {
-      method: 'PATCH',
-      body: { motivo: motivoAnulacion.value },
+    await api.patch(`/facturas/${facturaSeleccionada.value.id}/anular`, {
+      motivo: motivoAnulacion.value,
     })
     success('Factura anulada exitosamente')
     showAnular.value = false

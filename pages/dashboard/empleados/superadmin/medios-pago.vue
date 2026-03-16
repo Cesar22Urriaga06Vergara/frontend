@@ -122,7 +122,7 @@ const formData = ref({
 const cargarMedios = async () => {
   try {
     // Cargar todos, incluyendo inactivos
-    const activos = await api('/medios-pago')
+    const activos = await api.get('/medios-pago')
     todosMedios.value = activos
   } catch (err: any) {
     error('Error al cargar medios de pago')
@@ -144,13 +144,10 @@ const guardar = async () => {
   guardando.value = true
   try {
     if (modo.value === 'new') {
-      await api('/medios-pago', {
-        method: 'POST',
-        body: {
-          nombre: formData.value.nombre.toLowerCase(),
-          descripcion: formData.value.descripcion,
-          requiereReferencia: formData.value.requiereReferencia,
-        },
+      await api.post('/medios-pago', {
+        nombre: formData.value.nombre.toLowerCase(),
+        descripcion: formData.value.descripcion,
+        requiereReferencia: formData.value.requiereReferencia,
       })
       success('Medio de pago creado exitosamente')
     }
@@ -165,7 +162,7 @@ const guardar = async () => {
 
 const toggleEstado = async (medio: any) => {
   try {
-    await api(`/medios-pago/${medio.id}/toggle`, { method: 'PATCH' })
+    await api.patch(`/medios-pago/${medio.id}/toggle`)
     success(`Medio de pago ${medio.activo ? 'desactivado' : 'activado'}`)
     cargarMedios()
   } catch (err: any) {

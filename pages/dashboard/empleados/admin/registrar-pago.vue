@@ -217,10 +217,10 @@ const buscarFactura = async () => {
     // Buscar por número o por reserva
     let respuesta
     if (busquedaFactura.value.startsWith('FAC')) {
-      respuesta = await api(`/facturas`)
+      respuesta = await api.get(`/facturas`)
       factura.value = respuesta.find((f: any) => f.numeroFactura === busquedaFactura.value)
     } else {
-      respuesta = await api(`/facturas/reserva/${busquedaFactura.value}`)
+      respuesta = await api.get(`/facturas/reserva/${busquedaFactura.value}`)
       factura.value = respuesta
     }
 
@@ -230,7 +230,7 @@ const buscarFactura = async () => {
     }
 
     // Cargar pagos existentes
-    pagos.value = await api(`/pagos/factura/${factura.value.id}`)
+    pagos.value = await api.get(`/pagos/factura/${factura.value.id}`)
     success('Factura cargada exitosamente')
   } catch (err: any) {
     error(err.message || 'Error al buscar factura')
@@ -267,12 +267,12 @@ const registrarPago = async () => {
       observaciones: observacionesPago.value || undefined,
     }
 
-    await api('/pagos', { method: 'POST', body: dto })
+    await api.post('/pagos', dto)
 
     success('Pago registrado exitosamente')
 
     // Recargar pagos
-    pagos.value = await api(`/pagos/factura/${factura.value.id}`)
+    pagos.value = await api.get(`/pagos/factura/${factura.value.id}`)
 
     // Limpiar formulario
     montoPago.value = 0
@@ -288,7 +288,7 @@ const registrarPago = async () => {
 
 onMounted(async () => {
   try {
-    mediosPago.value = await api('/medios-pago')
+    mediosPago.value = await api.get('/medios-pago')
   } catch (err: any) {
     error('Error al cargar medios de pago')
   }
