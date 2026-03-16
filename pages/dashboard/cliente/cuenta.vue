@@ -242,19 +242,29 @@ const formatearPrecio = (precio: number): string => {
 };
 
 onMounted(async () => {
-  // Obtener la reserva actual del cliente
-  const reservaActual = reservasStore.reservas.find(
-    (r) =>
-      r.idCliente === authStore.user?.idCliente &&
-      r.estadoReserva?.toLowerCase() !== 'cancelada',
-  );
-
-  if (reservaActual) {
-    try {
-      await serviciosStore.cargarCuenta(reservaActual.id);
-    } catch (error) {
-      console.error('Error cargando cuenta:', error);
+  try {
+    // Primero: Cargar todas las reservas del cliente desde el hotel
+    if (authStore.user?.idCliente && authStore.user?.idHotel) {
+      await reservasStore.obtenerReservasDelCliente(
+        authStore.user.idCliente,
+        authStore.user.idHotel
+      );
     }
+
+    // Segundo: Obtener la reserva activa (confirmada o en-proceso)
+    const reservaActual = reservasStore.reservas.find(
+      (r) =>
+        r.idCliente === authStore.user?.idCliente &&
+        (r.estadoReserva?.toLowerCase() === 'confirmada' ||
+         r.estadoReserva?.toLowerCase() === 'en-proceso'),
+    );
+
+    // Tercero: Cargar la cuenta con la reserva activa
+    if (reservaActual) {
+      await serviciosStore.cargarCuenta(reservaActual.id);
+    }
+  } catch (error) {
+    console.error('Error en onMounted de cuenta:', error);
   }
 });
 </script>

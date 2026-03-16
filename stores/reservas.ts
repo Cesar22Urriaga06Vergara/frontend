@@ -265,6 +265,25 @@ export const useReservasStore = defineStore('reservas', {
     },
 
     /**
+     * Obtener reservas del cliente actual (carga desde el hotel si es necesario)
+     */
+    async obtenerReservasDelCliente(idCliente: number, idHotel: number): Promise<Reserva[]> {
+      this.loading = true
+      try {
+        // Si no hay reservas cargadas del hotel, cargar primero
+        if (this.reservas.length === 0) {
+          await this.fetchReservasByHotel(idHotel)
+        }
+        
+        // Filtrar por idCliente
+        const reservasDelCliente = this.reservas.filter(r => r.idCliente === idCliente)
+        return reservasDelCliente
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
      * Establecer filtro por estado
      */
     setEstadoFilter(estado?: EstadoReserva | string): void {

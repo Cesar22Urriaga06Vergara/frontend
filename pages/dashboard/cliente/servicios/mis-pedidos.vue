@@ -375,28 +375,41 @@ const irAlCatalogo = () => {
 };
 
 onMounted(async () => {
-  // Cargar pedidos de la reserva actual
-  const reservaActual = reservasStore.reservas.find(
-    (r) =>
-      r.idCliente === authStore.user?.idCliente &&
-      r.estadoReserva?.toLowerCase() !== 'cancelada',
-  );
-
-  if (reservaActual) {
-    try {
-      await serviciosStore.cargarMisPedidos(reservaActual.id);
-    } catch (error) {
-      console.error('Error cargando pedidos:', error);
+  try {
+    // Primero: Cargar todas las reservas del cliente desde el hotel
+    if (authStore.user?.idCliente && authStore.user?.idHotel) {
+      await reservasStore.obtenerReservasDelCliente(
+        authStore.user.idCliente,
+        authStore.user.idHotel
+      );
     }
 
-    // Refresh automático cada 30 segundos
-    refreshInterval = setInterval(async () => {
+    // Segundo: Obtener la reserva activa (confirmada o en-proceso, no cancelada)
+    const reservaActual = reservasStore.reservas.find(
+      (r) =>
+        r.idCliente === authStore.user?.idCliente &&
+        r.estadoReserva?.toLowerCase() !== 'cancelada',
+    );
+
+    // Tercero: Cargar los pedidos de la reserva activa
+    if (reservaActual) {
       try {
         await serviciosStore.cargarMisPedidos(reservaActual.id);
       } catch (error) {
-        console.error('Error en auto-refresh:', error);
+        console.error('Error cargando pedidos:', error);
       }
-    }, 30000);
+
+      // Refresh automático cada 30 segundos
+      refreshInterval = setInterval(async () => {
+        try {
+          await serviciosStore.cargarMisPedidos(reservaActual.id);
+        } catch (error) {
+          console.error('Error en auto-refresh:', error);
+        }
+      }, 30000);
+    }
+  } catch (error) {
+    console.error('Error en onMounted de mis-pedidos:', error);
   }
 });
 
