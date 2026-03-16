@@ -52,8 +52,8 @@
         <v-card class="card-glow pa-4">
           <div class="d-flex align-center justify-space-between">
             <div>
-              <div class="text-caption text-medium-emphasis mb-1">Ingresos</div>
-              <div class="text-h6 font-weight-bold">${{ totalIngresos }}</div>
+              <div class="text-caption text-medium-emphasis mb-1">Ingresos Totales</div>
+              <div class="text-h6 font-weight-bold text-success">${{ totalIngresos }}</div>
             </div>
             <v-avatar color="success" size="40" variant="tonal" rounded="lg">
               <v-icon icon="mdi-cash" size="20" />
@@ -66,7 +66,7 @@
         <v-card class="card-glow pa-4">
           <div class="d-flex align-center justify-space-between">
             <div>
-              <div class="text-caption text-medium-emphasis mb-1">Ocupación</div>
+              <div class="text-caption text-medium-emphasis mb-1">Tasa de Ocupación</div>
               <div class="text-h6 font-weight-bold">{{ tasaOcupacion }}%</div>
             </div>
             <v-avatar color="warning" size="40" variant="tonal" rounded="lg">
@@ -119,15 +119,47 @@
     <!-- Tabla de Detalles -->
     <v-card class="card-glow mt-6">
       <v-card-title class="text-subtitle-1 font-weight-bold">
-        Detalles del Período
+        Detalles del Período — {{ periodoReporte }}
       </v-card-title>
       <v-card-text class="pa-0">
         <v-data-table
           :headers="headersDetalles"
           :items="detallesReporte"
-          :loading="loading"
+          :loading="reportesStore.loading"
           class="elevation-0"
+          density="compact"
         />
+      </v-card-text>
+    </v-card>
+
+    <!-- Resumen por Categoría de Servicios -->
+    <v-card class="card-glow mt-6" v-if="resumenPorCategoria.length > 0">
+      <v-card-title class="text-subtitle-1 font-weight-bold">
+        Ingresos por Categoría de Servicios
+      </v-card-title>
+      <v-card-text>
+        <v-list density="compact">
+          <v-list-item
+            v-for="(item, idx) in resumenPorCategoria"
+            :key="idx"
+          >
+            <template #prepend>
+              <v-avatar
+                :color="['primary', 'success', 'warning', 'info', 'error'][idx % 5]"
+                size="small"
+                variant="tonal"
+              >
+                <v-icon icon="mdi-tag" size="18" />
+              </v-avatar>
+            </template>
+            <v-list-item-title>{{ item.categoria }}</v-list-item-title>
+            <template #append>
+              <div class="text-right">
+                <div class="text-body-2 font-weight-bold">{{ item.ingreso }}</div>
+              </div>
+            </template>
+          </v-list-item>
+        </v-list>
       </v-card-text>
     </v-card>
 
@@ -153,61 +185,123 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { UserRole } from '~/types/auth'
+import { useReportesStore } from '~/stores/reportes'
+import { useAuthStore } from '~/stores/auth'
 
 definePageMeta({
   layout: 'default',
   middleware: ['auth', 'role'],
-  roles: [UserRole.ADMIN],
+  roles: [UserRole.ADMIN, UserRole.SUPERADMIN],
 })
 
 useHead({ title: 'Reportes y Análisis' })
 
-const loading = ref(false)
+const authStore = useAuthStore()
+const reportesStore = useReportesStore()
+
 const periodoReporte = ref('mes_actual')
 const tipoReporte = ref('general')
 
 const periodosOptions = [
   { title: 'Mes Actual', value: 'mes_actual' },
-  { title: 'Mes Anterior', value: 'mes_anterior' },
-  { title: 'Últimos 3 meses', value: 'trimestre' },
-  { title: 'Año', value: 'año' },
-  { title: 'Personalizado', value: 'personalizado' },
+  { title: 'Trimestre Actual', value: 'trimestre_actual' },
+  { title: 'Año Actual', value: 'anio_actual' },
+  { title: 'Todos los períodos', value: null },
 ]
 
 const tiposReporte = [
   { title: 'General', value: 'general' },
-  { title: 'Ocupación', value: 'ocupacion' },
-  { title: 'Ingresos', value: 'ingresos' },
+  { title: 'Reservas', value: 'reservas' },
   { title: 'Servicios', value: 'servicios' },
 ]
 
-// Datos simulados
-const totalReservas = ref(45)
-const totalIngresos = ref('12,500')
-const tasaOcupacion = ref(78)
-const averageDailyRate = ref('285')
-
 const headersDetalles = [
-  { title: 'Fecha', key: 'fecha' },
-  { title: 'Reservas', key: 'reservas' },
-  { title: 'Check-in', key: 'checkin' },
-  { title: 'Check-out', key: 'checkout' },
-  { title: 'Ingresos', key: 'ingresos' },
-  { title: 'Ocupación', key: 'ocupacion' },
+  { title: 'Métrica', key: 'metrica', width: '40%' },
+  { title: 'Reservas', key: 'reservas', align: 'end' as const },
+  { title: 'Servicios', key: 'servicios', align: 'end' as const },
+  { title: 'Total', key: 'total', align: 'end' as const },
 ]
 
-const detallesReporte = ref([])
+onMounted(async () => {
+  const idHotel = authStore.user?.idHotel
+  if (idHotel) {
+    await refrescarReportes()
+  }
+})
 
 const refrescarReportes = async () => {
-  loading.value = true
+  const idHotel = authStore.user?.idHotel
+  if (!idHotel) return
+
   try {
-    // Cargar datos del reporte
-  } finally {
-    loading.value = false
+    const periodo = periodoReporte.value || undefined
+    await reportesStore.cargarTodosLosReportes(idHotel, periodo)
+  } catch (err) {
+    console.error('Error al refrescar reportes:', err)
   }
 }
+
+// Computados para acceso fácil
+const totalReservas = computed(() => reportesStore.totalReservas)
+const totalIngresos = computed(() => reportesStore.totalIngresos.toFixed(2))
+const tasaOcupacion = computed(() => reportesStore.tasaOcupacion.toFixed(2))
+const averageDailyRate = computed(() => reportesStore.adr)
+
+const detallesReporte = computed(() => {
+  const res = reportesStore.estadisticasReservas
+  const serv = reportesStore.estadisticasServicios
+  
+  return [
+    {
+      metrica: 'Total de Transacciones',
+      reservas: res.totalReservas || 0,
+      servicios: serv.totalPedidos || 0,
+      total: (res.totalReservas || 0) + (serv.totalPedidos || 0),
+    },
+    {
+      metrica: 'Confirmadas/Entregadas',
+      reservas: res.reservasConfirmadas || 0,
+      servicios: serv.pedidosEntregados || 0,
+      total: (res.reservasConfirmadas || 0) + (serv.pedidosEntregados || 0),
+    },
+    {
+      metrica: 'Completadas',
+      reservas: res.reservasCompletadas || 0,
+      servicios: '-',
+      total: res.reservasCompletadas || 0,
+    },
+    {
+      metrica: 'Canceladas',
+      reservas: res.reservasCanceladas || 0,
+      servicios: serv.pedidosCancelados || 0,
+      total: (res.reservasCanceladas || 0) + (serv.pedidosCancelados || 0),
+    },
+    {
+      metrica: 'Ingresos Brutos',
+      reservas: `$${(res.ingresosBrutos || 0).toFixed(2)}`,
+      servicios: `$${(serv.ingresosBrutos || 0).toFixed(2)}`,
+      total: `$${reportesStore.totalIngresos.toFixed(2)}`,
+    },
+    {
+      metrica: 'Ticket Promedio',
+      reservas: `$${((res.ingresosBrutos || 0) / (res.totalReservas || 1)).toFixed(2)}`,
+      servicios: `$${serv.ticketPromedio?.toFixed(2) || '0.00'}`,
+      total: '-',
+    },
+  ]
+})
+
+const resumenPorCategoria = computed(() => {
+  const categorias = reportesStore.resumenPorCategoria
+  return Object.entries(categorias).map(([categoria, monto]) => ({
+    categoria: categoria.charAt(0).toUpperCase() + categoria.slice(1),
+    ingreso: `$${monto}`,
+    montoNumerado: monto as number,
+  }))
+})
+
 </script>
 
 <style scoped>
