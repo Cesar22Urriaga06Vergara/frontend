@@ -20,13 +20,24 @@
                 {{ reserva.tipoHabitacion?.nombreTipo }} - Habitación {{ reserva.habitacion?.numeroHabitacion }}
               </h3>
             </div>
-            <v-chip
-              :color="getEstadoColor(reserva.estadoReserva)"
-              variant="tonal"
-              size="small"
-            >
-              {{ reserva.estadoReserva }}
-            </v-chip>
+            <div class="d-flex flex-column gap-2">
+              <v-chip
+                :color="getEstadoColor(reserva.estadoReserva)"
+                variant="tonal"
+                size="small"
+              >
+                {{ reserva.estadoReserva }}
+              </v-chip>
+              <v-chip
+                v-if="reserva.estadoReserva?.toLowerCase() === 'confirmada'"
+                :color="reserva.checkinReal ? 'success' : 'warning'"
+                variant="tonal"
+                size="small"
+                :prepend-icon="reserva.checkinReal ? 'mdi-check-circle' : 'mdi-clock-outline'"
+              >
+                {{ reserva.checkinReal ? 'Check-in realizado' : 'Pendiente check-in' }}
+              </v-chip>
+            </div>
           </div>
 
           <v-divider class="my-3" />

@@ -23,9 +23,25 @@
 
     <!-- Advertencia si no hay check-in -->
     <v-alert v-if="!checked" type="warning" class="mb-6" closable>
-      <v-alert-title>No has completado el check-in</v-alert-title>
-      Necesitas registrar tu entrada en el hotel antes de solicitar servicios. Contacta al
-      recepcionista.
+      <v-alert-title>⏰ Pendiente: Registra tu entrada en el hotel</v-alert-title>
+      <div class="mb-4">
+        <p class="mb-2">Para poder solicitar servicios durante tu estadía, el recepcionista debe registrar tu entrada (check-in).</p>
+        <p class="text-caption"><strong>Pasos:</strong></p>
+        <ol class="text-caption ml-4 mt-2">
+          <li>Dirígete a la recepción del hotel</li>
+          <li>El recepcionista registrará tu entrada en el sistema</li>
+          <li>Una vez completado, verás todos los servicios disponibles aquí</li>
+        </ol>
+      </div>
+      <v-btn
+        size="small"
+        color="warning"
+        variant="outlined"
+        prepend-icon="mdi-calendar-check"
+        @click="irAReservas"
+      >
+        Ver mis reservas
+      </v-btn>
     </v-alert>
 
     <!-- Tabs por categoría -->
@@ -269,6 +285,10 @@ const confirmarAgregar = () => {
 
 const irAlCarrito = () => {
   router.push('/dashboard/cliente/servicios/carrito');
+};
+
+const irAReservas = () => {
+  router.push('/reservas/mis-reservas');
 };
 
 onBeforeMount(() => {
