@@ -96,6 +96,27 @@ export const useUsersStore = defineStore('users', {
     },
 
     /**
+     * Crear un nuevo usuario
+     */
+    async createUser(data: {
+      nombre: string
+      email: string
+      password: string
+      role: string
+      cedula?: string
+      isActive?: boolean
+    }): Promise<User> {
+      const api = useApi()
+      const response = await api.post<UserResponse>('/users', data)
+
+      // Agregar a la lista local
+      this.users.push(response.user)
+      this.totalCount = this.users.length
+
+      return response.user
+    },
+
+    /**
      * Actualizar usuario
      */
     async updateUser(id: number | string, data: UpdateUserRequest): Promise<User> {

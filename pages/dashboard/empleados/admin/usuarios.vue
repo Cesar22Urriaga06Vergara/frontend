@@ -8,6 +8,13 @@
           {{ usersStore.totalCount }} usuarios registrados en el sistema
         </p>
       </div>
+      <v-btn
+        color="success"
+        prepend-icon="mdi-account-plus"
+        @click="openCreateDialog"
+      >
+        Crear Usuario
+      </v-btn>
     </div>
 
     <!-- Stats bar -->
@@ -26,6 +33,12 @@
       v-model="editDialog"
       :user="selectedUser"
       @saved="onUserSaved"
+    />
+
+    <!-- Diálogo de creación -->
+    <EmpleadosUserCreateDialog
+      v-model="createDialog"
+      @created="onUserCreated"
     />
 
     <!-- Diálogo de confirmación: activar/desactivar -->
@@ -64,6 +77,7 @@ import { ROLE_LABELS, ROLE_COLORS } from '~/utils/constants'
 import EmpleadosUserStatsBar from '~/components/empleados/EmpleadosUserStatsBar.vue'
 import EmpleadosUsersTable from '~/components/empleados/EmpleadosUsersTable.vue'
 import EmpleadosUserEditDialog from '~/components/empleados/EmpleadosUserEditDialog.vue'
+import EmpleadosUserCreateDialog from '~/components/empleados/EmpleadosUserCreateDialog.vue'
 import EmpleadosConfirmDialog from '~/components/empleados/EmpleadosConfirmDialog.vue'
 
 definePageMeta({
@@ -82,6 +96,9 @@ const selectedUser = ref<User | null>(null)
 
 // Edit dialog
 const editDialog = ref(false)
+
+// Create dialog
+const createDialog = ref(false)
 
 // Toggle status dialog
 const toggleStatusDialog = ref(false)
@@ -144,6 +161,14 @@ const openInvalidateTokensDialog = (user: User) => {
 }
 
 const onUserSaved = () => {
+  loadUsers()
+}
+
+const openCreateDialog = () => {
+  createDialog.value = true
+}
+
+const onUserCreated = () => {
   loadUsers()
 }
 
