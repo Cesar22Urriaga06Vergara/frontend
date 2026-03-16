@@ -220,15 +220,19 @@ const volverAlCatalogo = () => {
 };
 
 const confirmarPedido = async () => {
-  // Obtener la reserva actual
+  // Obtener la reserva actual (debe estar en estado 'confirmada' para pedir servicios)
   const reservaActual = reservasStore.reservas.find(
     (r) =>
       r.idCliente === authStore.user?.idCliente &&
-      r.estadoReserva?.toLowerCase() !== 'cancelada',
+      r.estadoReserva?.toLowerCase() === 'confirmada' &&
+      r.checkinReal, // Además, debe haber hecho check-in
   );
 
   if (!reservaActual) {
-    notification.error('No se encontró una reserva activa');
+    notification.error(
+      'No tienes una reserva activa en el hotel. ' +
+      'Solo puedes pedir servicios si tienes una reserva confirmada y has hecho check-in.'
+    );
     return;
   }
 

@@ -229,12 +229,12 @@ const confirmarReserva = async () => {
   }
 
   emit('confirmar', {
-    idCliente: props.idCliente,
-    idHotel: props.idHotel,
-    idTipoHabitacion: props.habitacion.tipoHabitacionId,
+    idCliente: Number(props.idCliente),
+    idHotel: Number(props.idHotel),
+    idTipoHabitacion: Number(props.habitacion.tipoHabitacionId),
     checkinPrevisto: props.checkinFecha,
     checkoutPrevisto: props.checkoutFecha,
-    numeroHuespedes: formData.numeroHuespedes,
+    numeroHuespedes: Number(formData.numeroHuespedes),
     observaciones: formData.observaciones || undefined,
   })
 }

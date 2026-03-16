@@ -2,6 +2,7 @@
 import { defineStore } from 'pinia'
 import { useApi } from '~/composables/useApi'
 import type { Reserva, ReservaResponse, ReservasListResponse, EstadoReserva } from '~/types/api'
+import type { CheckoutResponse } from '~/types/factura'
 
 interface ReservasState {
   reservas: Reserva[]
@@ -160,9 +161,9 @@ export const useReservasStore = defineStore('reservas', {
      */
     async fetchReservaById(id: number): Promise<Reserva> {
       const api = useApi()
-      const response = await api.get<ReservaResponse>(`/reservas/${id}`)
-      this.currentReserva = response.reserva
-      return response.reserva
+      const reserva = await api.get<Reserva>(`/reservas/${id}`)
+      this.currentReserva = reserva
+      return reserva
     },
 
 
@@ -172,7 +173,7 @@ export const useReservasStore = defineStore('reservas', {
      */
     async cancelarReserva(id: number, motivo?: string): Promise<Reserva> {
       const api = useApi()
-      const response = await api.post<ReservaResponse>(
+      const reserva = await api.post<Reserva>(
         `/reservas/${id}/cancelar`,
         motivo ? { motivo } : {}
       )
@@ -180,11 +181,11 @@ export const useReservasStore = defineStore('reservas', {
       // Actualizar en la lista local
       const index = this.reservas.findIndex((r) => r.id === id)
       if (index !== -1) {
-        this.reservas[index] = response.reserva
+        this.reservas[index] = reserva
       }
-      this.currentReserva = response.reserva
+      this.currentReserva = reserva
 
-      return response.reserva
+      return reserva
     },
 
     /**
@@ -193,7 +194,7 @@ export const useReservasStore = defineStore('reservas', {
      */
     async confirmarCheckin(id: number): Promise<Reserva> {
       const api = useApi()
-      const response = await api.post<ReservaResponse>(
+      const reserva = await api.post<Reserva>(
         `/reservas/${id}/checkin`,
         {}
       )
@@ -201,11 +202,11 @@ export const useReservasStore = defineStore('reservas', {
       // Actualizar en la lista local
       const index = this.reservas.findIndex((r) => r.id === id)
       if (index !== -1) {
-        this.reservas[index] = response.reserva
+        this.reservas[index] = reserva
       }
-      this.currentReserva = response.reserva
+      this.currentReserva = reserva
 
-      return response.reserva
+      return reserva
     },
 
     /**
@@ -221,7 +222,7 @@ export const useReservasStore = defineStore('reservas', {
      */
     async confirmarReservaEstado(id: number): Promise<Reserva> {
       const api = useApi()
-      const response = await api.post<ReservaResponse>(
+      const reserva = await api.post<Reserva>(
         `/reservas/${id}/confirmar`,
         {}
       )
@@ -229,20 +230,20 @@ export const useReservasStore = defineStore('reservas', {
       // Actualizar en la lista local
       const index = this.reservas.findIndex((r) => r.id === id)
       if (index !== -1) {
-        this.reservas[index] = response.reserva
+        this.reservas[index] = reserva
       }
-      this.currentReserva = response.reserva
+      this.currentReserva = reserva
 
-      return response.reserva
+      return reserva
     },
 
     /**
      * Completar una reserva (Check-out)
-     * Registra la salida del huésped
+     * Registra la salida del huésped y genera factura
      */
-    async confirmarCheckout(id: number): Promise<Reserva> {
+    async confirmarCheckout(id: number): Promise<CheckoutResponse> {
       const api = useApi()
-      const response = await api.post<ReservaResponse>(
+      const response = await api.post<CheckoutResponse>(
         `/reservas/${id}/checkout`,
         {}
       )
@@ -254,13 +255,13 @@ export const useReservasStore = defineStore('reservas', {
       }
       this.currentReserva = response.reserva
 
-      return response.reserva
+      return response
     },
 
     /**
      * Alias para compatibilidad legacy - completar reserva (Check-out)
      */
-    async completarReserva(id: number): Promise<Reserva> {
+    async completarReserva(id: number): Promise<CheckoutResponse> {
       return this.confirmarCheckout(id)
     },
 
