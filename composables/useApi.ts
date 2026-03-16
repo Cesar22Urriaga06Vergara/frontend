@@ -36,7 +36,7 @@ export const useApi = () => {
       const response = await $fetch<T>(`${baseURL}${endpoint}`, {
         method: options.method || 'GET',
         headers,
-        body: options.body ? (typeof options.body === 'string' ? options.body : JSON.stringify(options.body)) : undefined,
+        body: options.body,
         query: options.query,
       })
 
@@ -51,7 +51,7 @@ export const useApi = () => {
           return await $fetch<T>(`${baseURL}${endpoint}`, {
             method: options.method || 'GET',
             headers,
-            body: options.body ? (typeof options.body === 'string' ? options.body : JSON.stringify(options.body)) : undefined,
+            body: options.body,
             query: options.query,
           })
         }
