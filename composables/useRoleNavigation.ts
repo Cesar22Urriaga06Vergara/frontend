@@ -64,6 +64,10 @@ const ROUTE_META: Record<string, { title: string; parent?: string }> = {
 
   // ── Roles de Área ──
   '/dashboard/empleados/area': { title: 'Mi Área de Trabajo', parent: '/dashboard' },
+  '/dashboard/empleados/area/cafeteria': { title: 'Mi Área — Cafetería', parent: '/dashboard/empleados/area' },
+  '/dashboard/empleados/area/lavanderia': { title: 'Mi Área — Lavandería', parent: '/dashboard/empleados/area' },
+  '/dashboard/empleados/area/spa': { title: 'Mi Área — Spa', parent: '/dashboard/empleados/area' },
+  '/dashboard/empleados/area/room-service': { title: 'Mi Área — Room Service', parent: '/dashboard/empleados/area' },
 
   // ── Compartidas ──
   '/dashboard/profile': { title: 'Mi Perfil', parent: '/dashboard' },
@@ -222,14 +226,48 @@ export const useRoleNavigation = () => {
       case 'spa':
       case 'room_service':
       case UserRole.CAFETERIA:
+        return [
+          {
+            title: 'Área de Trabajo',
+            items: [
+              { title: 'Gestión de Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleados/area' },
+              { title: 'Mi Área — Cafetería', icon: 'mdi-coffee', to: '/dashboard/empleados/area/cafeteria' },
+            ],
+          },
+          accountSection,
+        ]
+
       case UserRole.LAVANDERIA:
+        return [
+          {
+            title: 'Área de Trabajo',
+            items: [
+              { title: 'Gestión de Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleados/area' },
+              { title: 'Mi Área — Lavandería', icon: 'mdi-washing-machine', to: '/dashboard/empleados/area/lavanderia' },
+            ],
+          },
+          accountSection,
+        ]
+
       case UserRole.SPA:
+        return [
+          {
+            title: 'Área de Trabajo',
+            items: [
+              { title: 'Gestión de Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleados/area' },
+              { title: 'Mi Área — Spa', icon: 'mdi-spa', to: '/dashboard/empleados/area/spa' },
+            ],
+          },
+          accountSection,
+        ]
+
       case UserRole.ROOM_SERVICE:
         return [
           {
             title: 'Área de Trabajo',
             items: [
               { title: 'Gestión de Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleados/area' },
+              { title: 'Mi Área — Room Service', icon: 'mdi-bell-service-outline', to: '/dashboard/empleados/area/room-service' },
             ],
           },
           accountSection,
