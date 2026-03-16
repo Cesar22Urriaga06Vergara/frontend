@@ -207,6 +207,16 @@ export const useAuthStore = defineStore('auth', {
     },
 
     /**
+     * Establecer sesión directamente (usado por Google OAuth callback)
+     */
+    setSession(user: User, token: string, refreshToken?: string): void {
+      this.user = user
+      this.token = token
+      this.refreshToken = refreshToken || null
+      this.persistSession()
+    },
+
+    /**
      * Limpiar sesión
      */
     clearSession(): void {

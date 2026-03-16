@@ -78,25 +78,25 @@
           >
             <template #prepend>
               <v-icon
-                :icon="getIconEstado(entrega.estadoEntrega)"
-                :color="getColorEstado(entrega.estadoEntrega)"
+                :icon="getIconEstado(entrega.estadoPedido)"
+                :color="getColorEstado(entrega.estadoPedido)"
                 size="20"
                 class="mr-2"
               />
             </template>
             <v-list-item-title class="text-body-2">
-              Hab. <strong>#{{ entrega.numeroHabitacion }}</strong> — {{ entrega.items?.length || 0 }} ítem(s)
+              Pedido #{{ entrega.id }} — {{ entrega.items?.length || 0 }} ítem(s)
             </v-list-item-title>
             <v-list-item-subtitle class="text-caption">
-              {{ formatHora(entrega.horaOrden) }} · Piso {{ entrega.pisoHabitacion }}
+              {{ formatHora(entrega.fechaPedido) }} · {{ entrega.tipoEntrega }}
             </v-list-item-subtitle>
             <template #append>
               <v-chip
-                :color="getColorEstado(entrega.estadoEntrega)"
+                :color="getColorEstado(entrega.estadoPedido)"
                 size="x-small"
                 variant="tonal"
               >
-                {{ entrega.estadoEntrega }}
+                {{ entrega.estadoPedido }}
               </v-chip>
             </template>
           </v-list-item>
@@ -140,9 +140,9 @@ onMounted(async () => {
   }
 })
 
-const pendienteCount = computed(() => pedidosStore.pedidos.filter(p => p.estadoEntrega === 'pendiente').length)
-const enRutaCount = computed(() => pedidosStore.pedidos.filter(p => p.estadoEntrega === 'en_ruta').length)
-const entregadasHoy = computed(() => pedidosStore.pedidos.filter(p => p.estadoEntrega === 'entregada').length)
+const pendienteCount = computed(() => pedidosStore.pedidos.filter(p => p.estadoPedido === 'pendiente').length)
+const enRutaCount = computed(() => pedidosStore.pedidos.filter(p => p.estadoPedido === 'en_preparacion').length)
+const entregadasHoy = computed(() => pedidosStore.pedidos.filter(p => p.estadoPedido === 'entregado').length)
 const totalDia = computed(() => pedidosStore.pedidos.length)
 const entregasRecientes = computed(() => pedidosStore.pedidos.slice(0, 5))
 

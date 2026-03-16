@@ -91,7 +91,7 @@ export const useReportesStore = defineStore('reportes', () => {
   
   const adr = computed(() => {
     // Average Daily Rate = Total Ingresos / Noches Totales
-    const totalNoches = estadounidenses()
+    const totalNoches = estadounidenses.value
     if (totalNoches === 0) return 0
     return (totalIngresos.value / totalNoches).toFixed(2)
   })

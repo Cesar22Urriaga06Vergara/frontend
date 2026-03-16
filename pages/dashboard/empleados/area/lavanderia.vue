@@ -78,25 +78,25 @@
           >
             <template #prepend>
               <v-icon
-                :icon="getIconEstado(prenda.estadoLavado)"
-                :color="getColorEstado(prenda.estadoLavado)"
+                :icon="getIconEstado(prenda.estadoPedido)"
+                :color="getColorEstado(prenda.estadoPedido)"
                 size="20"
                 class="mr-2"
               />
             </template>
             <v-list-item-title class="text-body-2">
-              Lote #{{ prenda.id }} — {{ prenda.cantidadPrendas || 0 }} prenda(s)
+              Lote #{{ prenda.id }} — {{ prenda.items?.length || 0 }} prenda(s)
             </v-list-item-title>
             <v-list-item-subtitle class="text-caption">
-              {{ formatHora(prenda.fechaIngreso) }} · Entrega: {{ formatFecha(prenda.fechaEntrega) }}
+              {{ formatHora(prenda.fechaPedido) }} · Tipo: {{ prenda.tipoEntrega }}
             </v-list-item-subtitle>
             <template #append>
               <v-chip
-                :color="getColorEstado(prenda.estadoLavado)"
+                :color="getColorEstado(prenda.estadoPedido)"
                 size="x-small"
                 variant="tonal"
               >
-                {{ prenda.estadoLavado }}
+                {{ prenda.estadoPedido }}
               </v-chip>
             </template>
           </v-list-item>
@@ -140,9 +140,9 @@ onMounted(async () => {
   }
 })
 
-const pendienteCount = computed(() => pedidosStore.pedidos.filter(p => p.estadoLavado === 'pendiente').length)
-const procesoCount = computed(() => pedidosStore.pedidos.filter(p => p.estadoLavado === 'en_proceso').length)
-const listosHoy = computed(() => pedidosStore.pedidos.filter(p => p.estadoLavado === 'listo').length)
+const pendienteCount = computed(() => pedidosStore.pedidos.filter(p => p.estadoPedido === 'pendiente').length)
+const procesoCount = computed(() => pedidosStore.pedidos.filter(p => p.estadoPedido === 'en_preparacion').length)
+const listosHoy = computed(() => pedidosStore.pedidos.filter(p => p.estadoPedido === 'listo').length)
 const totalDia = computed(() => pedidosStore.pedidos.length)
 const prendasRecientes = computed(() => pedidosStore.pedidos.slice(0, 5))
 

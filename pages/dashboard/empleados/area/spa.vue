@@ -78,27 +78,25 @@
           >
             <template #prepend>
               <v-icon
-                :icon="getIconEstado(cita.estadoCita)"
-                :color="getColorEstado(cita.estadoCita)"
+                :icon="getIconEstado(cita.estadoPedido)"
+                :color="getColorEstado(cita.estadoPedido)"
                 size="20"
                 class="mr-2"
               />
             </template>
             <v-list-item-title class="text-body-2">
-              Cita #{{ cita.id }} — {{ cita.tipoServicio || 'Spa' }}
+              Cita #{{ cita.id }} — Spa
             </v-list-item-title>
             <v-list-item-subtitle class="text-caption">
-              {{ formatHora(cita.horaInicio) }} - {{ formatHora(cita.horaFin) }} · {{
-                cita.nombreCliente
-              }}
+              {{ formatHora(cita.fechaPedido) }} · Cliente
             </v-list-item-subtitle>
             <template #append>
               <v-chip
-                :color="getColorEstado(cita.estadoCita)"
+                :color="getColorEstado(cita.estadoPedido)"
                 size="x-small"
                 variant="tonal"
               >
-                {{ cita.estadoCita }}
+                {{ cita.estadoPedido }}
               </v-chip>
             </template>
           </v-list-item>
@@ -142,9 +140,9 @@ onMounted(async () => {
   }
 })
 
-const pendienteCount = computed(() => pedidosStore.pedidos.filter(p => p.estadoCita === 'pendiente').length)
-const enCursoCount = computed(() => pedidosStore.pedidos.filter(p => p.estadoCita === 'en_curso').length)
-const completadasHoy = computed(() => pedidosStore.pedidos.filter(p => p.estadoCita === 'completada').length)
+const pendienteCount = computed(() => pedidosStore.pedidos.filter(p => p.estadoPedido === 'pendiente').length)
+const enCursoCount = computed(() => pedidosStore.pedidos.filter(p => p.estadoPedido === 'en_preparacion').length)
+const completadasHoy = computed(() => pedidosStore.pedidos.filter(p => p.estadoPedido === 'entregado').length)
 const totalDia = computed(() => pedidosStore.pedidos.length)
 const citasRecientes = computed(() => pedidosStore.pedidos.slice(0, 5))
 
