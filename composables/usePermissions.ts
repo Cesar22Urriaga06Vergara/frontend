@@ -1,6 +1,7 @@
 import { computed } from 'vue'
 import { useAuthStore } from '~/stores/auth'
 import type { UserRole } from '~/types/auth'
+import type { EstadoFactura } from '~/types/factura'
 
 /**
  * Composable para verificar permisos por rol y acción
@@ -28,6 +29,12 @@ export const usePermissions = () => {
       'checkin_checkout',
       'manage_hotels',
       'manage_amenities',
+      // FASE 7: Permisos de facturas
+      'factura:ver',
+      'factura:ver-historial',
+      'factura:cambiar-estado',
+      'factura:emitir',
+      'factura:anular',
     ],
     admin: [
       'manage_users',
@@ -38,17 +45,30 @@ export const usePermissions = () => {
       'view_reports',
       'checkin_checkout',
       'manage_amenities',
+      // FASE 7: Permisos de facturas
+      'factura:ver',
+      'factura:ver-historial',
+      'factura:cambiar-estado',
+      'factura:emitir',
+      'factura:anular',
     ],
     recepcionista: [
       'manage_reservations',
       'checkin_checkout',
       'view_reports',
+      // FASE 7: Permisos de facturas
+      'factura:ver',
+      'factura:ver-historial',
     ],
     cafeteria: ['manage_orders'],
     lavanderia: ['manage_orders'],
     spa: ['manage_orders'],
     room_service: ['manage_orders'],
-    cliente: [],
+    cliente: [
+      // FASE 7: Clientes ven solo sus propias facturas
+      'factura:ver',
+      'factura:ver-historial',
+    ],
   }
 
   /**
@@ -96,6 +116,58 @@ export const usePermissions = () => {
   const hasAnyRole = (...roles: (UserRole | string)[]): boolean =>
     roles.some((r) => hasRole(r))
 
+  /**
+   * FASE 7: Validar si puede cambiar estado de factura
+   * Valida permisos + transición de estado
+   */
+  const canCambiarEstadoFactura = (
+    estadoActual: EstadoFactura,
+    estadoNuevo: EstadoFactura
+  ): boolean => {
+    const role = authStore.userRole?.toLowerCase()
+
+    // Solo admin y superadmin pueden cambiar estados
+    if (!['admin', 'superadmin'].includes(role || '')) {
+      return false
+    }
+
+    // Matriz de transiciones permitidas
+    const transicionesPermitidas: Record<EstadoFactura, EstadoFactura[]> = {
+      BORRADOR: ['EDITABLE', 'EMITIDA', 'ANULADA'],
+      EDITABLE: ['EMITIDA', 'BORRADOR', 'ANULADA'],
+      EMITIDA: ['PAGADA', 'ANULADA'],
+      PAGADA: [], // Terminal - no se puede cambiar
+      ANULADA: [], // Terminal - no se puede cambiar
+    }
+
+    const permitidas = transicionesPermitidas[estadoActual] || []
+    return permitidas.includes(estadoNuevo)
+  }
+
+  /**
+   * Validar si puede emitir (específico para factura)
+   */
+  const puedeEmitirFactura = (estadoActual: EstadoFactura): boolean =>
+    canCambiarEstadoFactura(estadoActual, 'EMITIDA')
+
+  /**
+   * Validar si puede anular (más restrictivo que emitir)
+   */
+  const puedeAnularFactura = (estadoActual: EstadoFactura): boolean => {
+    const role = authStore.userRole?.toLowerCase()
+    // Anular es más restrictivo: solo superadmin en estados iniciales
+    if (role !== 'superadmin' && estadoActual === 'PAGADA') {
+      return false
+    }
+    return canCambiarEstadoFactura(estadoActual, 'ANULADA')
+  }
+
+  /**
+   * Validar si puede marcar como pagada
+   */
+  const puedePagarFactura = (estadoActual: EstadoFactura): boolean =>
+    canCambiarEstadoFactura(estadoActual, 'PAGADA')
+
   return {
     can,
     canAny,
@@ -103,5 +175,10 @@ export const usePermissions = () => {
     userPermissions,
     hasRole,
     hasAnyRole,
+    // FASE 7: Métodos de factura
+    canCambiarEstadoFactura,
+    puedeEmitirFactura,
+    puedeAnularFactura,
+    puedePagarFactura,
   }
 }

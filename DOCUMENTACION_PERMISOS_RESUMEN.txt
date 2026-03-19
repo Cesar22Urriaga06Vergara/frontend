@@ -1,0 +1,155 @@
+📚 SISTEMA DE PERMISOS - DOCUMENTACIÓN COMPLETA
+═══════════════════════════════════════════════════════════
+
+✅ DOCUMENTOS CREADOS (5 archivos):
+
+  1️⃣  README_SISTEMA_PERMISOS.md (ÍNDICE - EMPIEZA AQUÍ)
+      └─ Guía sobre cuál leer según tu tiempo
+
+  2️⃣  REFERENCIA_RAPIDA_PERMISOS.md (5 MIN) ⚡
+      ├─ 3 pasos para agregar permiso
+      ├─ API completa
+      ├─ Anti-patrones
+      └─ Checklist
+
+  3️⃣  DIAGRAMAS_SISTEMA_PERMISOS.md (10 MIN) 📊
+      ├─ 10 diagramas visuales ASCII
+      ├─ Flujo autenticación
+      ├─ Matriz de permisos
+      └─ Frontend vs Backend
+
+  4️⃣  GUIA_PRACTICA_PERMISOS.md (20 MIN) 📖
+      ├─ Paso a paso detallado
+      ├─ Patrones explicados
+      ├─ Ejemplo: manage_tax_rates
+      └─ Testing checklist
+
+  5️⃣  EJEMPLO_FACTURAS_PERMISOS.md (30 MIN) 💻
+      ├─ Código COMPLETO lista para copiar
+      ├─ Página ADMIN con tabla + dialogs
+      ├─ Casos RECEPCIONISTA y CLIENTE
+      └─ Testing real
+
+  📊 ANALISIS_SISTEMA_PERMISOS.md (45 MIN) 🔬
+      ├─ Análisis técnico DE-PRI en detalle
+      ├─ Todos los archivos del sistema
+      ├─ Código fuente real
+      └─ Explicación línea por línea
+
+═══════════════════════════════════════════════════════════
+
+🎯 ELIGE TU RUTA:
+
+  ⏱️  TENGO 5 MIN    → README + REFERENCIA_RAPIDA
+  ⏱️  TENGO 15 MIN   → README + REFERENCIA_RAPIDA + DIAGRAMAS
+  ⏱️  TENGO 30 MIN   → README + GUIA_PRACTICA + DIAGRAMAS
+  ⏱️  TENGO 1 HORA   → Todos en orden
+
+═══════════════════════════════════════════════════════════
+
+📋 RESUMEN RÁPIDO DEL SISTEMA:
+
+  ESTRUCTURA:
+    • 8 roles (superadmin, admin, recepcionista, cliente, cafeteria, lavanderia, spa, room_service)
+    • Matriz de permisos en composables/usePermissions.ts
+    • Cada rol tiene array de permisos strings
+
+  API usePermissions():
+    const { can, canAny, canAll, hasRole, hasAnyRole } = usePermissions()
+    
+    can('permiso')          ← ¿Tiene THIS permiso?
+    canAny('a', 'b')        ← ¿Tiene AL MENOS UNO?
+    canAll('a', 'b')        ← ¿Tiene TODOS?
+    hasRole('admin')        ← ¿Es este rol?
+    userPermissions.value   ← Array de permisos
+
+  3 NIVELES DE CONTROL:
+    Nivel 3: definePageMeta({ roles: [...] })    ← Hard constraint
+    Nivel 2: useRoleNavigation() → items           ← Invisible
+    Nivel 1: <btn v-if="can(...)">                ← Best UX
+
+  AGREGAR NUEVO PERMISO (3 PASOS):
+    1. Agregar string en ROLE_PERMISSIONS[rol]
+    2. Usar en template: <btn v-if="can('permiso')">
+    3. (Opcional) Proteger ruta: roles: [UserRole.ADMIN]
+
+═══════════════════════════════════════════════════════════
+
+📁 ARCHIVOS CLAVE DEL CÓDIGO:
+
+  composables/usePermissions.ts
+    ├─ ROLE_PERMISSIONS = { admin: [...], recepcionista: [...] }
+    ├─ can(permiso) → boolean
+    ├─ hasRole(rol) → boolean
+    └─ userPermissions → computed
+
+  composables/useRoleNavigation.ts
+    ├─ navigationSections (items diferentes por rol)
+    ├─ roleLabel, roleColor, roleIcon (presentación)
+    └─ defaultRoute (ruta por defecto del rol)
+
+  middleware/auth.ts
+    └─ Verifica: ¿token + user existen?
+
+  middleware/role.ts
+    ├─ Lee meta.roles de la ruta
+    ├─ Compara con user.role
+    └─ Redirige si no coincide
+
+  utils/constants.ts
+    ├─ ROLE_LABELS (etiquetas legibles)
+    ├─ ROLE_COLORS (colores para UI)
+    ├─ ROLE_ICONS (iconos)
+    └─ ROLE_DEFAULT_ROUTE (ruta por rol)
+
+  stores/auth.ts
+    ├─ user.role (tu rol actual)
+    └─ userRole getter (normalizado a minúsculas)
+
+  types/auth.ts
+    └─ enum UserRole { ADMIN, SUPERADMIN, ... }
+
+═══════════════════════════════════════════════════════════
+
+⚠️  IMPORTANTE:
+
+  ❌ Frontend permisos ≠ Seguridad real
+  ✅ Backend DEBE validar también con @Roles(UserRole.ADMIN)
+
+  Cualquiera puede hacer en DevTools:
+    localStorage.setItem('auth', ...)
+    authStore.user.role = 'admin'
+
+  Pero no puede falsificar:
+    Token JWT (es firmado en backend)
+    DB record (es verificado en backend)
+
+═══════════════════════════════════════════════════════════
+
+🚀 PRÓXIMOS PASOS:
+
+  1. Lee README_SISTEMA_PERMISOS.md
+  2. Elige el documento que necesites
+  3. Implementa un nuevo permiso
+  4. Testa con 2 roles diferentes
+  5. Backend: agrega @Roles() en el endpoint
+
+═══════════════════════════════════════════════════════════
+
+📊 STATS:
+
+  Total de documentación:        ~130 páginas
+  Diagramas ASCII:              10+
+  Ejemplos de código:           20+
+  Tests mencionados:            15+
+  Archivos analizados:          7+
+  
+  Tiempo de lectura total:      2-3 horas
+  Tiempo de implementación:     15-30 min
+
+═══════════════════════════════════════════════════════════
+
+Created: 19 de marzo de 2026
+Status: Documentación completa y actualizada
+
+═══════════════════════════════════════════════════════════
