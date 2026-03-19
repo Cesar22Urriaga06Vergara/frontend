@@ -42,8 +42,6 @@ const authStore = useAuthStore()
 const adminCards = [
   { to: '/dashboard/empleados/admin/usuarios',         icon: 'mdi-account-group',       color: 'primary', title: 'Usuarios',         description: 'Gestionar usuarios del sistema' },
   { to: '/dashboard/empleados/admin/reservas',         icon: 'mdi-calendar-check',      color: 'warning', title: 'Reservas',         description: 'Gestionar reservas del hotel' },
-  { to: '/dashboard/empleados/admin/checkin',          icon: 'mdi-login-variant',       color: 'success',  title: 'Check-in',         description: 'Registrar entrada de huéspedes' },
-  { to: '/dashboard/empleados/admin/checkout',         icon: 'mdi-logout-variant',      color: 'error',    title: 'Check-out',        description: 'Registrar salida de huéspedes' },
   { to: '/dashboard/empleados/admin/habitaciones',     icon: 'mdi-door',                color: 'info',     title: 'Habitaciones',     description: 'Gestionar habitaciones' },
   { to: '/dashboard/empleados/admin/tipos-habitacion', icon: 'mdi-bed-outline',         color: 'teal',     title: 'Tipos Habitación', description: 'Gestionar tipos de habitación' },
   { to: '/dashboard/empleados/admin/amenidades',       icon: 'mdi-star-outline',        color: 'pink',     title: 'Amenidades',       description: 'Gestionar amenidades' },

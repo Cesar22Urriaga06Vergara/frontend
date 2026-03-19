@@ -65,6 +65,11 @@ export const useAuthStore = defineStore('auth', {
 
         // Persistir en localStorage
         this.persistSession()
+
+        // Si es cliente, obtener hotel desde reserva activa
+        if (this.user?.role === 'cliente') {
+          await this.fetchReservaActivaAndSetHotel()
+        }
       } finally {
         this.loading = false
       }
@@ -86,6 +91,11 @@ export const useAuthStore = defineStore('auth', {
         this.token = response.token
         this.refreshToken = response.refreshToken
         this.persistSession()
+
+        // Si es cliente, obtener hotel desde reserva activa
+        if (this.user?.role === 'cliente') {
+          await this.fetchReservaActivaAndSetHotel()
+        }
       } finally {
         this.loading = false
       }
@@ -107,6 +117,11 @@ export const useAuthStore = defineStore('auth', {
         this.token = response.token
         this.refreshToken = response.refreshToken
         this.persistSession()
+
+        // Si es cliente, obtener hotel desde reserva activa
+        if (this.user?.role === 'cliente') {
+          await this.fetchReservaActivaAndSetHotel()
+        }
       } finally {
         this.loading = false
       }
@@ -154,6 +169,34 @@ export const useAuthStore = defineStore('auth', {
       this.token = response.accessToken || response.token || this.token
       this.refreshToken = response.refreshToken
       this.persistSession()
+    },
+
+    /**
+     * Obtener hotel desde reserva activa del cliente
+     * Se ejecuta después del login de un cliente para determinar su idHotel
+     */
+    async fetchReservaActivaAndSetHotel(): Promise<void> {
+      if (!this.token || !this.user || this.user.role !== 'cliente' || !this.user.idCliente) {
+        return
+      }
+
+      try {
+        const config = useRuntimeConfig()
+        const response = await $fetch<any>(
+          `${config.public.apiBase}/reserva/activa/${this.user.idCliente}`,
+          {
+            headers: { Authorization: `Bearer ${this.token}` },
+          }
+        )
+
+        if (response && response.idHotel && this.user) {
+          this.user.idHotel = response.idHotel
+          this.persistSession()
+        }
+      } catch {
+        // Sin reserva activa — el cliente puede ver el catálogo pero no hacer pedidos
+        // idHotel permanece null
+      }
     },
 
     /**

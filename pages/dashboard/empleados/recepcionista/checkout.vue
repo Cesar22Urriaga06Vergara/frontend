@@ -247,15 +247,116 @@
             <v-btn
               color="info"
               :loading="checkoutLoading"
-              @click="handleConfirmCheckout"
+              @click="pasoCheckout = 'metodo-pago'"
               :disabled="cuentaCargando"
             >
-              Confirmar Salida y Generar Factura
+              Próximo: Seleccionar Pago
             </v-btn>
           </v-card-actions>
         </div>
 
-        <!-- PASO 2: Generando Factura -->
+        <!-- PASO 2: Seleccionar Método de Pago -->
+        <div v-show="pasoCheckout === 'metodo-pago'">
+          <v-card-text class="pa-6">
+            <div class="text-center mb-4">
+              <v-avatar
+                color="warning"
+                size="56"
+                variant="tonal"
+                class="mb-4"
+              >
+                <v-icon icon="mdi-credit-card-outline" size="28" />
+              </v-avatar>
+              <h3 class="text-h6 font-weight-bold mb-2">Método de Pago</h3>
+              <p class="text-body-2 text-medium-emphasis">
+                Selecciona cómo desea pagar el cliente
+              </p>
+            </div>
+
+            <!-- Total a pagar -->
+            <v-card variant="tonal" color="success" class="mb-4">
+              <v-card-text class="text-center py-4">
+                <p class="text-caption text-medium-emphasis mb-2">Total a pagar</p>
+                <p class="text-h4 font-weight-bold">
+                  ${{ formatearPrecio(cuentaSeleccionada?.totalGeneral || 0) }}
+                </p>
+              </v-card-text>
+            </v-card>
+
+            <!-- Seleccionar método de pago -->
+            <v-select
+              v-model="pagoForm.metodoPago"
+              label="Método de Pago"
+              :items="metodosPago"
+              item-title="label"
+              item-value="value"
+              outlined
+              class="mb-4"
+            />
+
+            <!-- Campos dinámicos por método de pago -->
+            <!-- Efectivo -->
+            <div v-if="pagoForm.metodoPago === 'efectivo'" class="mb-4">
+              <v-text-field
+                v-model.number="pagoForm.montoRecibido"
+                label="Monto Recibido"
+                type="number"
+                prefix="$"
+                :rules="[
+                  (v) => v > 0 || 'Ingresa un monto válido',
+                  (v) => v >= (cuentaSeleccionada?.totalGeneral || 0) || `Monto insuficiente (mínimo $${formatearPrecio(cuentaSeleccionada?.totalGeneral || 0)})`
+                ]"
+                @update:model-value="calcularCambio"
+              />
+              <v-alert v-if="pagoForm.cambio > 0" type="success" variant="tonal" class="mt-2">
+                <div class="text-subtitle-2 font-weight-bold">Cambio a devolver</div>
+                <div class="text-h6 text-success">${{ formatearPrecio(pagoForm.cambio) }}</div>
+              </v-alert>
+            </div>
+
+            <!-- Tarjeta o transferencia -->
+            <div v-if="['tarjeta', 'transferencia'].includes(pagoForm.metodoPago)" class="mb-4">
+              <v-text-field
+                v-model="pagoForm.referencia"
+                :label="`Número de ${pagoForm.metodoPago === 'tarjeta' ? 'Autorización' : 'Transferencia'}`"
+                placeholder="Ej: 123456789012"
+                :rules="[(v) => v?.length >= 6 || 'Ingresa un número válido']"
+              />
+            </div>
+
+            <!-- Notas opcionales -->
+            <v-text-field
+              v-model="pagoForm.observaciones"
+              label="Observaciones (Opcional)"
+              placeholder="Ej: Pago parcial, nota especial, etc."
+            />
+
+            <!-- Alerta -->
+            <v-alert v-if="errorCheckout" type="error" variant="tonal" class="mb-4">
+              {{ errorCheckout }}
+            </v-alert>
+          </v-card-text>
+
+          <v-card-actions class="px-6 pb-5">
+            <v-btn
+              variant="text"
+              @click="pasoCheckout = 'resumen'"
+              :disabled="checkoutLoading"
+            >
+              Atrás
+            </v-btn>
+            <v-spacer />
+            <v-btn
+              color="success"
+              :loading="checkoutLoading"
+              @click="handleConfirmCheckout"
+            >
+              Confirmar y Generar Factura
+            </v-btn>
+          </v-card-actions>
+        </div>
+
+        <!-- PASO 3: Generando Factura -->
         <div v-show="pasoCheckout === 'generando'" class="pa-12 text-center">
           <v-progress-circular
             indeterminate
@@ -457,10 +558,27 @@ const cuentaCargando = ref(false)
 // Confirm checkout dialog - multi-paso
 const confirmCheckoutDialog = ref(false)
 const checkoutLoading = ref(false)
-type PasoCheckout = 'resumen' | 'generando' | 'factura-generada'
+type PasoCheckout = 'resumen' | 'metodo-pago' | 'generando' | 'factura-generada'
 const pasoCheckout = ref<PasoCheckout>('resumen')
 const facturaGenerada = ref<Factura | null>(null)
 const errorCheckout = ref<string | null>(null)
+
+// Métodos de pago disponibles
+const metodosPago = [
+  { label: 'Efectivo', value: 'efectivo' },
+  { label: 'Tarjeta de Crédito/Débito', value: 'tarjeta' },
+  { label: 'Transferencia Bancaria', value: 'transferencia' },
+  { label: 'Cheque', value: 'cheque' },
+]
+
+// Formulario de pago
+const pagoForm = ref({
+  metodoPago: 'efectivo' as string,
+  montoRecibido: 0,
+  cambio: 0,
+  referencia: '',
+  observaciones: '',
+})
 
 // Cuenta/servicios
 const cuentaSeleccionada = ref<CuentaReserva | null>(null)
@@ -539,11 +657,42 @@ const abrirConfirmCheckout = () => {
   pasoCheckout.value = 'resumen'
   facturaGenerada.value = null
   errorCheckout.value = null
+  // Limpiar formulario de pago
+  pagoForm.value = {
+    metodoPago: 'efectivo',
+    montoRecibido: cuentaSeleccionada.value?.totalGeneral || 0,
+    cambio: 0,
+    referencia: '',
+    observaciones: '',
+  }
   confirmCheckoutDialog.value = true
+}
+
+const calcularCambio = () => {
+  if (!cuentaSeleccionada.value) return
+  const total = cuentaSeleccionada.value.totalGeneral
+  const recibido = pagoForm.value.montoRecibido || 0
+  pagoForm.value.cambio = Math.max(0, recibido - total)
 }
 
 const handleConfirmCheckout = async () => {
   if (!selectedReserva.value) return
+
+  // Validar datos de pago
+  if (!pagoForm.value.metodoPago) {
+    errorCheckout.value = 'Selecciona un método de pago'
+    return
+  }
+
+  if (pagoForm.value.metodoPago === 'efectivo' && !pagoForm.value.montoRecibido) {
+    errorCheckout.value = 'Ingresa el monto recibido'
+    return
+  }
+
+  if (['tarjeta', 'transferencia', 'cheque'].includes(pagoForm.value.metodoPago) && !pagoForm.value.referencia) {
+    errorCheckout.value = 'Ingresa el número de referencia'
+    return
+  }
 
   // Cambiar paso a "generando"
   pasoCheckout.value = 'generando'
@@ -553,6 +702,15 @@ const handleConfirmCheckout = async () => {
   try {
     // La llamada al store ahora retorna { reserva, factura }
     const resultado = await reservasStore.confirmarCheckout(selectedReserva.value.id)
+    
+    // TODO: Aquí se debería registrar el pago en el backend
+    // await pagoStore.registrarPago({
+    //   idFactura: resultado.factura.id,
+    //   monto: cuentaSeleccionada.value?.totalGeneral,
+    //   idMedioPago: metodosPago.find(m => m.value === pagoForm.value.metodoPago)?.id,
+    //   referenciaPago: pagoForm.value.referencia,
+    //   observaciones: pagoForm.value.observaciones,
+    // })
     
     // Factura es opcional - si no se generó, mostrar warning pero continuar
     if (resultado.factura) {
@@ -568,7 +726,7 @@ const handleConfirmCheckout = async () => {
     await cargarReservas()
 
   } catch (error: any) {
-    pasoCheckout.value = 'resumen' // Volver al resumen si falla
+    pasoCheckout.value = 'metodo-pago' // Volver a pago si falla
     errorCheckout.value = error?.message || 'Error al confirmar check-out'
     notification.error(errorCheckout.value || 'Error desconocido')
   } finally {

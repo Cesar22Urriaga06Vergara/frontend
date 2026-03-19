@@ -44,8 +44,6 @@ const ROUTE_META: Record<string, { title: string; parent?: string }> = {
   '/dashboard/empleados/admin/pedidos': { title: 'Gestión de Pedidos', parent: '/dashboard/empleados/admin' },
   '/dashboard/empleados/admin/reportes': { title: 'Reportes y Análisis', parent: '/dashboard/empleados/admin' },
   '/dashboard/empleados/admin/reset-stats': { title: 'Reset Stats', parent: '/dashboard/empleados/admin' },
-  '/dashboard/empleados/admin/checkin': { title: 'Registrar Entrada', parent: '/dashboard/empleados/admin' },
-  '/dashboard/empleados/admin/checkout': { title: 'Registrar Salida', parent: '/dashboard/empleados/admin' },
 
   // ── SuperAdmin ──
   '/dashboard/empleados/superadmin': { title: 'Panel SuperAdmin', parent: '/dashboard' },
@@ -59,8 +57,6 @@ const ROUTE_META: Record<string, { title: string; parent?: string }> = {
   '/dashboard/empleados/superadmin/pedidos': { title: 'Gestión de Pedidos', parent: '/dashboard/empleados/superadmin' },
   '/dashboard/empleados/superadmin/reportes': { title: 'Reportes y Análisis', parent: '/dashboard/empleados/superadmin' },
   '/dashboard/empleados/superadmin/reset-stats': { title: 'Reset Stats', parent: '/dashboard/empleados/superadmin' },
-  '/dashboard/empleados/superadmin/checkin': { title: 'Registrar Entrada', parent: '/dashboard/empleados/superadmin' },
-  '/dashboard/empleados/superadmin/checkout': { title: 'Registrar Salida', parent: '/dashboard/empleados/superadmin' },
 
   // ── Roles de Área ──
   '/dashboard/empleados/area': { title: 'Mi Área de Trabajo', parent: '/dashboard' },
@@ -121,8 +117,6 @@ export const useRoleNavigation = () => {
             title: 'Operaciones',
             items: [
               { title: 'Gestión de Reservas', icon: 'mdi-calendar-check-outline', to: '/dashboard/empleados/superadmin/reservas' },
-              { title: 'Check-in', icon: 'mdi-login-variant', to: '/dashboard/empleados/superadmin/checkin' },
-              { title: 'Check-out', icon: 'mdi-logout-variant', to: '/dashboard/empleados/superadmin/checkout' },
             ],
           },
           {
@@ -158,8 +152,6 @@ export const useRoleNavigation = () => {
             title: 'Operaciones',
             items: [
               { title: 'Gestión de Reservas', icon: 'mdi-calendar-check-outline', to: '/dashboard/empleados/admin/reservas' },
-              { title: 'Check-in', icon: 'mdi-login-variant', to: '/dashboard/empleados/admin/checkin' },
-              { title: 'Check-out', icon: 'mdi-logout-variant', to: '/dashboard/empleados/admin/checkout' },
             ],
           },
           {

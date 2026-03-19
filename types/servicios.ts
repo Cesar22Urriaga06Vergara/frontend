@@ -43,6 +43,195 @@ export interface Pedido {
   items: PedidoItem[];
 }
 
+/**
+ * DTO para vista operacional en área (SIN datos financieros)
+ * Usado en: GET /servicios/pedidos/area/:idHotel/:categoria
+ */
+export interface PedidoAreaResponse {
+  id: number;
+  idReserva: number;
+  tipoEntrega: 'delivery' | 'recogida';
+  estadoPedido: 'pendiente' | 'en_preparacion' | 'listo' | 'entregado' | 'cancelado';
+  categoria: string;
+  notaCliente?: string;
+  notaEmpleado?: string;
+  fechaPedido: string | Date;
+  items: {
+    id: number;
+    idServicio: number;
+    nombreServicioSnapshot: string;
+    cantidad: number;
+    observacion?: string;
+  }[];
+  // ❌ NO incluye: totalPedido, idCliente, precios
+}
+
+/**
+ * Item para reporte (CON datos financieros)
+ */
+export interface PedidoReporteItem {
+  id: number;
+  idServicio: number;
+  nombreServicioSnapshot: string;
+  cantidad: number;
+  precioUnitarioSnapshot: number;
+  subtotal: number;
+  observacion?: string;
+}
+
+/**
+ * DTO para vista de reporte financiero (CON datos auditados)
+ * Usado en: GET /servicios/reportes/area/:idHotel/:categoria
+ */
+export interface PedidoAreaReporte {
+  id: number;
+  idReserva: number;
+  tipoEntrega: 'delivery' | 'recogida';
+  estadoPedido: 'pendiente' | 'en_preparacion' | 'listo' | 'entregado' | 'cancelado';
+  categoria: string;
+  notaCliente?: string;
+  notaEmpleado?: string;
+  fechaPedido: string | Date;
+  totalPedido: number; // ✅ Incluido en reportes
+  items: PedidoReporteItem[]; // ✅ Con precios
+}
+
+/**
+ * Resumen agregado de reportes de área
+ */
+export interface AreaReportsResumen {
+  categoria: string;
+  periodo: {
+    desde: string | Date;
+    hasta: string | Date;
+  };
+  contadores: {
+    total: number;
+    pendiente: number;
+    en_preparacion: number;
+    listo: number;
+    entregado: number;
+    cancelado: number;
+  };
+  financiero: {
+    ingresoTotal: number;
+    ingresoPendiente: number;
+    ingresoEntregado: number;
+    promedioPorPedido: number;
+    ticketPromedio: number;
+  };
+  topProductos: Array<{
+    idServicio: number;
+    nombre: string;
+    cantidadVendida: number;
+    ingresoGenerado: number;
+  }>;
+  estadisticasEntrega: {
+    delivery: { cantidad: number; ingresos: number };
+    recogida: { cantidad: number; ingresos: number };
+  };
+  consultadoEn: string | Date;
+  consultadoPor: {
+    idEmpleado?: number;
+    rol: string;
+  };
+}
+
+/**
+ * Respuesta del endpoint de reportes
+ */
+export interface AreaReportResponse {
+  detalle: PedidoAreaReporte[];
+  resumen: AreaReportsResumen;
+}
+
+/**
+ * ────────────────────────────────────────────────────────────────
+ * TIPOS PARA REPORTES CONSOLIDADOS (ADMIN)
+ * ────────────────────────────────────────────────────────────────
+ */
+
+export interface HotelKpis {
+  totalPedidos: number;
+  totalIngresos: number;
+  ingresoEntregado: number;
+  ingresoPendiente: number;
+  ticketPromedio: number;
+  pedidosPorDia: number;
+  tasaEntregaGlobal: number;
+  areaConMasIngresos: {
+    categoria: string;
+    ingresos: number;
+  };
+  pedidosHoy: number;
+  ingresosHoy: number;
+  periodo: {
+    desde: string | Date;
+    hasta: string | Date;
+  };
+}
+
+export interface AreaResumen {
+  categoria: string;
+  totalPedidos: number;
+  ingresoTotal: number;
+  ingresoEntregado: number;
+  ingresoPendiente: number;
+  ticketPromedio: number;
+  tasaEntrega: number;
+  tipoPrefijo: 'delivery' | 'recogida';
+  contadores: {
+    pendiente: number;
+    en_preparacion: number;
+    listo: number;
+    entregado: number;
+    cancelado: number;
+  };
+}
+
+export interface TopArea {
+  ranking: number;
+  categoria: string;
+  ingresos: number;
+  pedidos: number;
+  ticketPromedio: number;
+  porcentajeDelTotal: number;
+}
+
+export interface EstadisticasEntregaConsolidado {
+  delivery: {
+    cantidad: number;
+    ingresos: number;
+    porcentaje: number;
+  };
+  recogida: {
+    cantidad: number;
+    ingresos: number;
+    porcentaje: number;
+  };
+}
+
+export interface TendenciasDiarias {
+  fecha: string | Date;
+  pedidos: number;
+  ingresos: number;
+}
+
+export interface HotelReportConsolidado {
+  idHotel: number;
+  kpis: HotelKpis;
+  topAreas: TopArea[];
+  areasDetalle: AreaResumen[];
+  estadisticasEntrega: EstadisticasEntregaConsolidado;
+  tendencias: TendenciasDiarias[];
+  consultadoEn: string | Date;
+  consultadoPor: {
+    idEmpleado?: number;
+    idAdmin?: number;
+    rol: string;
+  };
+}
+
 export interface CuentaReserva {
   reserva: {
     id: number;
@@ -77,3 +266,4 @@ export interface CreatePedidoPayload {
   }>;
   notaCliente?: string;
 }
+
