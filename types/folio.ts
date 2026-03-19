@@ -1,0 +1,162 @@
+/**
+ * Estado de un folio en su ciclo de vida
+ */
+export type EstadoFolio = 'ABIERTO' | 'CERRADO' | 'PAGADO' | 'CANCELADO'
+
+/**
+ * Tipo de cargo que se puede agregar al folio
+ */
+export type TipoCargo = 'CONSUMO' | 'SERVICIO' | 'ADICIONAL' | 'DESCUENTO' | 'OTRO'
+
+/**
+ * Método de pago disponible
+ */
+export type MetodoPago = 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | 'CHEQUE' | 'OTRO'
+
+/**
+ * Un cargo individual en el folio (item de consumo)
+ */
+export interface Cargo {
+  id: string
+  descripcion: string
+  monto: number
+  cantidad?: number
+  tipo: TipoCargo
+  usuarioRegistro: string
+  fechaRegistro: string
+  referencia?: string
+  idServicio?: number
+  notes?: string
+}
+
+/**
+ * Desglose de cálculos en el folio
+ */
+export interface DesgloseCalculos {
+  subtotal: number
+  porcentajeIva?: number
+  montoIva?: number
+  porcentajeInc?: number
+  montoInc?: number
+  descuentoTotal?: number
+  totalAcobrar: number
+}
+
+/**
+ * Folio completo con todos los campos
+ */
+export interface Folio {
+  id: number
+  idHabitacion: number
+  numeroHabitacion: string
+  idReserva?: number
+  idCliente?: number
+  nombreCliente?: string
+  estado: EstadoFolio
+  fechaApertura: string
+  fechaCierre?: string
+  cargos: Cargo[]
+  subtotal: number
+  montoIva: number
+  montoInc: number
+  descuentoTotal?: number
+  total: number
+  saldo?: number
+  
+  // Pago
+  pagado: boolean
+  montoRecibido?: number
+  medioPago?: MetodoPago
+  fechaPago?: string
+  vuelto?: number
+  
+  // Notas
+  observaciones?: string
+  
+  // Auditoría
+  createdAt?: string
+  updatedAt?: string
+  usuarioApertura?: string
+  usuarioCierre?: string
+  usuarioPago?: string
+}
+
+/**
+ * DTO para crear un folio
+ */
+export interface CreateFolioDto {
+  idHabitacion: number
+  idReserva?: number
+  idCliente?: number
+  usuarioApertura: string
+}
+
+/**
+ * DTO para agregar un cargo al folio
+ */
+export interface AgregarCargoDto {
+  descripcion: string
+  monto: number
+  cantidad?: number
+  tipo: TipoCargo
+  idServicio?: number
+  referencia?: string
+}
+
+/**
+ * DTO para eliminar un cargo
+ */
+export interface EliminarCargoDto {
+  idCargo: string
+  motivo?: string
+}
+
+/**
+ * DTO para cerrar folio
+ */
+export interface CerrarFolioDto {
+  observaciones?: string
+  usuarioCierre?: string
+}
+
+/**
+ * DTO para pagar folio
+ */
+export interface CobrarFolioDto {
+  montoRecibido: number
+  medioPago: MetodoPago
+  usuarioPago?: string
+  referencia?: string
+}
+
+/**
+ * Respuesta de pago
+ */
+export interface RespuestaCobro {
+  folio: Folio
+  transaccion: {
+    montoRecibido: number
+    totalACobrar: number
+    vuelto: number
+    medioPago: MetodoPago
+    timestamp: string
+  }
+}
+
+/**
+ * Resumen de folio para visualización rápida
+ */
+export interface ResumenFolio {
+  id: number
+  idHabitacion: number
+  numeroHabitacion: string
+  nombreCliente?: string
+  estado: EstadoFolio
+  subtotal: number
+  iva: number
+  inc: number
+  total: number
+  saldo: number
+  cantidadCargos: number
+  pagado: boolean
+}

@@ -39,10 +39,10 @@ export const useAuthStore = defineStore('auth', {
       if (!this.user || !this.token) return '/login'
       
       const role = this.user?.role?.toLowerCase()
-      if (!role) return '/dashboard'
+      if (!role) return '/'
       
       // ✅ Una sola fuente de verdad: ROLE_DEFAULT_ROUTE
-      return ROLE_DEFAULT_ROUTE[role as UserRole] || '/dashboard/empleados'
+      return ROLE_DEFAULT_ROUTE[role as UserRole] || '/'
     },
   },
 
