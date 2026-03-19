@@ -35,7 +35,7 @@ const ROUTE_META: Record<string, { title: string; parent?: string }> = {
   // ── Admin ──
   '/dashboard/empleados/admin': { title: 'Panel Admin', parent: '/dashboard' },
   '/dashboard/empleados/admin/usuarios': { title: 'Usuarios', parent: '/dashboard/empleados/admin' },
-  '/dashboard/empleados/admin/usuarios-[id]': { title: 'Detalle Usuario', parent: '/dashboard/empleados/admin/usuarios' },
+  '/dashboard/empleados/admin/usuarios/[id]': { title: 'Detalle Usuario', parent: '/dashboard/empleados/admin/usuarios' },
   '/dashboard/empleados/admin/reservas': { title: 'Gestión de Reservas', parent: '/dashboard/empleados/admin' },
   '/dashboard/empleados/admin/habitaciones': { title: 'Habitaciones', parent: '/dashboard/empleados/admin' },
   '/dashboard/empleados/admin/tipos-habitacion': { title: 'Tipos de Habitación', parent: '/dashboard/empleados/admin' },
@@ -48,7 +48,7 @@ const ROUTE_META: Record<string, { title: string; parent?: string }> = {
   // ── SuperAdmin ──
   '/dashboard/empleados/superadmin': { title: 'Panel SuperAdmin', parent: '/dashboard' },
   '/dashboard/empleados/superadmin/usuarios': { title: 'Usuarios', parent: '/dashboard/empleados/superadmin' },
-  '/dashboard/empleados/superadmin/usuarios-[id]': { title: 'Detalle Usuario', parent: '/dashboard/empleados/superadmin/usuarios' },
+  '/dashboard/empleados/superadmin/usuarios/[id]': { title: 'Detalle Usuario', parent: '/dashboard/empleados/superadmin/usuarios' },
   '/dashboard/empleados/superadmin/reservas': { title: 'Gestión de Reservas', parent: '/dashboard/empleados/superadmin' },
   '/dashboard/empleados/superadmin/habitaciones': { title: 'Habitaciones', parent: '/dashboard/empleados/superadmin' },
   '/dashboard/empleados/superadmin/tipos-habitacion': { title: 'Tipos de Habitación', parent: '/dashboard/empleados/superadmin' },
@@ -59,7 +59,7 @@ const ROUTE_META: Record<string, { title: string; parent?: string }> = {
   '/dashboard/empleados/superadmin/reset-stats': { title: 'Reset Stats', parent: '/dashboard/empleados/superadmin' },
 
   // ── Roles de Área ──
-  '/dashboard/empleados/area': { title: 'Mi Área de Trabajo', parent: '/dashboard' },
+  '/dashboard/empleados/area': { title: 'Gestión de Pedidos', parent: '/dashboard' },
   '/dashboard/empleados/area/cafeteria': { title: 'Mi Área — Cafetería', parent: '/dashboard/empleados/area' },
   '/dashboard/empleados/area/lavanderia': { title: 'Mi Área — Lavandería', parent: '/dashboard/empleados/area' },
   '/dashboard/empleados/area/spa': { title: 'Mi Área — Spa', parent: '/dashboard/empleados/area' },
@@ -213,10 +213,6 @@ export const useRoleNavigation = () => {
           accountSection,
         ]
 
-      case 'cafeteria':
-      case 'lavanderia':
-      case 'spa':
-      case 'room_service':
       case UserRole.CAFETERIA:
         return [
           {
@@ -316,6 +312,22 @@ export const useRoleNavigation = () => {
     // /dashboard/empleados/superadmin/usuarios/:id
     if (/^\/dashboard\/empleados\/superadmin\/usuarios\/[^\/]+$/.test(path)) {
       return { title: 'Detalle de Usuario', parent: '/dashboard/empleados/superadmin/usuarios' }
+    }
+    // /dashboard/empleados/admin/habitaciones/:id
+    if (/^\/dashboard\/empleados\/admin\/habitaciones\/[^\/]+$/.test(path)) {
+      return { title: 'Detalle de Habitación', parent: '/dashboard/empleados/admin/habitaciones' }
+    }
+    // /dashboard/empleados/superadmin/habitaciones/:id
+    if (/^\/dashboard\/empleados\/superadmin\/habitaciones\/[^\/]+$/.test(path)) {
+      return { title: 'Detalle de Habitación', parent: '/dashboard/empleados/superadmin/habitaciones' }
+    }
+    // /dashboard/empleados/admin/tipos-habitacion/:id
+    if (/^\/dashboard\/empleados\/admin\/tipos-habitacion\/[^\/]+$/.test(path)) {
+      return { title: 'Detalle Tipo Habitación', parent: '/dashboard/empleados/admin/tipos-habitacion' }
+    }
+    // /dashboard/empleados/superadmin/tipos-habitacion/:id
+    if (/^\/dashboard\/empleados\/superadmin\/tipos-habitacion\/[^\/]+$/.test(path)) {
+      return { title: 'Detalle Tipo Habitación', parent: '/dashboard/empleados/superadmin/tipos-habitacion' }
     }
     return null
   }
