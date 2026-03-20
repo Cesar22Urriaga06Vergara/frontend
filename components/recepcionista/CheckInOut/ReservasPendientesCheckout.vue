@@ -23,7 +23,7 @@
           <tr
             v-for="reserva in reservas"
             :key="reserva.id"
-            :class="{ 'saldo-pendiente': hasSaldo(reserva) || !esFolioPagado(reserva) }"
+            :class="{ 'saldo-pendiente': hasSaldo(reserva) }"
             class="cursor-pointer"
           >
             <td class="font-weight-bold">#{{ reserva.numeroHabitacion }}</td>
@@ -43,6 +43,15 @@
                 Pagado
               </v-chip>
               <v-chip
+                v-else-if="!hasSaldo(reserva)"
+                color="info"
+                size="small"
+                label
+                prepend-icon="mdi-cash-check"
+              >
+                Sin saldo
+              </v-chip>
+              <v-chip
                 v-else
                 color="warning"
                 size="small"
@@ -60,26 +69,16 @@
             </td>
             <td class="text-center">
               <v-btn
-                v-if="!esFolioPagado(reserva)"
                 size="small"
-                color="error"
-                icon
-                title="Folio no está pagado"
-                disabled
-              >
-                <v-icon>mdi-lock-outline</v-icon>
-                <v-tooltip activator="parent">Debe pagar folio primero</v-tooltip>
-              </v-btn>
-              <v-btn
-                v-else
-                size="small"
-                color="primary"
+                :color="hasSaldo(reserva) ? 'warning' : 'primary'"
                 icon
                 @click="confirmarCheckout(reserva)"
                 :loading="loadingReservaId === reserva.id"
               >
-                <v-icon>mdi-logout</v-icon>
-                <v-tooltip activator="parent">Check-out</v-tooltip>
+                <v-icon>{{ hasSaldo(reserva) ? 'mdi-cash-sync' : 'mdi-logout' }}</v-icon>
+                <v-tooltip activator="parent">
+                  {{ hasSaldo(reserva) ? 'Registrar cobro y continuar checkout' : 'Check-out' }}
+                </v-tooltip>
               </v-btn>
             </td>
           </tr>
@@ -112,18 +111,16 @@ const formatearFecha = (fecha: string) => {
   return date.toLocaleDateString('es-CO', { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
 
-// Mock functions - en real vendría del backend
 const esFolioPagado = (reserva: ReservaParaCheckin): boolean => {
-  // Aquí se validaría contra el folio real
-  return true // Por ahora asumir pagado
+  return Boolean(reserva.folioPagado)
 }
 
 const hasSaldo = (reserva: ReservaParaCheckin): boolean => {
-  return false // Mock
+  return Number(reserva.folioSaldo || 0) > 0
 }
 
 const getSaldo = (reserva: ReservaParaCheckin): number => {
-  return 0 // Mock
+  return Number(reserva.folioSaldo || reserva.folioTotal || 0)
 }
 
 const confirmarCheckout = async (reserva: ReservaParaCheckin) => {

@@ -376,12 +376,13 @@ const irAlCatalogo = () => {
 
 onMounted(async () => {
   try {
-    // Primero: Cargar todas las reservas del cliente desde el hotel
-    if (authStore.user?.idCliente && authStore.user?.idHotel) {
-      await reservasStore.obtenerReservasDelCliente(
-        authStore.user.idCliente,
-        authStore.user.idHotel
-      );
+    if (!authStore.user?.idHotel && authStore.user?.role === UserRole.CLIENTE) {
+      await authStore.fetchReservaActivaAndSetHotel();
+    }
+
+    // Primero: Cargar todas las reservas del cliente
+    if (authStore.user?.idCliente) {
+      await reservasStore.obtenerReservasDelCliente(authStore.user.idCliente);
     }
 
     // Segundo: Obtener la reserva activa (confirmada o en-proceso, no cancelada)

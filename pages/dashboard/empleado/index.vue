@@ -128,7 +128,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { UserRole } from '~/types/auth'
+
+definePageMeta({
+  layout: 'default',
+  middleware: ['auth', 'role'],
+  roles: [UserRole.CAFETERIA, UserRole.LAVANDERIA, UserRole.SPA, UserRole.ROOM_SERVICE],
+})
 import { usePedidosAreaStore } from '~/stores/pedidosArea'
 import { useAuthStore } from '~/stores/auth'
 

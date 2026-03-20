@@ -40,8 +40,11 @@ const cc = useCheckinCheckout()
 const loading = ref(false)
 
 // Guards
+import { UserRole } from '~/types/auth'
+
 definePageMeta({
-  middleware: 'auth',
+  middleware: ['auth', 'role'],
+  roles: [UserRole.RECEPCIONISTA],
   layout: 'default'
 })
 

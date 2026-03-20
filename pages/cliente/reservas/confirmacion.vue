@@ -206,8 +206,11 @@
 import { computed, ref, onMounted } from 'vue'
 import type { Reserva } from '~/types/api'
 
+import { UserRole } from '~/types/auth'
+
 definePageMeta({
-  middleware: ['auth'],
+  middleware: ['auth', 'role'],
+  roles: [UserRole.CLIENTE],
 })
 
 useHead({ title: 'Confirmación de Reserva' })

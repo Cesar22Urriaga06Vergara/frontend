@@ -3,6 +3,8 @@
  */
 export type EstadoCheckinCheckout = 'PENDIENTE_CHECKIN' | 'CHECKIN_CONFIRMADO' | 'CHECKOUT_PENDIENTE' | 'CHECKOUT_CONFIRMADO'
 
+export type TipoBloqueoCheckout = 'REQUIERE_COBRO' | 'SIN_FOLIO' | 'RESERVA_INVALIDA'
+
 /**
  * Estado de limpieza de la habitación después del checkout
  */
@@ -15,6 +17,7 @@ export interface ReservaParaCheckin {
   id: number
   numeroReserva: string
   idCliente: number
+  estadoReservaOriginal?: string
   nombreCliente: string
   cedulaCliente: string
   idHabitacion: number
@@ -27,6 +30,10 @@ export interface ReservaParaCheckin {
   cantidadHuespedes: number
   tarifa: number
   montoTotal: number
+  folioEstado?: 'ABIERTO' | 'CERRADO' | 'PAGADO' | 'NO_FOLIO'
+  folioTotal?: number
+  folioSaldo?: number
+  folioPagado?: boolean
 }
 
 /**
@@ -69,21 +76,34 @@ export interface ConfirmarCheckoutRequest {
 /**
  * Response al confirmar checkout
  */
+export interface FacturaCheckoutResumen {
+  id: number
+  numeroFactura: string
+  total: number
+  subtotal?: number
+  montoIva?: number
+  montoInc?: number
+  estadoFactura?: string
+  estado?: string
+  fechaEmision?: string
+}
+
 export interface ConfirmarCheckoutResponse {
-  reserva: ReservaParaCheckin
-  folio: {
+  reserva: any
+  factura?: FacturaCheckoutResumen | null
+  folio?: {
     id: number
     estado: 'PAGADO' | 'CERRADO'
     saldo: number
     pagado: boolean
   }
-  habitacion: {
+  habitacion?: {
     id: number
     numero: string
     estado: 'DISPONIBLE' | 'PENDIENTE_LIMPIEZA'
   }
-  mensaje: string
-  timestamp: string
+  mensaje?: string
+  timestamp?: string
 }
 
 /**
@@ -130,4 +150,6 @@ export interface ValidacionCheckout {
   folioPagado: boolean
   puedeCheckout: boolean
   saldoRestante: number
+  tipoBloqueo: TipoBloqueoCheckout | null
+  folioEstado?: string
 }

@@ -117,11 +117,13 @@ import { computed, ref, reactive } from 'vue'
 import { useAuthStore } from '~/stores/auth'
 import { useApi } from '~/composables/useApi'
 import { useNotification } from '~/composables/useNotification'
+import { UserRole } from '~/types/auth'
 import { ROLE_LABELS, ROLE_COLORS, ROLE_ICONS } from '~/utils/constants'
 
 definePageMeta({
   layout: 'default',
-  middleware: 'auth',
+  middleware: ['auth', 'role'],
+  roles: [UserRole.ADMIN, UserRole.RECEPCIONISTA, UserRole.CLIENTE, UserRole.CAFETERIA, UserRole.LAVANDERIA, UserRole.SPA, UserRole.ROOM_SERVICE, UserRole.SUPERADMIN],
 })
 
 const authStore = useAuthStore()

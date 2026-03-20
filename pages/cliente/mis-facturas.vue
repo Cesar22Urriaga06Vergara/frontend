@@ -159,11 +159,12 @@ import { ref, onMounted } from 'vue'
 import { useApi } from '~/composables/useApi'
 import { useAuthStore } from '~/stores/auth'
 import { useNotification } from '~/composables/useNotification'
+import { UserRole } from '~/types/auth'
 
 definePageMeta({
   layout: 'default',
   middleware: ['auth', 'role'],
-  roles: ['cliente'],
+  roles: [UserRole.CLIENTE],
 })
 
 useHead({ title: 'Mis Facturas' })

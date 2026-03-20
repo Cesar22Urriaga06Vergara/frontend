@@ -226,11 +226,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '~/composables/useApi'
 import { useNotification } from '~/composables/useNotification'
+import { UserRole } from '~/types/auth'
 
 definePageMeta({
   layout: 'default',
   middleware: ['auth', 'role'],
-  roles: ['admin', 'superadmin'],
+  roles: [UserRole.ADMIN, UserRole.SUPERADMIN],
 })
 
 useHead({ title: 'Gestión de Facturas' })

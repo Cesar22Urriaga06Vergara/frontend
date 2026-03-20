@@ -116,9 +116,9 @@
         class="elevation-0"
       >
         <template #item.id="{ item }">
-          <router-link :to="`/admin/pedidos/${item.id}`" class="font-weight-bold text-primary">
+          <span class="font-weight-bold text-primary cursor-pointer" @click="abrirDetalle(item)">
             #{{ item.id }}
-          </router-link>
+          </span>
         </template>
 
         <template #item.estadoPedido="{ item }">
@@ -156,7 +156,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { UserRole } from '~/types/auth'
 import { useAuthStore } from '~/stores/auth'
 import { usePedidosAreaStore } from '~/stores/pedidosArea'
@@ -165,7 +165,7 @@ import type { Pedido } from '~/types/servicios'
 definePageMeta({
   layout: 'default',
   middleware: ['auth', 'role'],
-  roles: [UserRole.ADMIN],
+  roles: [UserRole.CAFETERIA, UserRole.LAVANDERIA, UserRole.SPA, UserRole.ROOM_SERVICE],
 })
 
 useHead({ title: 'Gestión de Pedidos' })
@@ -176,6 +176,7 @@ const pedidosStore = usePedidosAreaStore()
 const loading = ref(false)
 const estadoFiltro = ref<string | null>(null)
 const tipoEntregaFiltro = ref<string | null>(null)
+let refreshInterval: ReturnType<typeof setInterval> | null = null
 
 // Opciones de filtros
 const estadoOptions = [
@@ -268,19 +269,63 @@ const filtrarPedidos = () => {
   // El computed se actualiza automáticamente
 }
 
+const getCategoria = (): string | null => {
+  const role = authStore.userRole
+  const roleCategoryMap: Record<string, string> = {
+    cafeteria: 'cafeteria',
+    lavanderia: 'lavanderia',
+    spa: 'spa',
+    room_service: 'room_service',
+  }
+
+  if (!role) return null
+  return roleCategoryMap[String(role).toLowerCase()] || null
+}
+
+const cargarPedidosDelArea = async (): Promise<void> => {
+  const hotelId = authStore.user?.idHotel
+  const categoria = getCategoria()
+
+  if (!hotelId || !categoria) {
+    return
+  }
+
+  await pedidosStore.cargarPedidos(hotelId, categoria)
+}
+
 const refrescarPedidos = async () => {
   loading.value = true
   try {
-    // Cargar pedidos aquí
+    await cargarPedidosDelArea()
   } finally {
     loading.value = false
   }
 }
 
 const abrirDetalle = (pedido: Pedido) => {
-  // Navegar a detalle o abrir modal
-  navigateTo(`/admin/pedidos/${pedido.id}`)
+  // Abrir modal o mostrar detalles en la misma página
+  // Por ahora, simplemente abre un alert con información
+  console.log('Detalles del pedido:', pedido)
+  // TODO: Implementar modal de detalles
 }
+
+onMounted(async () => {
+  await refrescarPedidos()
+
+  refreshInterval = setInterval(async () => {
+    try {
+      await cargarPedidosDelArea()
+    } catch (error) {
+      console.error('Error refrescando pedidos del área:', error)
+    }
+  }, 20000)
+})
+
+onUnmounted(() => {
+  if (refreshInterval) {
+    clearInterval(refreshInterval)
+  }
+})
 </script>
 
 <style scoped>

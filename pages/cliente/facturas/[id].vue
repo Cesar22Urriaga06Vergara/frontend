@@ -211,6 +211,14 @@
   </v-container>
 </template>
 
+import { UserRole } from '~/types/auth'
+
+definePageMeta({
+  layout: 'default',
+  middleware: ['auth', 'role'],
+  roles: [UserRole.CLIENTE],
+})
+
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import type { EstadoFactura, Factura } from '~/types/factura'

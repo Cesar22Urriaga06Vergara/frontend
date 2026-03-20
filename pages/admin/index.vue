@@ -46,7 +46,6 @@ const adminCards = [
   { to: '/admin/tipos-habitacion', icon: 'mdi-bed-outline',         color: 'teal',     title: 'Tipos Habitación', description: 'Gestionar tipos de habitación' },
   { to: '/admin/amenidades',       icon: 'mdi-star-outline',        color: 'pink',     title: 'Amenidades',       description: 'Gestionar amenidades' },
   { to: '/admin/servicios',        icon: 'mdi-room-service',        color: 'orange',   title: 'Servicios',        description: 'Catálogo de servicios' },
-  { to: '/admin/pedidos',          icon: 'mdi-clipboard-list',      color: 'purple',   title: 'Pedidos',          description: 'Gestionar pedidos de servicios' },
   { to: '/reportes/oficina',       icon: 'mdi-chart-bar',           color: 'indigo',   title: 'Reportes',         description: 'Estadísticas y análisis' },
   { to: '/admin/reset-stats',      icon: 'mdi-lock-reset',          color: 'grey',     title: 'Reset Stats',      description: 'Estadísticas de tokens' },
 ]

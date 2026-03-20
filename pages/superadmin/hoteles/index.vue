@@ -214,8 +214,11 @@ import { ref, onMounted, computed } from 'vue'
 import { useSuperAdminHoteles } from '~/composables/useSuperAdminHoteles'
 import type { Hotel, CreateHotelDto, UpdateHotelDto } from '~/types/superadmin'
 
+import { UserRole } from '~/types/auth'
+
 definePageMeta({
-  middleware: ['auth'],
+  middleware: ['auth', 'role'],
+  roles: [UserRole.SUPERADMIN],
   layout: 'default'
 })
 

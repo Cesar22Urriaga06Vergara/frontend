@@ -132,8 +132,11 @@ const showHistorial = ref(false)
 const loading = ref(false)
 
 // Guards
+import { UserRole } from '~/types/auth'
+
 definePageMeta({
-  middleware: 'auth',
+  middleware: ['auth', 'role'],
+  roles: [UserRole.RECEPCIONISTA, UserRole.ADMIN, UserRole.SUPERADMIN],
   layout: 'default'
 })
 
@@ -161,7 +164,8 @@ const statsStore = computed(() => ({
 const recargar = async () => {
   loading.value = true
   try {
-    await folios.obtenerHistorial()
+    const historial = await folios.obtenerHistorial()
+    foliosStore.setHistorialDelDia(historial)
   } finally {
     loading.value = false
   }

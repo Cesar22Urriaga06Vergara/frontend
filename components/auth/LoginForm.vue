@@ -75,12 +75,16 @@ const handleLogin = async () => {
 
   loading.value = true
   try {
+    console.log('🔐 Iniciando login con:', form.email)
     await authStore.login({
       email: form.email,
       password: form.password,
     })
+    
+    console.log('✅ Login exitoso. Usuario:', authStore.user?.email, 'Rol:', authStore.user?.role, 'Autenticado:', authStore.isAuthenticated)
     emit('success')
   } catch (error: any) {
+    console.error('❌ Error en login:', error)
     const message = error?.data?.message || error?.message || 'Error al iniciar sesión'
     emit('error', Array.isArray(message) ? message[0] : message)
   } finally {

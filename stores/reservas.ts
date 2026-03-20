@@ -266,18 +266,15 @@ export const useReservasStore = defineStore('reservas', {
     },
 
     /**
-     * Obtener reservas del cliente actual (carga desde el hotel si es necesario)
+      * Obtener reservas del cliente actual desde endpoint dedicado de cliente
      */
-    async obtenerReservasDelCliente(idCliente: number, idHotel: number): Promise<Reserva[]> {
+    async obtenerReservasDelCliente(idCliente: number, _idHotel?: number): Promise<Reserva[]> {
       this.loading = true
       try {
-        // Si no hay reservas cargadas del hotel, cargar primero
-        if (this.reservas.length === 0) {
-          await this.fetchReservasByHotel(idHotel)
-        }
-        
-        // Filtrar por idCliente
-        const reservasDelCliente = this.reservas.filter(r => r.idCliente === idCliente)
+        const api = useApi()
+        const reservasDelCliente = await api.get<Reserva[]>(`/reservas/cliente/${idCliente}`)
+        this.reservas = reservasDelCliente
+        this.totalCount = reservasDelCliente.length
         return reservasDelCliente
       } finally {
         this.loading = false

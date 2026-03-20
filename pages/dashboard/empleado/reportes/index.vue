@@ -77,6 +77,13 @@
 </template>
 
 <script setup lang="ts">
+import { UserRole } from '~/types/auth'
+
+definePageMeta({
+  middleware: ['auth', 'role'],
+  roles: [UserRole.CAFETERIA, UserRole.LAVANDERIA, UserRole.SPA, UserRole.ROOM_SERVICE],
+})
+
 // Esta es una página índice simple que redirige a las áreas específicas
 </script>
 

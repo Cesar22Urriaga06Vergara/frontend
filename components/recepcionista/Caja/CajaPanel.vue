@@ -87,6 +87,27 @@
           </template>
         </FolioCard>
 
+        <!-- Alerta si folio ya está pagado -->
+        <v-alert
+          v-if="folios.folioActual.value?.estado === 'PAGADO'"
+          type="success"
+          variant="tonal"
+          density="compact"
+          class="mb-4"
+          title="Folio pagado"
+        >
+          Este folio ya fue pagado. El pago se registró correctamente.
+          <v-btn
+            size="small"
+            variant="text"
+            color="success"
+            class="ms-2"
+            prepend-icon="mdi-download"
+          >
+            Descargar factura
+          </v-btn>
+        </v-alert>
+
         <!-- CargosList -->
         <CargosList
           :cargos="folios.folioActual.value.cargos"
@@ -168,7 +189,7 @@
               :key="folio.id"
               :title="`HB${folio.numeroHabitacion}`"
               :subtitle="`$${folio.total.toLocaleString('es-CO')}`"
-              :to="`/recepcionista/caja?folioId=${folio.id}`"
+              :to="`/recepcionista/caja?habitacion=${folio.idHabitacion}`"
               class="cursor-pointer"
             >
               <template #prepend>
@@ -193,14 +214,22 @@
     <!-- Dialog para confirmar cobro -->
     <v-dialog v-model="cobrarFolioDialog" max-width="500px">
       <v-card title="Confirmar pago del folio">
-        <ConfirmarCobro
-          v-if="cobrarFolioDialog"
-          :total-a-cobrar="folios.folioActual.value?.total || 0"
-          :loading="folios.loadingOperacion.value"
-          @confirmar-cobro="ejecutarCobro"
-        >
-          <template #activator="{ props }" />
-        </ConfirmarCobro>
+        <v-card-text v-if="cobrarFolioDialog">
+          <ConfirmarCobroForm
+            :total-a-cobrar="folios.folioActual.value?.total || 0"
+            :loading="folios.loadingOperacion.value"
+            @confirmar-cobro="ejecutarCobro"
+          />
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn variant="text" @click="cobrarFolioDialog = false">
+            Cancelar pago
+          </v-btn>
+        </v-card-actions>
       </v-card>
     </v-dialog>
 
@@ -260,6 +289,181 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Dialog Factura -->
+    <v-dialog v-model="facturaDialog" max-width="1000px" fullscreen>
+      <v-card v-if="facturaGenerada" class="factura-print-container">
+        <!-- Contenido imprimible -->
+        <div style="background: white; padding: 40px; font-family: Arial, sans-serif; color: #333;">
+          
+          <!-- Encabezado del Hotel -->
+          <div style="display: flex; justify-content: space-between;Align-items: center; margin-bottom: 30px; border-bottom: 3px solid #1976d2; padding-bottom: 20px;">
+            <div>
+              <h1 style="margin: 0; font-size: 28px; color: #1976d2; font-weight: bold;">HOTEL SENA</h1>
+              <p style="margin: 5px 0; font-size: 12px; color: #666;">NIT: 900.123.456-7</p>
+              <p style="margin: 5px 0; font-size: 12px; color: #666;">Resolución DIAN: 18764013615-64</p>
+            </div>
+            <div style="text-align: right;">
+              <h2 style="margin: 0; font-size: 24px; color: #d32f2f; font-weight: bold;">FACTURA</h2>
+              <p style="margin: 5px 0; font-size: 12px; color: #666;">Prefijo: FVTA</p>
+            </div>
+          </div>
+
+          <!-- Información de Factura -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; padding: 15px; background: #f5f5f5; border-radius: 4px;">
+            <div>
+              <p style="margin: 0 0 8px 0; font-size: 11px; font-weight: bold; color: #666; text-transform: uppercase;">Datos del Documento</p>
+              <p style="margin: 3px 0; font-size: 13px;"><strong>Número:</strong> {{ facturaGenerada.numeroFactura }}</p>
+              <p style="margin: 3px 0; font-size: 13px;"><strong>Fecha:</strong> {{ new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' }) }}</p>
+              <p style="margin: 3px 0; font-size: 11px; color: #777;"><strong>ID:</strong> {{ facturaGenerada.uuid }}</p>
+            </div>
+            <div>
+              <p style="margin: 0 0 8px 0; font-size: 11px; font-weight: bold; color: #666; text-transform: uppercase;">Datos del Huésped</p>
+              <p style="margin: 3px 0; font-size: 13px;"><strong>Nombre:</strong> {{ folios.folioActual.value?.nombreCliente || 'N/A' }}</p>
+              <p style="margin: 3px 0; font-size: 13px;"><strong>Cédula:</strong> {{ folios.folioActual.value?.idCliente || 'N/A' }}</p>
+              <p style="margin: 3px 0; font-size: 13px;"><strong>Habitación:</strong> {{ folios.folioActual.value?.numeroHabitacion || 'N/A' }}</p>
+            </div>
+          </div>
+
+          <!-- Tabla de Cargos por Categoría -->
+          <div style="margin-bottom: 30px;">
+            <h3 style="margin: 0 0 15px 0; font-size: 13px; font-weight: bold; text-transform: uppercase; color: #1976d2; border-bottom: 2px solid #1976d2; padding-bottom: 8px;">Desglose de Cargos con Impuestos</h3>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 11px;">
+              <thead>
+                <tr style="background-color: #e3f2fd; border-bottom: 2px solid #1976d2;">
+                  <th style="padding: 10px; text-align: left; font-weight: bold;">Concepto</th>
+                  <th style="padding: 10px; text-align: center; font-weight: bold;">Cant.</th>
+                  <th style="padding: 10px; text-align: right; font-weight: bold;">V. Unit.</th>
+                  <th style="padding: 10px; text-align: right; font-weight: bold;">Subtotal</th>
+                  <th style="padding: 10px; text-align: right; font-weight: bold; color: #1976d2;">IVA (19%)</th>
+                  <th style="padding: 10px; text-align: right; font-weight: bold; color: #d32f2f;">INC (8%)</th>
+                  <th style="padding: 10px; text-align: right; font-weight: bold;">Total</th>
+                  <th style="padding: 10px; text-align: center; font-weight: bold;">Categoría</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(cargo, idx) in folios.folioActual.value?.cargos || []" :key="cargo.id" :style="{ backgroundColor: idx % 2 === 0 ? '#fafafa' : 'white', borderBottom: '1px solid #e0e0e0' }">
+                  <td style="padding: 8px 10px; text-align: left;">{{ cargo.descripcion }}</td>
+                  <td style="padding: 8px 10px; text-align: center;">{{ cargo.cantidad || 1 }}</td>
+                  <td style="padding: 8px 10px; text-align: right;">${{ ((cargo.monto || 0) / (cargo.cantidad || 1)).toLocaleString('es-CO') }}</td>
+                  <td style="padding: 8px 10px; text-align: right; font-weight: bold;">${{ (cargo.monto || 0).toLocaleString('es-CO') }}</td>
+                  <!-- IVA: 19% aplicable a todas las categorías -->
+                  <td style="padding: 8px 10px; text-align: right; color: #1976d2; font-size: 10px;">
+                    ${{ (Math.round((cargo.monto || 0) * 0.19 * 100) / 100).toLocaleString('es-CO') }}
+                  </td>
+                  <!-- INC: 8% solo para bebidas alcohólicas (Cafetería, Minibar) -->
+                  <td style="padding: 8px 10px; text-align: right; color: #d32f2f; font-size: 10px;">
+                    ${{ (Math.round((['Cafetería', 'Minibar'].includes(cargo.categoria || '') ? (cargo.monto || 0) * 0.08 : 0) * 100) / 100).toLocaleString('es-CO') }}
+                  </td>
+                  <!-- Total por línea: Subtotal + IVA + INC -->
+                  <td style="padding: 8px 10px; text-align: right; font-weight: bold; background: #fffacd;">
+                    ${{ (Math.round(((cargo.monto || 0) + ((cargo.monto || 0) * 0.19) + (['Cafetería', 'Minibar'].includes(cargo.categoria || '') ? (cargo.monto || 0) * 0.08 : 0)) * 100) / 100).toLocaleString('es-CO') }}
+                  </td>
+                  <td style="padding: 8px 10px; text-align: center; font-size: 10px; color: #1976d2;"><strong>{{ cargo.categoria || 'Servicio' }}</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Resumen Financiero -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+            
+            <!-- Ítem izquierdo: Desglose por Categoría -->
+            <div v-if="facturaGenerada.desgloseImpuestos" style="border: 1px solid #e0e0e0; padding: 15px; border-radius: 4px; background: #f9f9f9;">
+              <h4 style="margin: 0 0 12px 0; font-size: 12px; font-weight: bold; color: #1976d2; text-transform: uppercase;">Desglose por Categoría</h4>
+              <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
+                <tr v-for="(montos, categoria) in facturaGenerada.desgloseImpuestos" :key="categoria" style="border-bottom: 1px solid #e0e0e0;">
+                  <td style="padding: 6px 0; font-weight: bold; color: #333;">{{ categoria }}</td>
+                  <td style="padding: 6px 0; text-align: right; color: #1976d2;">
+                    <strong>${{ Number(montos.subtotal || 0).toLocaleString('es-CO') }}</strong>
+                  </td>
+                </tr>
+                <tr style="background: #e3f2fd; font-weight: bold;">
+                  <td style="padding: 8px 0; border-top: 2px solid #1976d2;">Subtotal</td>
+                  <td style="padding: 8px 0; text-align: right; border-top: 2px solid #1976d2;">
+                    ${{ (facturaGenerada.subtotal || 0).toLocaleString('es-CO') }}
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- Ítem derecho: Cálculo de Impuestos y Total -->
+            <div style="border: 2px solid #d32f2f; padding: 20px; border-radius: 4px; background: #fff3e0;">
+              <h4 style="margin: 0 0 15px 0; font-size: 12px; font-weight: bold; color: #d32f2f; text-transform: uppercase;">Resumen de Impuestos</h4>
+              
+              <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+                <tr style="border-bottom: 1px solid #ffe0b2;">
+                  <td style="padding: 8px 0; color: #666;">Subtotal</td>
+                  <td style="padding: 8px 0; text-align: right; font-weight: bold;">
+                    ${{ (facturaGenerada.subtotal || 0).toLocaleString('es-CO') }}
+                  </td>
+                </tr>
+                <tr v-if="facturaGenerada.montoIva > 0" style="border-bottom: 1px solid #ffe0b2;">
+                  <td style="padding: 8px 0; color: #666;">IVA (19%)</td>
+                  <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #1976d2;">
+                    ${{ (facturaGenerada.montoIva || 0).toLocaleString('es-CO') }}
+                  </td>
+                </tr>
+                <tr v-if="facturaGenerada.montoInc > 0" style="border-bottom: 1px solid #ffe0b2;">
+                  <td style="padding: 8px 0; color: #666;">INC Alcohol (8%)</td>
+                  <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #d32f2f;">
+                    ${{ (facturaGenerada.montoInc || 0).toLocaleString('es-CO') }}
+                  </td>
+                </tr>
+                <tr style="background: #d32f2f; color: white; font-weight: bold; border-top: 2px solid #d32f2f; border-bottom: 2px solid #d32f2f;">
+                  <td style="padding: 12px 0; font-size: 14px;">TOTAL A PAGAR</td>
+                  <td style="padding: 12px 0; text-align: right; font-size: 16px;">
+                    ${{ (facturaGenerada.total || 0).toLocaleString('es-CO') }}
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <!-- Información de Pago -->
+          <div style="padding: 15px; background: #c8e6c9; border-radius: 4px; margin-bottom: 20px; border-left: 4px solid #4caf50;">
+            <p style="margin: 0 0 5px 0; font-size: 12px;"><strong>Método de Pago:</strong> {{ folios.folioActual.value?.medioPago || 'Efectivo' }}</p>
+            <p style="margin: 0; font-size: 12px;"><strong>Estado:</strong> <span style="background: #4caf50; color: white; padding: 2px 8px; border-radius: 3px; font-weight: bold; font-size: 11px;">✓ PAGADO</span></p>
+          </div>
+
+          <!-- Pie de página -->
+          <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #999; font-size: 10px;">
+            <p style="margin: 5px 0;">Gracias por su compra. Esta factura fue generada electrónicamente.</p>
+            <p style="margin: 5px 0;">Para consultas, contacte a recepción al hotel.</p>
+          </div>
+        </div>
+
+        <v-divider></v-divider>
+
+        <v-card-actions class="pa-4">
+          <v-spacer></v-spacer>
+          <v-btn
+            variant="tonal"
+            color="info"
+            prepend-icon="mdi-printer"
+            @click="imprimirFactura()"
+          >
+            Imprimir
+          </v-btn>
+          <v-btn
+            variant="tonal"
+            color="primary"
+            prepend-icon="mdi-download"
+            @click="descargarFacturaPDF()"
+          >
+            Descargar PDF
+          </v-btn>
+          <v-btn
+            variant="flat"
+            color="success"
+            @click="facturaDialog = false"
+          >
+            Cerrar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -273,11 +477,12 @@ import type { AgregarCargoDto } from '~/types/folio'
 import FolioCard from './FolioCard.vue'
 import CargosList from './CargosList.vue'
 import AgregarCargoForm from './AgregarCargoForm.vue'
-import ConfirmarCobro from './ConfirmarCobro.vue'
+import ConfirmarCobroForm from './ConfirmarCobroForm.vue'
 
 const { success, error } = useNotification()
 const folios = useFolios()
 const foliosStore = useFoliosStore()
+const route = useRoute()
 
 // State local
 const habitacionBuscada = ref<number | null>(null)
@@ -286,14 +491,38 @@ const cerrarDialog = ref(false)
 const cancelarDialog = ref(false)
 const observacionesCierre = ref('')
 const motivoCancelacion = ref('')
+const facturaDialog = ref(false)
+const facturaGenerada = ref<any>(null)
 
-// Mock: habitaciones ocupadas (en real vendría del composable)
-const habitacionesOcupadas = computed(() => [
-  { id: 1, numero: '101', piso: 1 },
-  { id: 2, numero: '102', piso: 1 },
-  { id: 5, numero: '205', piso: 2 },
-  { id: 8, numero: '310', piso: 3 }
-])
+const habitacionesOcupadas = computed(() => {
+  const habitaciones = new Map<number, { id: number; numero: string; piso?: string }>()
+
+  foliosStore.historialDelDia
+    .filter((folio) => folio.estado !== 'PAGADO' || Number(folio.saldo || 0) > 0)
+    .forEach((folio) => {
+      if (!folio.idHabitacion || habitaciones.has(folio.idHabitacion)) {
+        return
+      }
+
+      habitaciones.set(folio.idHabitacion, {
+        id: folio.idHabitacion,
+        numero: folio.numeroHabitacion,
+      })
+    })
+
+  if (foliosStore.folioActual?.idHabitacion && !habitaciones.has(foliosStore.folioActual.idHabitacion)) {
+    habitaciones.set(foliosStore.folioActual.idHabitacion, {
+      id: foliosStore.folioActual.idHabitacion,
+      numero: foliosStore.folioActual.numeroHabitacion,
+    })
+  }
+
+  return Array.from(habitaciones.values())
+})
+
+const sincronizarHistorial = (historial: Awaited<ReturnType<typeof folios.obtenerHistorial>>) => {
+  foliosStore.setHistorialDelDia(historial)
+}
 
 const cargarFolio = async (idHabitacion: number) => {
   if (!idHabitacion) return
@@ -301,6 +530,8 @@ const cargarFolio = async (idHabitacion: number) => {
   if (!resumen) {
     // Sin folio activo
   }
+
+  foliosStore.setFolioActual(folios.folioActual.value)
 }
 
 const recargarFolio = async () => {
@@ -317,7 +548,9 @@ const limpiarBusqueda = () => {
 const crearFolioNuevo = async () => {
   if (!habitacionBuscada.value) return
   try {
-    await folios.crearFolio(habitacionBuscada.value)
+    const folio = await folios.crearFolio(habitacionBuscada.value)
+    foliosStore.setFolioActual(folio)
+    foliosStore.agregarAlHistorial(folio)
   } catch (err) {
     error('Error al crear folio')
   }
@@ -365,15 +598,30 @@ const ejecutarCobro = async (datos: any) => {
     const respuesta = await folios.cobrarFolio(
       folios.folioActual.value.idHabitacion,
       datos.montoRecibido,
-      datos.medioPago
+      datos.medioPago,
+      datos.referencia
     )
-    if (respuesta) {
+    if (respuesta?.folio) {
       folios.folioActual.value = respuesta.folio
-      foliosStore.agregarAlHistorial(respuesta.folio)
+      foliosStore.setFolioActual(respuesta.folio)
+      foliosStore.actualizarFolioEnHistorial(respuesta.folio)
+      
+      // Mensaje de éxito
+      success(`✅ Pago registrado correctamente. Cambio: $${(respuesta.transaccion?.vuelto || 0).toLocaleString('es-CO')}`)
+      
+      // Cerrar dialog de cobro después del éxito
       cobrarFolioDialog.value = false
+      
+      // Si hay factura, mostrar dialog de factura
+      if (respuesta.factura) {
+        facturaGenerada.value = respuesta.factura
+        facturaDialog.value = true
+      }
+    } else {
+      error('No se procesó el pago correctamente')
     }
-  } catch (err) {
-    // Error ya mostrado
+  } catch (err: any) {
+    error(err?.message || 'Error al procesar el pago')
   }
 }
 
@@ -432,9 +680,36 @@ const triggerAgregarCargoForm = () => {
   agregarCargoFormRef.value?.open()
 }
 
-onMounted(() => {
-  // Cargar historial del día
-  folios.obtenerHistorial()
+const imprimirFactura = () => {
+  window.print()
+}
+
+const descargarFacturaPDF = () => {
+  // Placeholder para implementación de descarga PDF
+  success('Funcionalidad de descarga PDF en desarrollo')
+}
+
+onMounted(async () => {
+  const habitacionQuery = Number(route.query.habitacion)
+  const folioIdQuery = Number(route.query.folioId)
+
+  const historial = await folios.obtenerHistorial()
+  sincronizarHistorial(historial)
+
+  if (habitacionQuery > 0) {
+    habitacionBuscada.value = habitacionQuery
+    await cargarFolio(habitacionQuery)
+    return
+  }
+
+  if (folioIdQuery > 0) {
+    const folioSeleccionado = historial.find((folio) => folio.id === folioIdQuery)
+
+    if (folioSeleccionado?.idHabitacion) {
+      habitacionBuscada.value = folioSeleccionado.idHabitacion
+      await cargarFolio(folioSeleccionado.idHabitacion)
+    }
+  }
 })
 </script>
 

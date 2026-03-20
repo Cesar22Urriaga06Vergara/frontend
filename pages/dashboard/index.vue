@@ -114,7 +114,8 @@ import { UserRole } from '~/types/auth'
 
 definePageMeta({
   layout: 'default',
-  middleware: 'auth',
+  middleware: ['auth', 'role'],
+  roles: [UserRole.ADMIN, UserRole.RECEPCIONISTA, UserRole.CLIENTE, UserRole.CAFETERIA, UserRole.LAVANDERIA, UserRole.SPA, UserRole.ROOM_SERVICE, UserRole.SUPERADMIN],
 })
 
 const authStore = useAuthStore()
@@ -150,7 +151,7 @@ const quickActions = computed((): QuickAction[] => {
       title: 'Mi Perfil',
       description: 'Ver y editar tu información',
       icon: 'mdi-account-circle-outline',
-      to: '/profile',
+      to: '/dashboard/profile',
       color: 'primary',
     },
   ]

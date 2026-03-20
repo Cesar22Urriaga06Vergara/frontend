@@ -115,8 +115,11 @@ import HabitacionesGrid from '~/components/shared/reservas/HabitacionesGrid.vue'
 import DialogConfirmarReserva from '~/components/shared/reservas/DialogConfirmarReserva.vue'
 import DialogCompletarPerfil from '~/components/auth/DialogCompletarPerfil.vue'
 
+import { UserRole } from '~/types/auth'
+
 definePageMeta({
-  middleware: ['auth'],
+  middleware: ['auth', 'role'],
+  roles: [UserRole.CLIENTE],
 })
 
 useHead({ title: 'Nueva Reserva' })

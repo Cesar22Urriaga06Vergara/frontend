@@ -143,7 +143,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAreaReportes } from '~/composables/useAreaReportes'
 import { useAuthStore } from '~/stores/auth'
+import { UserRole } from '~/types/auth'
 import ReporteFiltros from '~/components/reportes/ReporteFiltros.vue'
+
+definePageMeta({
+  middleware: ['auth', 'role'],
+  roles: [UserRole.CAFETERIA, UserRole.LAVANDERIA, UserRole.SPA, UserRole.ROOM_SERVICE],
+})
 
 const route = useRoute()
 const authStore = useAuthStore()

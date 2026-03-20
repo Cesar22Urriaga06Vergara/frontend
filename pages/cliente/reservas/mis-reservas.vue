@@ -111,8 +111,11 @@ import DialogCancelarReserva from '~/components/shared/reservas/DialogCancelarRe
 import DialogDetalleReserva from '~/components/shared/reservas/DialogDetalleReserva.vue'
 import ReservasGrid from '~/components/shared/reservas/ReservasGrid.vue'
 
+import { UserRole } from '~/types/auth'
+
 definePageMeta({
-  middleware: ['auth'],
+  middleware: ['auth', 'role'],
+  roles: [UserRole.CLIENTE],
 })
 
 useHead({ title: 'Mis Reservas' })

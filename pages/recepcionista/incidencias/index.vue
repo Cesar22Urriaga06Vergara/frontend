@@ -292,8 +292,11 @@ import { useNotification } from '~/composables/useNotification'
 import { useIncidencias } from '~/composables/useIncidencias'
 import type { CreateIncidenciaDto, RoomIncident } from '~/types/incidencias'
 
+import { UserRole } from '~/types/auth'
+
 definePageMeta({
-  middleware: 'auth',
+  middleware: ['auth', 'role'],
+  roles: [UserRole.RECEPCIONISTA, UserRole.ADMIN, UserRole.SUPERADMIN],
 })
 
 const composable = useIncidencias()

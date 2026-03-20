@@ -112,12 +112,13 @@ interface Props {
 
 interface Emits {
   (e: 'confirmar', datos: { estado: EstadoLimpieza; notas?: string; hora?: string }): void
+  (e: 'cerrar'): void
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const isOpen = ref(false)
+const isOpen = ref(true)
 const formRef = ref<any>(null)
 
 const horaCheckout = ref('')
@@ -172,5 +173,6 @@ const handleClose = () => {
   notasCheckout.value = ''
   estadoLimpieza.value = ''
   mostrarAlertaPago.value = false
+  emit('cerrar')
 }
 </script>

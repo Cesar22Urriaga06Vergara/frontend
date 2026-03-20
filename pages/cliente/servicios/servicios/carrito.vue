@@ -258,8 +258,19 @@ const confirmarPedido = async () => {
   }
 };
 
-onMounted(() => {
-  // Si el carrito está vacío, redirigir al catálogo
+onMounted(async () => {
+  try {
+    if (!authStore.user?.idHotel && authStore.user?.role === UserRole.CLIENTE) {
+      await authStore.fetchReservaActivaAndSetHotel();
+    }
+
+    if (authStore.user?.idCliente) {
+      await reservasStore.obtenerReservasDelCliente(authStore.user.idCliente);
+    }
+  } catch (error) {
+    console.error('Error cargando contexto de reserva:', error);
+  }
+
   if (serviciosStore.carrito.length === 0) {
     // No redirigir automáticamente, dejar que el usuario lo haga
   }

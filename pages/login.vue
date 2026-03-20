@@ -66,7 +66,19 @@ const runtimeConfig = useRuntimeConfig()
 
 const onLoginSuccess = async () => {
   notification.success(`¡Bienvenido, ${authStore.userName}!`)
-  await navigateTo(authStore.defaultRoute, { replace: true })
+  
+  try {
+    // Pequeña pausa para asegurar que el store esté actualizado
+    await new Promise(resolve => setTimeout(resolve, 300))
+    
+    const route = authStore.defaultRoute
+    console.log('🔄 Redirigiendo a:', route, 'Usuario:', authStore.user?.email, 'Rol:', authStore.userRole)
+    
+    await navigateTo(route, { replace: true })
+  } catch (error) {
+    console.error('❌ Error en redirección post-login:', error)
+    notification.error('Error al redirigir. Por favor intenta nuevamente.')
+  }
 }
 
 const onLoginError = (message: string) => {

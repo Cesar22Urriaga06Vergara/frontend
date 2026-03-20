@@ -85,6 +85,7 @@ import { useNotification } from '~/composables/useNotification'
 
 definePageMeta({
   layout: 'auth',
+  middleware: ['guest'],
 })
 
 const notification = useNotification()

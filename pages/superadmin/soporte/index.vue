@@ -140,8 +140,11 @@
 import { ref, onMounted } from 'vue'
 import { useSuperAdminSoporte } from '~/composables/useSuperAdminSoporte'
 
+import { UserRole } from '~/types/auth'
+
 definePageMeta({
-  middleware: ['auth'],
+  middleware: ['auth', 'role'],
+  roles: [UserRole.SUPERADMIN],
   layout: 'default'
 })
 

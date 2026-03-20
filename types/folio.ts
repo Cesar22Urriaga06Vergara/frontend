@@ -21,10 +21,13 @@ export interface Cargo {
   descripcion: string
   monto: number
   cantidad?: number
+  precioUnitario?: number
   tipo: TipoCargo
   usuarioRegistro: string
   fechaRegistro: string
   referencia?: string
+  categoria?: string
+  automatico?: boolean
   idServicio?: number
   notes?: string
 }
@@ -88,7 +91,7 @@ export interface CreateFolioDto {
   idHabitacion: number
   idReserva?: number
   idCliente?: number
-  usuarioApertura: string
+  usuarioApertura?: string
 }
 
 /**
@@ -130,6 +133,22 @@ export interface CobrarFolioDto {
 }
 
 /**
+ * Interface básica de Factura para la respuesta de pago
+ */
+export interface FacturaResumen {
+  id: number
+  numeroFactura: string
+  uuid?: string
+  subtotal: number
+  montoIva: number
+  montoInc: number
+  total: number
+  desgloseImpuestos?: Record<string, Record<string, number>>
+  desgloseMonetario?: Record<string, any>
+  xmlDian?: string
+}
+
+/**
  * Respuesta de pago
  */
 export interface RespuestaCobro {
@@ -141,6 +160,7 @@ export interface RespuestaCobro {
     medioPago: MetodoPago
     timestamp: string
   }
+  factura?: FacturaResumen
 }
 
 /**

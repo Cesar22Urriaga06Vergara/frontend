@@ -54,14 +54,40 @@ export const useAuthStore = defineStore('auth', {
       this.loading = true
       try {
         const config = useRuntimeConfig()
-        const response = await $fetch<LoginResponse>(`${config.public.apiBase}/auth/login`, {
+        console.log('📡 Enviando login request a:', config.public.apiBase)
+        
+        let response = await $fetch<any>(`${config.public.apiBase}/auth/login`, {
           method: 'POST',
           body: credentials,
         })
 
-        this.user = response.user
-        this.token = response.token
-        this.refreshToken = response.refreshToken
+        console.log('📦 Respuesta RAW del servidor:', response)
+        console.log('📦 Tipo de respuesta:', typeof response)
+        console.log('📦 Claves de respuesta:', Object.keys(response || {}))
+
+        // Manejo flexible de diferentes estructuras de respuesta
+        // El backend podría devolver { user, token, ... } o { data: { user, token, ... } }
+        const data = response?.data || response
+        
+        console.log('📦 Datos extraídos:', data)
+        console.log('📦 data.user:', data?.user)
+        console.log('📦 data.token:', data?.token?.substring?.(0, 20))
+
+        this.user = data?.user
+        this.token = data?.token
+        this.refreshToken = data?.refreshToken
+
+        console.log('✅ Asignado al state:', { 
+          userId: this.user?.id, 
+          email: this.user?.email, 
+          role: this.user?.role,
+          isAuth: this.isAuthenticated,
+          hasToken: !!this.token
+        })
+
+        if (!this.user || !this.token) {
+          throw new Error('Respuesta de login incompleta: falta user o token')
+        }
 
         // Persistir en localStorage
         this.persistSession()
@@ -70,6 +96,9 @@ export const useAuthStore = defineStore('auth', {
         if (this.user?.role === 'cliente') {
           await this.fetchReservaActivaAndSetHotel()
         }
+      } catch (error) {
+        console.error('❌ Error en authStore.login:', error)
+        throw error
       } finally {
         this.loading = false
       }
@@ -183,7 +212,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         const config = useRuntimeConfig()
         const response = await $fetch<any>(
-          `${config.public.apiBase}/reserva/activa/${this.user.idCliente}`,
+          `${config.public.apiBase}/reservas/activa/${this.user.idCliente}`,
           {
             headers: { Authorization: `Bearer ${this.token}` },
           }

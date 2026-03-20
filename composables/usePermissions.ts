@@ -27,6 +27,9 @@ export const usePermissions = () => {
       'manage_services',
       'view_reports',
       'checkin_checkout',
+      'reserva:checkin',
+      'reserva:checkout',
+      'caja:ver',
       'manage_hotels',
       'manage_amenities',
       // FASE 7: Permisos de facturas
@@ -44,6 +47,9 @@ export const usePermissions = () => {
       'manage_services',
       'view_reports',
       'checkin_checkout',
+      'reserva:checkin',
+      'reserva:checkout',
+      'caja:ver',
       'manage_amenities',
       // FASE 7: Permisos de facturas
       'factura:ver',
@@ -55,6 +61,9 @@ export const usePermissions = () => {
     recepcionista: [
       'manage_reservations',
       'checkin_checkout',
+      'reserva:checkin',
+      'reserva:checkout',
+      'caja:ver',
       'view_reports',
       // FASE 7: Permisos de facturas
       'factura:ver',

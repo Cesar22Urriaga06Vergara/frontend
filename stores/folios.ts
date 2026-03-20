@@ -78,6 +78,14 @@ export const useFoliosStore = defineStore('folios', () => {
   }
 
   /**
+   * Reemplazar el historial completo por una carga desde backend
+   */
+  const setHistorialDelDia = (folios: Folio[]) => {
+    historialDelDia.value = [...folios]
+    foliosRecientes.value = historialDelDia.value.slice(0, 10)
+  }
+
+  /**
    * Limpiar historial (cuando cambia el día o se cierra sesión)
    */
   const limpiarHistorial = () => {
@@ -147,6 +155,7 @@ export const useFoliosStore = defineStore('folios', () => {
     // Methods
     setFolioActual,
     agregarAlHistorial,
+    setHistorialDelDia,
     limpiarHistorial,
     cambiarFiltroEstado,
     cambiarFiltroFecha,

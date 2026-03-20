@@ -155,8 +155,11 @@ import { ref, onMounted } from 'vue'
 import { useSuperAdminPlanes } from '~/composables/useSuperAdminPlanes'
 import type { CreatePlanDto, UpdatePlanDto } from '~/types/superadmin'
 
+import { UserRole } from '~/types/auth'
+
 definePageMeta({
-  middleware: ['auth'],
+  middleware: ['auth', 'role'],
+  roles: [UserRole.SUPERADMIN],
   layout: 'default'
 })
 

@@ -22,7 +22,7 @@
             <td>
               <div class="font-weight-medium">{{ cargo.descripcion }}</div>
               <div class="text-caption text-medium-emphasis">
-                {{ cargo.usuarioRegistro }} • {{ formatearHora(cargo.fechaRegistro) }}
+                <span v-if="cargo.categoria">{{ formatearCategoria(cargo.categoria) }} • </span>{{ cargo.usuarioRegistro }} • {{ formatearHora(cargo.fechaRegistro) }}
               </div>
             </td>
             <td class="text-center">
@@ -37,7 +37,7 @@
             </td>
             <td class="text-center">
               <v-btn
-                v-if="!folioComplete?.pagado"
+                v-if="!folioComplete?.pagado && !cargo.automatico"
                 icon
                 size="x-small"
                 variant="text"
@@ -119,6 +119,27 @@ const formatearHora = (fecha?: string) => {
   if (!fecha) return '-'
   const date = new Date(fecha)
   return date.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })
+}
+
+const formatearCategoria = (categoria?: string) => {
+  const normalized = String(categoria || '').toLowerCase()
+
+  switch (normalized) {
+    case 'alojamiento':
+      return 'Alojamiento'
+    case 'cafeteria':
+      return 'Cafetería'
+    case 'minibar':
+      return 'Minibar'
+    case 'lavanderia':
+      return 'Lavandería'
+    case 'spa':
+      return 'Spa'
+    case 'room_service':
+      return 'Room Service'
+    default:
+      return categoria || 'General'
+  }
 }
 
 const eliminarCargo = async (idCargo: string) => {

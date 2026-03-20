@@ -200,7 +200,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeMount } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { UserRole } from '~/types/auth';
 import { useRouter } from 'vue-router';
 import { useServiciosStore } from '~/stores/servicios';
@@ -231,12 +231,14 @@ const dialogo = ref(false);
 
 // Computed
 const checked = computed(() => {
-  const reservaActual = reservasStore.reservas.find(
+  return reservasStore.reservas.some(
     (r) =>
       r.idCliente === authStore.user?.idCliente &&
-      r.estadoReserva?.toLowerCase() !== 'cancelada',
+      r.estadoReserva?.toLowerCase() !== 'cancelada' &&
+      r.estadoReserva?.toLowerCase() !== 'completada' &&
+      !!r.checkinReal &&
+      !r.checkoutReal,
   );
-  return reservaActual?.checkinReal !== null && reservaActual?.checkinReal !== undefined;
 });
 
 // Methods
@@ -284,31 +286,36 @@ const confirmarAgregar = () => {
 };
 
 const irAlCarrito = () => {
-  router.push('/cliente/servicios/carrito');
+  router.push('/cliente/servicios/servicios/carrito');
 };
 
 const irAReservas = () => {
     router.push('/cliente/reservas/mis-reservas');
 };
 
-onBeforeMount(() => {
-  // Cargar catálogo cuando se monta el componente si no está cargado
-});
-
 onMounted(async () => {
-  // Cargar catálogo
-  const idHotel = authStore.user?.idHotel;
-  if (idHotel) {
-    try {
-      await serviciosStore.cargarCatalogo(idHotel);
-      // Establecer la primera categoría disponible
-      const categorias = Object.keys(serviciosStore.catalogo);
-      if (categorias.length > 0) {
-        tabActiva.value = categorias[0];
-      }
-    } catch (error) {
-      console.error('Error cargando catálogo:', error);
+  try {
+    if (!authStore.user?.idHotel && authStore.user?.role === UserRole.CLIENTE) {
+      await authStore.fetchReservaActivaAndSetHotel();
     }
+
+    if (authStore.user?.idCliente) {
+      await reservasStore.obtenerReservasDelCliente(authStore.user.idCliente);
+    }
+
+    const idHotel = authStore.user?.idHotel;
+    if (!idHotel) {
+      return;
+    }
+
+    await serviciosStore.cargarCatalogo(idHotel);
+
+    const categorias = Object.keys(serviciosStore.catalogo);
+    if (categorias.length > 0) {
+      tabActiva.value = categorias[0];
+    }
+  } catch (error) {
+    console.error('Error cargando servicios del cliente:', error);
   }
 });
 </script>
