@@ -89,21 +89,8 @@ export const useSuperAdminHoteles = () => {
   }
 
   const bloquearHotel = async (id: number, razon: string) => {
-    isLoading.value = true
-    error.value = null
-    try {
-      const hotel = await post<Hotel>(`/superadmin/hoteles/${id}/bloquear`, { razon })
-      const indice = hoteles.value.findIndex(h => h.id === id)
-      if (indice !== -1) {
-        hoteles.value[indice] = hotel
-      }
-      return hotel
-    } catch (err: any) {
-      error.value = err.message || 'Error al bloquear hotel'
-      throw err
-    } finally {
-      isLoading.value = false
-    }
+    // Redirige a suspender ya que el sistema solo maneja activo/suspendido
+    return suspenderHotel(id, razon)
   }
 
   const reactivarHotel = async (id: number) => {

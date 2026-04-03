@@ -179,7 +179,7 @@ const handleSave = async () => {
     const { useNotification } = await import('~/composables/useNotification')
     const notification = useNotification()
 
-    const updatedUser = await usersStore.updateUser(props.user._id || props.user.id, {
+    const updatedUser = await usersStore.updateUser(props.user.id, {
       fullName: form.name,
       role: form.role as UserRole,
     })

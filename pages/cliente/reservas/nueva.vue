@@ -1,88 +1,114 @@
 <template>
   <div>
-    <v-container>
-      <!-- Header -->
-      <div class="mb-8">
-        <h1 class="text-h4 font-weight-bold mb-2">
-          <v-icon icon="mdi-calendar-check" start />
-          Nueva Reserva
-        </h1>
-        <p class="text-body-1 text-medium-emphasis">
-          Busca disponibilidad y realiza tu reserva en segundos
-        </p>
-      </div>
+    <PageHeader
+      title="Nueva Reserva"
+      subtitle="Busca disponibilidad y reserva tu habitación en segundos"
+    >
+      <template #actions>
+        <v-btn to="/cliente/reservas/mis-reservas" variant="tonal" prepend-icon="mdi-bookmark">
+          Mis Reservas
+        </v-btn>
+      </template>
+    </PageHeader>
 
-      <!-- Formulario de búsqueda -->
+    <v-row class="mb-6">
+      <v-col cols="12" sm="6" md="4">
+        <StatCard
+          label="Tipos disponibles"
+          :value="tiposHabitacion.length"
+          icon="mdi-door-sliding"
+          color="primary"
+          :loading="loadingTipos"
+        />
+      </v-col>
+      <v-col cols="12" sm="6" md="4">
+        <StatCard
+          label="Habitaciones"
+          :value="habitacionesDisponibles.length"
+          icon="mdi-bed-outline"
+          color="info"
+          :loading="loadingHabitaciones"
+        />
+      </v-col>
+      <v-col cols="12" sm="6" md="4">
+        <StatCard
+          label="Reservas activas"
+          :value="0"
+          icon="mdi-calendar-check"
+          color="success"
+          :loading="false"
+        />
+      </v-col>
+    </v-row>
+
+    <!-- Formulario de búsqueda -->
+    <SectionCard class="mb-6" title="Buscar Disponibilidad" subtitle="Completa los datos para ver habitaciones disponibles">
       <FormularioBusqueda
         :tipos-habitacion="tiposHabitacion"
         :loading="loadingDisponibilidad"
         @buscar="handleBuscar"
       />
+    </SectionCard>
 
-      <!-- Error si no hay tipos de habitación -->
-      <v-alert
-        v-if="!loadingTipos && tiposHabitacion.length === 0"
-        type="warning"
-        variant="tonal"
-        class="mb-4"
-      >
-        <p class="mb-0">
-          No hay tipos de habitación disponibles en este momento. Por favor, intenta más tarde.
-        </p>
+    <!-- StandardDataTable de resumen de búsqueda -->
+    <StandardDataTable
+      v-if="disponibilidad"
+      title="Habitaciones encontradas"
+      :headers="[
+        { title: 'Tipo', key: 'nombreTipo' },
+        { title: 'Precio', key: 'precioNoche' }
+      ]"
+      :items="disponibilidad.habitacionesDisponibles"
+      :loading="loadingDisponibilidad"
+      class="mb-6"
+    />
+
+    <!-- Error si no hay tipos de habitación -->
+    <div v-if="disponibilidad">
+      <v-alert type="success" variant="tonal" class="mb-6">
+        <div class="d-flex align-center justify-space-between">
+          <div>
+            <strong>{{ disponibilidad.totalDisponibles }}</strong> habitación{{ disponibilidad.totalDisponibles !== 1 ? 'es' : '' }} disponible{{ disponibilidad.totalDisponibles !== 1 ? 's' : '' }} para su búsqueda
+          </div>
+          <v-btn variant="text" size="small" @click="disponibilidad = null">
+            Nueva búsqueda
+          </v-btn>
+        </div>
       </v-alert>
 
-      <!-- Resultado de la búsqueda -->
-      <div v-if="disponibilidad">
-        <!-- Información de la búsqueda -->
-        <v-alert type="success" variant="tonal" class="mb-4">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <strong>{{ disponibilidad.totalDisponibles }}</strong> habitación{{ disponibilidad.totalDisponibles !== 1 ? 'es' : '' }} disponible{{ disponibilidad.totalDisponibles !== 1 ? 's' : '' }} para su búsqueda
-            </div>
-            <v-btn
-              variant="text"
-              size="small"
-              @click="disponibilidad = null"
-            >
-              Nueva búsqueda
-            </v-btn>
-          </div>
-        </v-alert>
+      <!-- Habitaciones disponibles -->
+      <HabitacionesGrid
+        :habitaciones="disponibilidad.habitacionesDisponibles"
+        :numero-noches="disponibilidad.numeroNoches"
+        @reservar="handleReservar"
+      />
+    </div>
 
-        <!-- Habitaciones disponibles -->
-        <HabitacionesGrid
-          :habitaciones="disponibilidad.habitacionesDisponibles"
-          :numero-noches="disponibilidad.numeroNoches"
-          @reservar="handleReservar"
-        />
-      </div>
+    <!-- Habitaciones iniciales (sin búsqueda de fechas) -->
+    <div v-else-if="habitacionesDisponibles.length > 0 && !loadingHabitaciones">
+      <v-alert type="info" variant="tonal" class="mb-6">
+        <div>
+          <strong>{{ habitacionesDisponibles.length }}</strong> habitación{{ habitacionesDisponibles.length !== 1 ? 'es' : '' }} disponible{{ habitacionesDisponibles.length !== 1 ? 's' : '' }} en el hotel
+        </div>
+        <p class="mb-0 text-body-2">Selecciona tus fechas para ver disponibilidad exacta</p>
+      </v-alert>
 
-      <!-- Habitaciones iniciales (sin búsqueda de fechas) -->
-      <div v-else-if="habitacionesDisponibles.length > 0 && !loadingHabitaciones">
-        <v-alert type="info" variant="tonal" class="mb-4">
-          <div>
-            <strong>{{ habitacionesDisponibles.length }}</strong> habitación{{ habitacionesDisponibles.length !== 1 ? 'es' : '' }} disponible{{ habitacionesDisponibles.length !== 1 ? 's' : '' }} en el hotel
-          </div>
-          <p class="mb-0 text-body-2">Selecciona tus fechas para ver disponibilidad exacta</p>
-        </v-alert>
+      <!-- Habitaciones disponibles -->
+      <HabitacionesGrid
+        :habitaciones="habitacionesDisponibles"
+        :numero-noches="0"
+        @reservar="handleReservar"
+      />
+    </div>
 
-        <!-- Habitaciones disponibles -->
-        <HabitacionesGrid
-          :habitaciones="habitacionesDisponibles"
-          :numero-noches="0"
-          @reservar="handleReservar"
-        />
-      </div>
-
-      <!-- Sin búsqueda realizada -->
-      <div v-else class="text-center py-12">
-        <v-icon icon="mdi-magnify" size="80" color="grey-darken-1" class="mb-4 opacity-50" />
-        <h2 class="text-h6 font-weight-medium mb-2">Comienza tu búsqueda</h2>
-        <p class="text-body-2 text-medium-emphasis">
-          Selecciona tus fechas y tipo de habitación para ver disponibilidad
-        </p>
-      </div>
-    </v-container>
+    <!-- Sin búsqueda realizada -->
+    <SectionCard v-else :padded="false">
+      <EmptyState
+        icon="mdi-magnify"
+        title="Comienza tu búsqueda"
+        description="Selecciona tus fechas y tipo de habitación para ver disponibilidad"
+      />
+    </SectionCard>
 
     <!-- Dialog de confirmación -->
     <DialogConfirmarReserva
@@ -110,14 +136,20 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
 import type { TipoHabitacion, HabitacionDisponibleDto } from '~/types/api'
+import PageHeader from '~/components/shared/PageHeader.vue'
+import SectionCard from '~/components/shared/SectionCard.vue'
+import EmptyState from '~/components/shared/EmptyState.vue'
 import FormularioBusqueda from '~/components/shared/reservas/FormularioBusqueda.vue'
 import HabitacionesGrid from '~/components/shared/reservas/HabitacionesGrid.vue'
 import DialogConfirmarReserva from '~/components/shared/reservas/DialogConfirmarReserva.vue'
 import DialogCompletarPerfil from '~/components/auth/DialogCompletarPerfil.vue'
+import StandardDataTable from '~/components/shared/StandardDataTable.vue'
+import StatCard from '~/components/shared/StatCard.vue'
 
 import { UserRole } from '~/types/auth'
 
 definePageMeta({
+  layout: 'cliente',
   middleware: ['auth', 'role'],
   roles: [UserRole.CLIENTE],
 })
@@ -139,8 +171,10 @@ const loadingTipos = ref(false)
 const mostrarDialogoCompletarPerfil = ref(false)
 
 // De la sesión - El idHotel por defecto es 1, puede ser del usuario si lo tenemos
-const idHotel = ref(1)
+const idHotel = computed(() => authStore.user?.idHotel || 1)
 const idCliente = ref(authStore.user?.idCliente || 0)
+
+const ultimaReservaCreada = ref<any>(null)
 
 /**
  * Cargar tipos de habitación
@@ -206,6 +240,7 @@ const handleConfirmarReserva = async (reservaData: any) => {
   const reserva = await crearReserva(reservaData)
 
   if (reserva) {
+    ultimaReservaCreada.value = reserva
     showDialogConfirmar.value = false
     habitacionSeleccionada.value = undefined
 
@@ -234,7 +269,7 @@ const guardarDatosCliente = async (datos: any) => {
     // Ir a la confirmación
     await router.push({
       path: '/cliente/reservas/confirmacion',
-      query: { id: 'last' }, // Esto debería obtener la última reserva creada
+      query: ultimaReservaCreada.value?.id ? { id: String(ultimaReservaCreada.value.id) } : {},
     })
   }
 }
@@ -244,5 +279,3 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-</style>

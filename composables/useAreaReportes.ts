@@ -11,12 +11,11 @@
 
 import { ref, computed } from 'vue'
 import { useApi } from './useApi'
-import { useNotification } from './useNotification'
+import { getErrorMessage } from '~/utils/http'
 import type { AreaReportResponse, PedidoAreaReporte, AreaReportsResumen } from '~/types/servicios'
 
 export const useAreaReportes = () => {
   const api = useApi()
-  const { success, error: mostrarError } = useNotification()
 
   // State
   const reporte = ref<PedidoAreaReporte[]>([])
@@ -64,12 +63,10 @@ export const useAreaReportes = () => {
       reporte.value = response.detalle
       resumen.value = response.resumen
       ultimaCarga.value = new Date()
-
-      success(`Reporte de ${categoria} cargado exitosamente`)
     } catch (err: any) {
-      const mensaje = err.response?.data?.message || 'Error al cargar reporte de área'
+      const mensaje = getErrorMessage(err, 'Error al cargar reporte de area')
       error.value = mensaje
-      mostrarError(mensaje)
+      throw err
     } finally {
       loading.value = false
     }
@@ -81,7 +78,6 @@ export const useAreaReportes = () => {
    */
   const exportarCSV = (nombreArchivo: string = 'reporte-area.csv'): void => {
     if (!tieneReporte.value) {
-      mostrarError('No hay datos para exportar')
       return
     }
 

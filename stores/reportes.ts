@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useApi } from '~/composables/useApi'
+import { getErrorMessage, isUnavailableError } from '~/utils/http'
 
 export const useReportesStore = defineStore('reportes', () => {
   const api = useApi()
@@ -9,25 +10,25 @@ export const useReportesStore = defineStore('reportes', () => {
   const reportesReservas = ref<any>(null)
   const reportesServicios = ref<any>(null)
   const error = ref<string | null>(null)
+  const unavailable = ref(false)
 
   /**
    * Obtener estadísticas de reservas de un hotel
    */
   const cargarEstadisticasReservas = async (idHotel: number, periodo?: string) => {
-    loading.value = true
+    error.value = null
+    unavailable.value = false
     error.value = null
     
     try {
       const params = periodo ? `?periodo=${periodo}` : ''
-      const { data } = await api.get(`/reservas/stats/${idHotel}${params}`)
+      const data = await api.get(`/reservas/stats/${idHotel}${params}`)
       reportesReservas.value = data
       return data
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Error al cargar estadísticas de reservas'
-      console.error('Error cargar estadísticas reservas:', err)
-      throw error
-    } finally {
-      loading.value = false
+      unavailable.value = isUnavailableError(err)
+      error.value = getErrorMessage(err, 'Error al cargar estadísticas de reservas')
+      throw err
     }
   }
 
@@ -35,20 +36,19 @@ export const useReportesStore = defineStore('reportes', () => {
    * Obtener estadísticas de servicios de un hotel
    */
   const cargarEstadisticasServicios = async (idHotel: number, periodo?: string) => {
-    loading.value = true
+    error.value = null
+    unavailable.value = false
     error.value = null
     
     try {
       const params = periodo ? `?periodo=${periodo}` : ''
-      const { data } = await api.get(`/servicios/stats/${idHotel}${params}`)
+      const data = await api.get(`/servicios/stats/${idHotel}${params}`)
       reportesServicios.value = data
       return data
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Error al cargar estadísticas de servicios'
-      console.error('Error cargar estadísticas servicios:', err)
-      throw error
-    } finally {
-      loading.value = false
+      unavailable.value = isUnavailableError(err)
+      error.value = getErrorMessage(err, 'Error al cargar estadísticas de servicios')
+      throw err
     }
   }
 
@@ -58,6 +58,7 @@ export const useReportesStore = defineStore('reportes', () => {
   const cargarTodosLosReportes = async (idHotel: number, periodo?: string) => {
     loading.value = true
     error.value = null
+    unavailable.value = false
     
     try {
       const [reservas, servicios] = await Promise.all([
@@ -66,10 +67,10 @@ export const useReportesStore = defineStore('reportes', () => {
       ])
       
       return { reservas, servicios }
-    } catch (err) {
-      error.value = 'Error al cargar reportes combinados'
-      console.error('Error cargar todos los reportes:', err)
-      throw error
+    } catch (err: any) {
+      unavailable.value = isUnavailableError(err)
+      error.value = getErrorMessage(err, 'Error al cargar reportes combinados')
+      throw err
     } finally {
       loading.value = false
     }
@@ -91,12 +92,12 @@ export const useReportesStore = defineStore('reportes', () => {
   
   const adr = computed(() => {
     // Average Daily Rate = Total Ingresos / Noches Totales
-    const totalNoches = estadounidenses.value
+    const totalNoches = totalNochesReservadas.value
     if (totalNoches === 0) return 0
     return (totalIngresos.value / totalNoches).toFixed(2)
   })
 
-  const estadounidenses = computed(() => {
+  const totalNochesReservadas = computed(() => {
     // Sumar todas las noches de todas las reservas
     const reservas = reportesReservas.value || {}
     return reservas.promedioNochesPorReserva ? 
@@ -110,6 +111,7 @@ export const useReportesStore = defineStore('reportes', () => {
   return {
     loading,
     error,
+    unavailable,
     reportesReservas,
     reportesServicios,
     cargarEstadisticasReservas,

@@ -3,11 +3,14 @@ import { defineStore } from 'pinia'
 import { useApi } from '~/composables/useApi'
 import type { Reserva, ReservaResponse, ReservasListResponse, EstadoReserva } from '~/types/api'
 import type { CheckoutResponse } from '~/types/factura'
+import { normalizeReserva } from '~/utils/entityAdapters'
+import { getErrorMessage } from '~/utils/http'
 
 interface ReservasState {
   reservas: Reserva[]
   currentReserva: Reserva | null
   loading: boolean
+  error: string | null
   totalCount: number
   filter: {
     estado?: EstadoReserva | string
@@ -19,6 +22,7 @@ export const useReservasStore = defineStore('reservas', {
     reservas: [],
     currentReserva: null,
     loading: false,
+    error: null,
     totalCount: 0,
     filter: {
       estado: undefined,
@@ -100,13 +104,17 @@ export const useReservasStore = defineStore('reservas', {
      */
     async fetchReservasByHotel(idHotel: number): Promise<void> {
       this.loading = true
+      this.error = null
       try {
         const api = useApi()
         const response = await api.get<ReservasListResponse>(
           `/reservas/hotel/${idHotel}`
         )
-        this.reservas = response.reservas
+        this.reservas = response.reservas.map((reserva) => normalizeReserva(reserva))
         this.totalCount = response.count
+      } catch (error: any) {
+        this.error = getErrorMessage(error, 'No fue posible cargar reservas')
+        throw error
       } finally {
         this.loading = false
       }
@@ -117,11 +125,15 @@ export const useReservasStore = defineStore('reservas', {
      */
     async fetchAllReservas(): Promise<void> {
       this.loading = true
+      this.error = null
       try {
         const api = useApi()
         const response = await api.get<ReservasListResponse>('/reservas')
-        this.reservas = response.reservas
+        this.reservas = response.reservas.map((reserva) => normalizeReserva(reserva))
         this.totalCount = response.count
+      } catch (error: any) {
+        this.error = getErrorMessage(error, 'No fue posible cargar reservas')
+        throw error
       } finally {
         this.loading = false
       }
@@ -160,10 +172,12 @@ export const useReservasStore = defineStore('reservas', {
      * Obtener reserva por ID
      */
     async fetchReservaById(id: number): Promise<Reserva> {
+      this.error = null
       const api = useApi()
       const reserva = await api.get<Reserva>(`/reservas/${id}`)
-      this.currentReserva = reserva
-      return reserva
+      const normalized = normalizeReserva(reserva)
+      this.currentReserva = normalized
+      return normalized
     },
 
 
@@ -172,11 +186,12 @@ export const useReservasStore = defineStore('reservas', {
      * Cancelar una reserva
      */
     async cancelarReserva(id: number, motivo?: string): Promise<Reserva> {
+      this.error = null
       const api = useApi()
-      const reserva = await api.post<Reserva>(
+      const reserva = normalizeReserva(await api.post<Reserva>(
         `/reservas/${id}/cancelar`,
         motivo ? { motivo } : {}
-      )
+      ))
 
       // Actualizar en la lista local
       const index = this.reservas.findIndex((r) => r.id === id)
@@ -193,11 +208,12 @@ export const useReservasStore = defineStore('reservas', {
      * No requiere parámetros adicionales - el backend registra la hora actual
      */
     async confirmarCheckin(id: number): Promise<Reserva> {
+      this.error = null
       const api = useApi()
-      const reserva = await api.post<Reserva>(
+      const reserva = normalizeReserva(await api.post<Reserva>(
         `/reservas/${id}/checkin`,
         {}
-      )
+      ))
 
       // Actualizar en la lista local
       const index = this.reservas.findIndex((r) => r.id === id)
@@ -221,11 +237,12 @@ export const useReservasStore = defineStore('reservas', {
      * Sin necesidad de verificar datos del cliente
      */
     async confirmarReservaEstado(id: number): Promise<Reserva> {
+      this.error = null
       const api = useApi()
-      const reserva = await api.post<Reserva>(
+      const reserva = normalizeReserva(await api.post<Reserva>(
         `/reservas/${id}/confirmar`,
         {}
-      )
+      ))
 
       // Actualizar en la lista local
       const index = this.reservas.findIndex((r) => r.id === id)
@@ -242,6 +259,7 @@ export const useReservasStore = defineStore('reservas', {
      * Registra la salida del huésped y genera factura
      */
     async confirmarCheckout(id: number): Promise<CheckoutResponse> {
+      this.error = null
       const api = useApi()
       const response = await api.post<CheckoutResponse>(
         `/reservas/${id}/checkout`,
@@ -251,9 +269,9 @@ export const useReservasStore = defineStore('reservas', {
       // Actualizar en la lista local
       const index = this.reservas.findIndex((r) => r.id === id)
       if (index !== -1) {
-        this.reservas[index] = response.reserva
+        this.reservas[index] = normalizeReserva(response.reserva)
       }
-      this.currentReserva = response.reserva
+      this.currentReserva = normalizeReserva(response.reserva)
 
       return response
     },
@@ -270,12 +288,17 @@ export const useReservasStore = defineStore('reservas', {
      */
     async obtenerReservasDelCliente(idCliente: number, _idHotel?: number): Promise<Reserva[]> {
       this.loading = true
+      this.error = null
       try {
         const api = useApi()
         const reservasDelCliente = await api.get<Reserva[]>(`/reservas/cliente/${idCliente}`)
-        this.reservas = reservasDelCliente
-        this.totalCount = reservasDelCliente.length
-        return reservasDelCliente
+        const normalized = (reservasDelCliente || []).map((reserva) => normalizeReserva(reserva))
+        this.reservas = normalized
+        this.totalCount = normalized.length
+        return normalized
+      } catch (error: any) {
+        this.error = getErrorMessage(error, 'No fue posible cargar las reservas del cliente')
+        throw error
       } finally {
         this.loading = false
       }
@@ -286,6 +309,10 @@ export const useReservasStore = defineStore('reservas', {
      */
     setEstadoFilter(estado?: EstadoReserva | string): void {
       this.filter.estado = estado
+    },
+
+    clearError(): void {
+      this.error = null
     },
   },
 })

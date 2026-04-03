@@ -37,6 +37,14 @@ const theme = useTheme()
 const drawer = ref(true)
 const rail = ref(false)
 
+const syncDocumentThemeClass = (isDark: boolean) => {
+  if (!import.meta.client) {
+    return
+  }
+
+  document.documentElement.classList.toggle('dark', isDark)
+}
+
 // ── Responsive: cerrar drawer en mobile por defecto ──
 watch(mobile, (isMobile) => {
   if (isMobile) {
@@ -46,6 +54,14 @@ watch(mobile, (isMobile) => {
     drawer.value = true
   }
 }, { immediate: true })
+
+watch(
+  () => theme.global.current.value.dark,
+  (isDark) => {
+    syncDocumentThemeClass(isDark)
+  },
+  { immediate: true },
+)
 
 // ── Toggle drawer según contexto ──
 const handleDrawerToggle = () => {
@@ -65,6 +81,8 @@ onMounted(() => {
     if (saved && (saved === 'light' || saved === 'dark')) {
       theme.global.name.value = saved
     }
+
+    syncDocumentThemeClass(theme.global.current.value.dark)
   }
 })
 

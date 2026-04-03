@@ -1,108 +1,60 @@
 <template>
-  <div>
-    <!-- Saludo -->
-    <div class="mb-6">
-      <h1 class="text-h5 font-weight-bold mb-1">{{ nav.greeting.value }}</h1>
-      <p class="text-body-2 text-medium-emphasis">
-        Aquí tienes un resumen de tu actividad
-      </p>
-    </div>
+  <div class="ds-page">
+    <PageHeader
+      :title="nav.greeting.value"
+      subtitle="Aquí tienes un resumen de tu actividad"
+    />
 
-    <!-- Quick stats -->
     <v-row class="mb-6">
       <v-col cols="12" sm="6" md="3">
-        <v-card class="card-glow pa-4">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <div class="text-caption text-medium-emphasis mb-1">Rol actual</div>
-              <div class="text-subtitle-1 font-weight-bold">
-                {{ nav.roleLabel.value }}
-              </div>
-            </div>
-            <v-avatar :color="nav.roleColor.value" size="40" variant="tonal" rounded="lg">
-              <v-icon :icon="nav.roleIcon.value" size="20" />
-            </v-avatar>
-          </div>
-        </v-card>
+        <StatCard
+          label="Rol actual"
+          :value="nav.roleLabel.value"
+          :icon="nav.roleIcon.value"
+          :color="nav.roleColor.value"
+        />
       </v-col>
 
       <v-col cols="12" sm="6" md="3">
-        <v-card class="card-glow pa-4">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <div class="text-caption text-medium-emphasis mb-1">Estado</div>
-              <div class="text-subtitle-1 font-weight-bold">
-                <v-icon icon="mdi-circle" size="8" color="success" class="mr-1" />
-                Activo
-              </div>
-            </div>
-            <v-avatar color="success" size="40" variant="tonal" rounded="lg">
-              <v-icon icon="mdi-check-circle-outline" size="20" />
-            </v-avatar>
-          </div>
-        </v-card>
+        <StatCard label="Estado" value="Activo" icon="mdi-check-circle-outline" color="success" />
       </v-col>
 
       <v-col cols="12" sm="6" md="3">
-        <v-card class="card-glow pa-4">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <div class="text-caption text-medium-emphasis mb-1">Último acceso</div>
-              <div class="text-subtitle-1 font-weight-bold">
-                {{ lastLoginFormatted }}
-              </div>
-            </div>
-            <v-avatar color="info" size="40" variant="tonal" rounded="lg">
-              <v-icon icon="mdi-clock-outline" size="20" />
-            </v-avatar>
-          </div>
-        </v-card>
+        <StatCard label="Último acceso" :value="lastLoginFormatted" icon="mdi-clock-outline" color="info" />
       </v-col>
 
       <v-col cols="12" sm="6" md="3">
-        <v-card class="card-glow pa-4">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <div class="text-caption text-medium-emphasis mb-1">Puntuación</div>
-              <div class="text-subtitle-1 font-weight-bold">
-                {{ authStore.user?.totalScore || 0 }}
-              </div>
-            </div>
-            <v-avatar color="warning" size="40" variant="tonal" rounded="lg">
-              <v-icon icon="mdi-star-outline" size="20" />
-            </v-avatar>
-          </div>
-        </v-card>
+        <StatCard label="Puntuación" :value="authStore.user?.totalScore || 0" icon="mdi-star-outline" color="warning" />
       </v-col>
     </v-row>
 
-    <!-- Quick navigation -->
-    <h2 class="text-subtitle-1 font-weight-bold mb-3">Accesos rápidos</h2>
-    <v-row>
-      <v-col
-        v-for="item in quickActions"
-        :key="item.to"
-        cols="12"
-        sm="6"
-        md="4"
-      >
-        <v-card
-          :to="item.to"
-          class="card-glow pa-5 quick-action-card"
-          :ripple="true"
+    <SectionCard title="Accesos rápidos" subtitle="Navegación recomendada según tu rol" :padded="false">
+      <v-row>
+        <v-col
+          v-for="item in quickActions"
+          :key="item.to"
+          cols="12"
+          sm="6"
+          md="4"
         >
-          <div class="d-flex align-center">
-            <v-avatar :color="item.color" size="44" variant="tonal" rounded="lg" class="mr-4">
-              <v-icon :icon="item.icon" size="22" />
-            </v-avatar>
-            <div>
-              <div class="text-subtitle-2 font-weight-bold">{{ item.title }}</div>
-              <div class="text-caption text-medium-emphasis">{{ item.description }}</div>
+          <v-card
+            :to="item.to"
+            class="card-glow pa-5 quick-action-card"
+            :ripple="true"
+          >
+            <div class="d-flex align-center">
+              <v-avatar :color="item.color" size="44" variant="tonal" rounded="lg" class="mr-4">
+                <v-icon :icon="item.icon" size="22" />
+              </v-avatar>
+              <div>
+                <div class="text-subtitle-2 font-weight-bold">{{ item.title }}</div>
+                <div class="text-caption text-medium-emphasis">{{ item.description }}</div>
+              </div>
             </div>
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
+          </v-card>
+        </v-col>
+      </v-row>
+    </SectionCard>
   </div>
 </template>
 
@@ -111,6 +63,9 @@ import { computed } from 'vue'
 import { useAuthStore } from '~/stores/auth'
 import { useRoleNavigation } from '~/composables/useRoleNavigation'
 import { UserRole } from '~/types/auth'
+import PageHeader from '~/components/shared/PageHeader.vue'
+import SectionCard from '~/components/shared/SectionCard.vue'
+import StatCard from '~/components/shared/StatCard.vue'
 
 definePageMeta({
   layout: 'default',

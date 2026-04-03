@@ -1,126 +1,89 @@
 <template>
-  <div class="pa-6">
-    <!-- Header -->
-    <div class="d-flex align-center justify-space-between mb-6 flex-wrap ga-2">
-      <div>
-        <h1 class="text-h5 font-weight-bold mb-1">Catálogo de Servicios</h1>
-        <p class="text-body-2 text-medium-emphasis">
-          Administra los servicios disponibles en el hotel
-        </p>
-      </div>
-      <v-btn
-        color="primary"
-        prepend-icon="mdi-plus"
-        @click="abrirDialogoNuevoServicio"
-      >
-        Nuevo Servicio
-      </v-btn>
-    </div>
+  <div>
+    <PageHeader
+      title="Catálogo de Servicios"
+      subtitle="Administra servicios disponibles y sus condiciones de operación"
+    >
+      <template #actions>
+        <v-btn color="primary" prepend-icon="mdi-plus" @click="abrirDialogoNuevoServicio">
+          Nuevo Servicio
+        </v-btn>
+      </template>
+    </PageHeader>
 
-    <!-- Filtro por categoría -->
     <v-row class="mb-6">
       <v-col cols="12" sm="6" md="3">
-        <v-select
-          v-model="filtroCategoria"
-          label="Filtrar por categoría"
-          :items="categoriasDisponibles"
-          clearable
-          outlined
-          @update:model-value="cargarServicios"
-        />
+        <StatCard label="Servicios" :value="servicios.length" icon="mdi-room-service" color="primary" :loading="loading" />
       </v-col>
       <v-col cols="12" sm="6" md="3">
-        <v-btn
-          color="primary"
-          variant="outlined"
-          block
-          prepend-icon="mdi-refresh"
-          @click="cargarServicios"
-        >
-          Actualizar
-        </v-btn>
+        <StatCard label="Activos" :value="servicios.filter(s => s.activo).length" icon="mdi-check-circle" color="success" :loading="loading" />
+      </v-col>
+      <v-col cols="12" sm="6" md="3">
+        <StatCard label="Con delivery" :value="servicios.filter(s => s.disponibleDelivery).length" icon="mdi-bike" color="info" :loading="loading" />
       </v-col>
     </v-row>
 
-    <!-- Tabla de servicios -->
-    <v-card class="card-glow">
-      <v-table>
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Categoría</th>
-            <th>Precio Unit.</th>
-            <th>Unidad</th>
-            <th>Delivery</th>
-            <th>Recogida</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="servicio in serviciosFiltrados" :key="servicio.id">
-            <td>
-              <div class="font-weight-medium">{{ servicio.nombre }}</div>
-              <div class="text-caption text-medium-emphasis">{{ servicio.descripcion }}</div>
-            </td>
-            <td>
-              <v-chip size="small" variant="outlined">
-                {{ formatearCategoria(servicio.categoria) }}
-              </v-chip>
-            </td>
-            <td class="font-weight-bold">
-              ${{ formatearPrecio(servicio.precioUnitario) }}
-            </td>
-            <td class="text-caption">{{ servicio.unidadMedida }}</td>
-            <td>
-              <v-icon
-                :color="servicio.disponibleDelivery ? 'success' : 'error'"
-                size="small"
-              >
-                {{ servicio.disponibleDelivery ? 'mdi-check' : 'mdi-close' }}
-              </v-icon>
-            </td>
-            <td>
-              <v-icon
-                :color="servicio.disponibleRecogida ? 'success' : 'error'"
-                size="small"
-              >
-                {{ servicio.disponibleRecogida ? 'mdi-check' : 'mdi-close' }}
-              </v-icon>
-            </td>
-            <td>
-              <v-chip
-                :color="servicio.activo ? 'success' : 'error'"
-                text-color="white"
-                size="small"
-              >
-                {{ servicio.activo ? 'Activo' : 'Inactivo' }}
-              </v-chip>
-            </td>
-            <td>
-              <v-icon-btn
-                icon="mdi-pencil"
-                size="small"
-                color="primary"
-                @click="abrirDialogoEditar(servicio)"
-              />
-              <v-icon-btn
-                icon="mdi-delete"
-                size="small"
-                color="error"
-                @click="confirmarDesactivar(servicio.id)"
-              />
-            </td>
-          </tr>
-        </tbody>
-      </v-table>
-      <div v-if="serviciosFiltrados.length === 0" class="pa-6 text-center">
-        <v-icon size="48" color="grey-lighten-1" class="d-block mb-2">
-          mdi-folder-open-outline
+    <SectionCard class="mb-6" title="Filtros" subtitle="Filtra por categoría y actualiza resultados">
+      <v-row>
+        <v-col cols="12" sm="6" md="3">
+          <v-select
+            v-model="filtroCategoria"
+            label="Filtrar por categoría"
+            :items="categoriasDisponibles"
+            clearable
+            @update:model-value="cargarServicios"
+          />
+        </v-col>
+        <v-col cols="12" sm="6" md="3" class="d-flex align-end">
+          <v-btn color="primary" variant="outlined" block prepend-icon="mdi-refresh" @click="cargarServicios">
+            Actualizar
+          </v-btn>
+        </v-col>
+      </v-row>
+    </SectionCard>
+
+    <StandardDataTable
+      title="Servicios"
+      subtitle="Listado general por categoría y disponibilidad"
+      :headers="headers"
+      :items="serviciosFiltrados"
+      :loading="loading"
+      empty-icon="mdi-folder-open-outline"
+      empty-title="No hay servicios que mostrar"
+      empty-description="Ajusta filtros o crea un nuevo servicio."
+    >
+      <template #item.nombre="{ item }">
+        <div>
+          <div class="font-weight-medium">{{ item.nombre }}</div>
+          <div class="text-caption text-medium-emphasis">{{ item.descripcion }}</div>
+        </div>
+      </template>
+      <template #item.categoria="{ item }">
+        <v-chip size="small" variant="outlined">{{ formatearCategoria(item.categoria) }}</v-chip>
+      </template>
+      <template #item.precioUnitario="{ item }">
+        <span class="font-weight-bold">${{ formatearPrecio(item.precioUnitario) }}</span>
+      </template>
+      <template #item.disponibleDelivery="{ item }">
+        <v-icon :color="item.disponibleDelivery ? 'success' : 'error'" size="small">
+          {{ item.disponibleDelivery ? 'mdi-check' : 'mdi-close' }}
         </v-icon>
-        <p class="text-medium-emphasis">No hay servicios que mostrar</p>
-      </div>
-    </v-card>
+      </template>
+      <template #item.disponibleRecogida="{ item }">
+        <v-icon :color="item.disponibleRecogida ? 'success' : 'error'" size="small">
+          {{ item.disponibleRecogida ? 'mdi-check' : 'mdi-close' }}
+        </v-icon>
+      </template>
+      <template #item.activo="{ item }">
+        <v-chip :color="item.activo ? 'success' : 'error'" text-color="white" size="small">
+          {{ item.activo ? 'Activo' : 'Inactivo' }}
+        </v-chip>
+      </template>
+      <template #item.actions="{ item }">
+        <v-btn icon="mdi-pencil" size="x-small" variant="text" color="primary" @click="abrirDialogoEditar(item)" />
+        <v-btn icon="mdi-delete" size="x-small" variant="text" color="error" @click="confirmarDesactivar(item.id)" />
+      </template>
+    </StandardDataTable>
 
     <!-- Dialog nuevo/editar servicio -->
     <v-dialog v-model="dialogoServicio" max-width="600" persistent>
@@ -232,10 +195,14 @@ import { UserRole } from '~/types/auth';
 import { useAuthStore } from '~/stores/auth';
 import { useApi } from '~/composables/useApi';
 import { useNotification } from '~/composables/useNotification';
+import PageHeader from '~/components/shared/PageHeader.vue'
+import SectionCard from '~/components/shared/SectionCard.vue'
+import StatCard from '~/components/shared/StatCard.vue'
+import StandardDataTable from '~/components/shared/StandardDataTable.vue'
 import type { Servicio } from '~/types/servicios';
 
 definePageMeta({
-  layout: 'default',
+  layout: 'admin',
   middleware: ['auth', 'role'],
   roles: [UserRole.ADMIN],
 });
@@ -282,6 +249,17 @@ const serviciosFiltrados = computed(() => {
   }
   return servicios.value.filter((s) => s.categoria === filtroCategoria.value);
 });
+
+const headers = [
+  { title: 'Nombre', key: 'nombre' },
+  { title: 'Categoría', key: 'categoria' },
+  { title: 'Precio Unit.', key: 'precioUnitario' },
+  { title: 'Unidad', key: 'unidadMedida' },
+  { title: 'Delivery', key: 'disponibleDelivery' },
+  { title: 'Recogida', key: 'disponibleRecogida' },
+  { title: 'Estado', key: 'activo' },
+  { title: 'Acciones', key: 'actions', sortable: false },
+];
 
 // Methods
 const formatearCategoria = (cat: string): string => {

@@ -137,7 +137,7 @@ export const useAuthStore = defineStore('auth', {
       this.loading = true
       try {
         const config = useRuntimeConfig()
-        const response = await $fetch<RegisterResponse>(`${config.public.apiBase}/auth/register/cliente`, {
+        const response = await $fetch<RegisterResponse>(`${config.public.apiBase}/auth/register`, {
           method: 'POST',
           body: data,
         })

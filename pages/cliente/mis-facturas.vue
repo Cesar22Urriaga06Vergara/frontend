@@ -1,21 +1,36 @@
 <template>
   <div class="pa-6">
-    <h1 class="text-h5 font-weight-bold mb-2">Mis Facturas</h1>
-    <p class="text-body-2 text-medium-emphasis mb-6">Consulta el historial de tus facturas</p>
+    <PageHeader title="Mis Facturas" subtitle="Consulta el historial de tus facturas">
+      <template #status>
+        <StatusBadge :status="viewState.status.value" />
+      </template>
+      <template #actions>
+        <v-btn variant="tonal" prepend-icon="mdi-refresh" :loading="cargando" @click="cargarFacturas">
+          Actualizar
+        </v-btn>
+      </template>
+    </PageHeader>
 
-    <!-- Estado de Carga -->
-    <v-progress-linear v-if="cargando" indeterminate class="mb-6" />
+    <SectionCard v-if="viewState.isError.value" :padded="false" class="mb-6">
+      <EmptyState
+        icon="mdi-alert-circle-outline"
+        title="No fue posible cargar facturas"
+        :description="errorMessage || 'Error inesperado consultando facturas'"
+        action-label="Reintentar"
+        @action="cargarFacturas"
+      />
+    </SectionCard>
 
     <!-- Lista de Facturas -->
-    <v-row class="ga-4">
+    <v-row v-if="!viewState.isError.value" class="ga-4">
       <v-col v-for="factura in facturas" :key="factura.id" cols="12" md="6" lg="4">
-        <v-card class="card-glow h-100 d-flex flex-column" :class="{ 'border-error': factura.estado === 'anulada' }">
+        <v-card class="card-glow h-100 d-flex flex-column" :class="{ 'border-error': getEstadoCanonico(factura) === 'ANULADA' }">
           <!-- Header -->
           <div class="pa-4 pb-0">
             <div class="d-flex justify-space-between align-center mb-2">
               <p class="text-caption font-weight-bold">{{ factura.numeroFactura }}</p>
-              <v-chip :color="getEstadoColor(factura.estado)" variant="tonal" size="x-small">
-                {{ factura.estado }}
+              <v-chip :color="getEstadoColor(getEstadoCanonico(factura))" variant="tonal" size="x-small">
+                {{ getEstadoCanonico(factura) }}
               </v-chip>
             </div>
             <h3 class="text-subtitle-2 font-weight-bold">{{ formatoFecha(factura.createdAt) }}</h3>
@@ -31,13 +46,13 @@
             <v-divider class="my-3" />
 
             <div class="mb-3">
-              <p class="text-caption text-medium-emphasis mb-1">Detalles ({{ factura.detalles.length }})</p>
+              <p class="text-caption text-medium-emphasis mb-1">Detalles ({{ factura.detalles?.length || 0 }})</p>
               <div class="text-caption">
-                <div v-for="det in factura.detalles.slice(0, 2)" :key="det.id" class="mb-1">
+                <div v-for="det in (factura.detalles || []).slice(0, 2)" :key="det.id" class="mb-1">
                   • {{ det.tipoConcepto }}
                 </div>
-                <div v-if="factura.detalles.length > 2" class="text-primary">
-                  +{{ factura.detalles.length - 2 }} más
+                <div v-if="(factura.detalles?.length || 0) > 2" class="text-primary">
+                  +{{ (factura.detalles?.length || 0) - 2 }} más
                 </div>
               </div>
             </div>
@@ -71,10 +86,13 @@
     </v-row>
 
     <!-- Sin Facturas -->
-    <div v-if="!cargando && facturas.length === 0" class="text-center py-12">
-      <v-icon icon="mdi-file-document-outline" size="48" class="mb-4 opacity-50" />
-      <p class="text-body-1 text-medium-emphasis">No tienes facturas disponibles</p>
-    </div>
+    <SectionCard v-if="viewState.isEmpty.value" :padded="false" class="mb-6">
+      <EmptyState
+        icon="mdi-file-document-outline"
+        title="No tienes facturas disponibles"
+        description="Cuando el hotel emita facturas de tus consumos, aparecerán aquí."
+      />
+    </SectionCard>
 
     <!-- Dialog Detalle -->
     <v-dialog v-model="showDetalle" max-width="700">
@@ -89,8 +107,8 @@
             </v-col>
             <v-col cols="6">
               <p class="text-caption text-medium-emphasis">Estado</p>
-              <v-chip :color="getEstadoColor(facturaSeleccionada.estado)" variant="tonal" size="small">
-                {{ facturaSeleccionada.estado }}
+              <v-chip :color="getEstadoColor(getEstadoCanonico(facturaSeleccionada))" variant="tonal" size="small">
+                {{ getEstadoCanonico(facturaSeleccionada) }}
               </v-chip>
             </v-col>
           </v-row>
@@ -137,7 +155,7 @@
                   <template #prepend>
                     <v-icon icon="mdi-check-circle" color="success" />
                   </template>
-                  <v-list-item-title>{{ pago.medioPago.nombre }}</v-list-item-title>
+                  <v-list-item-title>{{ pago.metodoPago || 'Medio de pago' }}</v-list-item-title>
                   <v-list-item-subtitle>${{ formatoPrecio(pago.monto) }} - {{ formatoFecha(pago.fechaPago) }}</v-list-item-subtitle>
                 </v-list-item>
               </v-list>
@@ -155,14 +173,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useApi } from '~/composables/useApi'
 import { useAuthStore } from '~/stores/auth'
 import { useNotification } from '~/composables/useNotification'
+import { useViewState } from '~/composables/useViewState'
+import { getFacturaEstadoCanonico, normalizeFactura } from '~/utils/entityAdapters'
+import { getErrorMessage } from '~/utils/http'
 import { UserRole } from '~/types/auth'
+import type { Factura } from '~/types/factura'
+import PageHeader from '~/components/shared/PageHeader.vue'
+import StatusBadge from '~/components/shared/StatusBadge.vue'
+import EmptyState from '~/components/shared/EmptyState.vue'
+import SectionCard from '~/components/shared/SectionCard.vue'
 
 definePageMeta({
-  layout: 'default',
+  layout: 'cliente',
   middleware: ['auth', 'role'],
   roles: [UserRole.CLIENTE],
 })
@@ -171,13 +197,16 @@ useHead({ title: 'Mis Facturas' })
 
 const api = useApi()
 const authStore = useAuthStore()
-const { error } = useNotification()
+const notification = useNotification()
 
 // State
-const facturas = ref<any[]>([])
+const facturas = ref<Factura[]>([])
 const cargando = ref(true)
 const showDetalle = ref(false)
-const facturaSeleccionada = ref<any>(null)
+const facturaSeleccionada = ref<Factura | null>(null)
+const errorMessage = ref<string | null>(null)
+const hasData = computed(() => facturas.value.length > 0)
+const viewState = useViewState(cargando, hasData, errorMessage)
 
 // Methods
 const formatoPrecio = (precio: number): string => {
@@ -187,45 +216,53 @@ const formatoPrecio = (precio: number): string => {
   }).format(precio)
 }
 
-const formatoFecha = (fecha: string) => {
+const formatoFecha = (fecha?: string) => {
+  if (!fecha) return 'Sin fecha'
   return new Date(fecha).toLocaleDateString('es-CO')
 }
 
 const getEstadoColor = (estado: string): string => {
   const colores: Record<string, string> = {
-    pendiente: 'warning',
-    emitida: 'info',
-    pagada: 'success',
-    anulada: 'error',
+    BORRADOR: 'warning',
+    EDITABLE: 'warning',
+    EMITIDA: 'info',
+    PAGADA: 'success',
+    ANULADA: 'error',
   }
   return colores[estado] || 'grey'
 }
+
+const getEstadoCanonico = (factura: Factura | null) => getFacturaEstadoCanonico(factura)
 
 const totalPagado = (factura: any): number => {
   return factura.pagos?.reduce((sum: number, p: any) => sum + Number(p.monto), 0) || 0
 }
 
-const cargarFacturas = async () => {
+const cargarFacturas = async (): Promise<void> => {
   cargando.value = true
+  errorMessage.value = null
   try {
     if (authStore.user?.idCliente) {
-      facturas.value = await api.get(`/facturas/cliente/${authStore.user.idCliente}`)
+      const data = await api.get<Factura[]>(`/facturas/cliente/${authStore.user.idCliente}`)
+      facturas.value = (data || []).map((factura) => normalizeFactura(factura))
+    } else {
+      facturas.value = []
     }
   } catch (err: any) {
-    error('Error al cargar facturas')
+    errorMessage.value = getErrorMessage(err, 'Error al cargar facturas')
+    notification.error(errorMessage.value)
   } finally {
     cargando.value = false
   }
 }
 
-const abrirDetalle = (factura: any) => {
+const abrirDetalle = (factura: Factura) => {
   facturaSeleccionada.value = factura
   showDetalle.value = true
 }
 
-const descargarFactura = (factura: any) => {
-  // En un caso real, esto generaría un PDF
-  alert(`Descargando factura ${factura.numeroFactura}...`)
+const descargarFactura = (factura: Factura) => {
+  notification.info(`Descarga de ${factura.numeroFactura} pendiente de implementación`)
 }
 
 onMounted(() => {

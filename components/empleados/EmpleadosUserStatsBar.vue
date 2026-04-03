@@ -7,17 +7,13 @@
       sm="3"
       md
     >
-      <v-card class="card-glow pa-4">
-        <div class="d-flex align-center justify-space-between">
-          <div>
-            <div class="text-caption text-medium-emphasis mb-1">{{ stat.label }}</div>
-            <div class="text-h5 font-weight-bold">{{ stat.value }}</div>
-          </div>
-          <v-avatar :color="stat.color" size="40" variant="tonal" rounded="lg">
-            <v-icon :icon="stat.icon" size="20" />
-          </v-avatar>
-        </div>
-      </v-card>
+      <StatCard
+        :label="stat.label"
+        :value="stat.value"
+        :color="stat.color"
+        :icon="stat.icon"
+        :loading="usersStore.loading"
+      />
     </v-col>
   </v-row>
 </template>
@@ -25,6 +21,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useUsersStore } from '~/stores/users'
+import StatCard from '~/components/shared/StatCard.vue'
 
 const usersStore = useUsersStore()
 

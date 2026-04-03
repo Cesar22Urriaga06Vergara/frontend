@@ -1,29 +1,66 @@
 <template>
-  <div class="pa-6">
-    <!-- Header -->
-    <div class="mb-6">
-      <h1 class="text-h5 font-weight-bold mb-1">Mi Cuenta</h1>
-      <p class="text-body-2 text-medium-emphasis">
-        Resumen de tu consumo durante la estadía
-      </p>
-    </div>
-
-    <!-- Cargando -->
-    <v-progress-circular
-      v-if="serviciosStore.loading"
-      indeterminate
-      color="primary"
-      class="mx-auto"
+  <div class="ds-page">
+    <PageHeader
+      title="Mi Cuenta"
+      subtitle="Resumen de tu consumo durante la estadía"
     />
 
+    <v-row class="mb-6">
+      <v-col cols="12" sm="6" md="3">
+        <StatCard
+          label="Noches"
+          :value="serviciosStore.cuentaActual?.noches ?? 0"
+          icon="mdi-bed"
+          color="primary"
+          :loading="serviciosStore.loading"
+        />
+      </v-col>
+      <v-col cols="12" sm="6" md="3">
+        <StatCard
+          label="Servicios entregados"
+          :value="serviciosStore.cuentaActual?.pedidos?.length ?? 0"
+          icon="mdi-room-service-outline"
+          color="info"
+          :loading="serviciosStore.loading"
+        />
+      </v-col>
+      <v-col cols="12" sm="6" md="3">
+        <StatCard
+          label="Subtotal servicios"
+          :value="`$${formatearPrecio(serviciosStore.cuentaActual?.subtotalServicios ?? 0)}`"
+          icon="mdi-receipt-text-outline"
+          color="warning"
+          :loading="serviciosStore.loading"
+        />
+      </v-col>
+      <v-col cols="12" sm="6" md="3">
+        <StatCard
+          label="Total a pagar"
+          :value="`$${formatearPrecio(serviciosStore.cuentaActual?.totalGeneral ?? 0)}`"
+          icon="mdi-cash-check"
+          color="success"
+          :loading="serviciosStore.loading"
+        />
+      </v-col>
+    </v-row>
+
+    <!-- Cargando -->
+    <SectionCard v-if="serviciosStore.loading" class="text-center py-8">
+      <v-progress-circular indeterminate color="primary" class="mx-auto" />
+    </SectionCard>
+
     <!-- Sin datos -->
-    <v-alert
-      v-else-if="!serviciosStore.cuentaActual"
-      type="warning"
+    <SectionCard
+      v-else-if="isUnavailable || !serviciosStore.cuentaActual"
+      title="Sin información"
+      subtitle="No fue posible cargar la cuenta de la reserva activa"
     >
-      <v-alert-title>Sin información</v-alert-title>
-      No há información disponible de tu reserva
-    </v-alert>
+      <EmptyState
+        :icon="isUnavailable ? 'mdi-cloud-off-outline' : 'mdi-information-outline'"
+        :title="isUnavailable ? 'Cuenta temporalmente no disponible' : 'No hay datos de cuenta disponibles'"
+        :description="isUnavailable ? unavailableMessage : 'Verifica que tengas una reserva activa confirmada.'"
+      />
+    </SectionCard>
 
     <!-- Información de la reserva -->
     <v-row v-else>
@@ -199,9 +236,13 @@ import { UserRole } from '~/types/auth'
 import { useServiciosStore } from '~/stores/servicios';
 import { useReservasStore } from '~/stores/reservas';
 import { useAuthStore } from '~/stores/auth';
+import PageHeader from '~/components/shared/PageHeader.vue'
+import SectionCard from '~/components/shared/SectionCard.vue'
+import StatCard from '~/components/shared/StatCard.vue'
+import EmptyState from '~/components/shared/EmptyState.vue'
 
 definePageMeta({
-  layout: 'default',
+  layout: 'cliente',
   middleware: ['auth', 'role'],
   roles: [UserRole.CLIENTE],
 });
@@ -211,6 +252,13 @@ useHead({ title: 'Mi Cuenta' });
 const serviciosStore = useServiciosStore();
 const reservasStore = useReservasStore();
 const authStore = useAuthStore();
+const unavailableMessage = ref('')
+const isUnavailable = computed(() => Boolean(unavailableMessage.value))
+
+const isQaMockSession = () => {
+  const token = authStore.token || ''
+  return token.startsWith('qa-token-')
+}
 
 const formatearFecha = (fecha: string | Date): string => {
   const d = new Date(fecha);
@@ -241,7 +289,14 @@ const formatearPrecio = (precio: number): string => {
   }).format(precio);
 };
 
-onMounted(async () => {
+const cargarCuentaCliente = async () => {
+  unavailableMessage.value = ''
+
+  if (isQaMockSession()) {
+    unavailableMessage.value = 'Entorno QA detectado sin backend autenticado. La cuenta se mostrará cuando uses sesión real.'
+    return
+  }
+
   try {
     if (!authStore.user?.idHotel && authStore.user?.role === UserRole.CLIENTE) {
       await authStore.fetchReservaActivaAndSetHotel();
@@ -263,10 +318,16 @@ onMounted(async () => {
     // Tercero: Cargar la cuenta con la reserva activa
     if (reservaActual) {
       await serviciosStore.cargarCuenta(reservaActual.id);
+    } else {
+      unavailableMessage.value = 'No se encontró una reserva activa para consultar la cuenta.'
     }
-  } catch (error) {
-    console.error('Error en onMounted de cuenta:', error);
+  } catch (_error) {
+    unavailableMessage.value = 'No fue posible cargar la cuenta del cliente. Intenta nuevamente en unos minutos.'
   }
+}
+
+onMounted(async () => {
+  await cargarCuentaCliente()
 });
 </script>
 

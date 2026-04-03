@@ -1,19 +1,61 @@
-<template>
-  <div class="pa-6">
-    <!-- Header -->
-    <div class="d-flex align-center justify-space-between mb-6 flex-wrap ga-2">
-      <div>
-        <h1 class="text-h5 font-weight-bold mb-1">Gestión de Facturas</h1>
-        <p class="text-body-2 text-medium-emphasis">Control de facturas electrónicas del hotel</p>
-      </div>
-      <v-btn color="primary" :loading="loading" prepend-icon="mdi-refresh" @click="cargarFacturas">
-        Actualizar
-      </v-btn>
-    </div>
+﻿<template>
+  <div>
+    <PageHeader
+      title="Gestión de Facturas"
+      subtitle="Control y auditoría de facturas electrónicas del hotel"
+    >
+      <template #status>
+        <v-chip color="primary" variant="tonal" size="small">
+          {{ facturasFiltradas.length }} registros
+        </v-chip>
+      </template>
+      <template #actions>
+        <v-btn color="primary" prepend-icon="mdi-refresh" :loading="loading" @click="cargarFacturas">
+          Actualizar
+        </v-btn>
+      </template>
+    </PageHeader>
 
-    <!-- Filtros -->
-    <v-card class="card-glow mb-6 pa-6">
-      <div class="text-subtitle-2 font-weight-bold mb-4">Filtros</div>
+    <v-row class="mb-6">
+      <v-col cols="12" sm="6" md="3">
+        <StatCard
+          label="Total facturas"
+          :value="facturas.length"
+          icon="mdi-receipt"
+          color="primary"
+          :loading="loading"
+        />
+      </v-col>
+      <v-col cols="12" sm="6" md="3">
+        <StatCard
+          label="Emitidas"
+          :value="facturas.filter(f => getEstadoCanonico(f) === 'EMITIDA').length"
+          icon="mdi-send"
+          color="info"
+          :loading="loading"
+        />
+      </v-col>
+      <v-col cols="12" sm="6" md="3">
+        <StatCard
+          label="Pagadas"
+          :value="facturas.filter(f => getEstadoCanonico(f) === 'PAGADA').length"
+          icon="mdi-check-circle"
+          color="success"
+          :loading="loading"
+        />
+      </v-col>
+      <v-col cols="12" sm="6" md="3">
+        <StatCard
+          label="Anuladas"
+          :value="facturas.filter(f => getEstadoCanonico(f) === 'ANULADA').length"
+          icon="mdi-close-circle"
+          color="error"
+          :loading="loading"
+        />
+      </v-col>
+    </v-row>
+
+    <SectionCard class="mb-6" title="Filtros" subtitle="Busca por estado, número o cliente">
       <v-row>
         <v-col cols="12" sm="6" md="3">
           <v-select
@@ -21,7 +63,7 @@
             :items="estadosDisponibles"
             label="Estado"
             clearable
-            item-title="text"
+            item-title="label"
             item-value="value"
           />
         </v-col>
@@ -41,79 +83,75 @@
             clearable
           />
         </v-col>
-        <v-col cols="12" sm="6" md="3">
-          <v-btn color="primary" block @click="aplicarFiltros">Buscar</v-btn>
+        <v-col cols="12" sm="6" md="3" class="d-flex align-end">
+          <v-btn color="primary" block prepend-icon="mdi-magnify" @click="aplicarFiltros">Buscar</v-btn>
         </v-col>
       </v-row>
-    </v-card>
+    </SectionCard>
 
-    <!-- Tabla de Facturas -->
-    <v-card class="card-glow">
-      <v-table>
-        <thead>
-          <tr>
-            <th class="text-left">Número</th>
-            <th class="text-left">Cliente</th>
-            <th class="text-left">Cédula</th>
-            <th class="text-right">Total</th>
-            <th class="text-left">Estado</th>
-            <th class="text-left">Fecha</th>
-            <th class="text-center">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="factura in facturasFiltrradas" :key="factura.id">
-            <td class="font-weight-bold">{{ factura.numeroFactura }}</td>
-            <td>{{ factura.nombreCliente }}</td>
-            <td>{{ factura.cedulaCliente }}</td>
-            <td class="text-right">
-              <span class="font-weight-bold">${{ formatoPrecio(factura.total) }}</span>
-            </td>
-            <td>
-              <v-chip
-                :color="getEstadoColor(factura.estado)"
-                variant="tonal"
-                size="small"
-              >
-                {{ factura.estado }}
-              </v-chip>
-            </td>
-            <td>{{ formatoFecha(factura.createdAt) }}</td>
-            <td class="text-center">
-              <v-btn icon="mdi-eye" size="x-small" variant="text" @click="abrirDetalle(factura)" />
-              <v-menu v-if="['pendiente', 'pagada'].includes(factura.estado)">
-                <template #activator="{ props }">
-                  <v-btn icon="mdi-dots-vertical" size="x-small" variant="text" v-bind="props" />
-                </template>
-                <v-list>
-                  <v-list-item @click="emitirFactura(factura.id)">
-                    <template #prepend>
-                      <v-icon icon="mdi-send" />
-                    </template>
-                    <v-list-item-title>Emitir</v-list-item-title>
-                  </v-list-item>
-                  <v-list-item @click="abrirDialogoAnular(factura)">
-                    <template #prepend>
-                      <v-icon icon="mdi-close" color="error" />
-                    </template>
-                    <v-list-item-title>Anular</v-list-item-title>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
-            </td>
-          </tr>
-        </tbody>
-      </v-table>
-    </v-card>
+    <StandardDataTable
+      title="Listado de facturas"
+      subtitle="Detalle de todas las facturas emitidas y su estado"
+      :headers="headers"
+      :items="facturasFiltradas"
+      :loading="loading"
+      empty-icon="mdi-receipt-off"
+      empty-title="No hay facturas para este filtro"
+      empty-description="Ajusta los filtros para ver resultados o crea una nueva factura."
+    >
+      <template #item.numeroFactura="{ item }">
+        <span class="font-weight-bold">{{ item.numeroFactura }}</span>
+      </template>
 
-    <!-- Dialog Detalle -->
+      <template #item.total="{ item }">
+        <span class="font-weight-bold text-success">${{ formatoPrecio(item.total) }}</span>
+      </template>
+
+      <template #item.estadoFactura="{ item }">
+        <EstadoFacturaBadge :estado-actual="getEstadoCanonico(item)" :show-transiciones="false" />
+      </template>
+
+      <template #item.createdAt="{ item }">
+        {{ formatoFecha(item.createdAt) }}
+      </template>
+
+      <template #item.actions="{ item }">
+        <v-btn
+          icon="mdi-eye"
+          size="x-small"
+          variant="text"
+          color="primary"
+          title="Ver detalle"
+          @click="abrirDetalle(item)"
+        />
+        <v-menu v-if="puedeMostrarAcciones(item)">
+          <template #activator="{ props }">
+            <v-btn icon="mdi-dots-vertical" size="x-small" variant="text" v-bind="props" />
+          </template>
+          <v-list>
+            <v-list-item v-if="puedeEmitir(item)" @click="emitirFactura(item.id)">
+              <template #prepend>
+                <v-icon icon="mdi-send" />
+              </template>
+              <v-list-item-title>Emitir</v-list-item-title>
+            </v-list-item>
+            <v-list-item v-if="puedeAnular(item)" @click="abrirDialogoAnular(item)">
+              <template #prepend>
+                <v-icon icon="mdi-close" color="error" />
+              </template>
+              <v-list-item-title>Anular</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </template>
+    </StandardDataTable>
+
     <v-dialog v-model="showDetalle" max-width="800">
       <v-card v-if="facturaSeleccionada">
         <v-card-title>Factura {{ facturaSeleccionada.numeroFactura }}</v-card-title>
         <v-card-text class="pa-6">
           <v-divider class="mb-4" />
-          
-          <!-- Datos Generales -->
+
           <div class="mb-4">
             <h3 class="text-subtitle-1 font-weight-bold mb-2">Datos de la Factura</h3>
             <v-row>
@@ -131,16 +169,22 @@
               </v-col>
               <v-col cols="6">
                 <p class="text-caption text-medium-emphasis">Estado</p>
-                <v-chip :color="getEstadoColor(facturaSeleccionada.estado)" variant="tonal" size="small">
-                  {{ facturaSeleccionada.estado }}
-                </v-chip>
+                <EstadoFacturaBadge
+                  :estado-actual="getEstadoCanonico(facturaSeleccionada)"
+                  :show-transiciones="false"
+                />
               </v-col>
             </v-row>
           </div>
 
+          <FacturaDesglose
+            v-if="tieneDesgloseFactura(facturaSeleccionada)"
+            :factura="facturaSeleccionada"
+            class="mb-4"
+          />
+
           <v-divider class="my-4" />
 
-          <!-- Detalles de Factura -->
           <div class="mb-4">
             <h3 class="text-subtitle-1 font-weight-bold mb-2">Detalles</h3>
             <v-table>
@@ -165,7 +209,6 @@
 
           <v-divider class="my-4" />
 
-          <!-- Totales -->
           <div class="mb-4">
             <v-row class="text-right">
               <v-col cols="12">
@@ -176,7 +219,6 @@
             </v-row>
           </div>
 
-          <!-- Pagos -->
           <div v-if="facturaSeleccionada.pagos?.length">
             <h3 class="text-subtitle-1 font-weight-bold mb-2">Pagos Registrados</h3>
             <v-list>
@@ -184,7 +226,7 @@
                 <template #prepend>
                   <v-icon icon="mdi-check-circle" color="success" />
                 </template>
-                <v-list-item-title>{{ pago.medioPago.nombre }} - ${{ formatoPrecio(pago.monto) }}</v-list-item-title>
+                <v-list-item-title>{{ pago.metodoPago }} - ${{ formatoPrecio(pago.monto) }}</v-list-item-title>
                 <v-list-item-subtitle>{{ formatoFecha(pago.fechaPago) }}</v-list-item-subtitle>
               </v-list-item>
             </v-list>
@@ -197,7 +239,6 @@
       </v-card>
     </v-dialog>
 
-    <!-- Dialog Anular -->
     <v-dialog v-model="showAnular" max-width="400">
       <v-card>
         <v-card-title>Anular Factura</v-card-title>
@@ -226,10 +267,17 @@
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '~/composables/useApi'
 import { useNotification } from '~/composables/useNotification'
+import PageHeader from '~/components/shared/PageHeader.vue'
+import SectionCard from '~/components/shared/SectionCard.vue'
+import StatCard from '~/components/shared/StatCard.vue'
+import StandardDataTable from '~/components/shared/StandardDataTable.vue'
+import EstadoFacturaBadge from '~/components/facturas/EstadoFacturaBadge.vue'
+import FacturaDesglose from '~/components/facturas/FacturaDesglose.vue'
+import type { EstadoFactura, Factura } from '~/types/factura'
 import { UserRole } from '~/types/auth'
 
 definePageMeta({
-  layout: 'default',
+  layout: 'admin',
   middleware: ['auth', 'role'],
   roles: [UserRole.ADMIN, UserRole.SUPERADMIN],
 })
@@ -239,59 +287,94 @@ useHead({ title: 'Gestión de Facturas' })
 const api = useApi()
 const { success, error } = useNotification()
 
-// State
-const facturas = ref<any[]>([])
+const facturas = ref<Factura[]>([])
 const loading = ref(false)
 const showDetalle = ref(false)
 const showAnular = ref(false)
-const facturaSeleccionada = ref<any>(null)
-const filtroEstado = ref<string>()
+const facturaSeleccionada = ref<Factura | null>(null)
+const filtroEstado = ref<EstadoFactura>()
 const busquedaNumero = ref('')
 const busquedaCliente = ref('')
 const motivoAnulacion = ref('')
 const anulando = ref(false)
 
 const estadosDisponibles = [
-  { text: 'Pendiente', value: 'pendiente' },
-  { text: 'Emitida', value: 'emitida' },
-  { text: 'Pagada', value: 'pagada' },
-  { text: 'Anulada', value: 'anulada' },
+  { label: 'Borrador', value: 'BORRADOR' },
+  { label: 'Editable', value: 'EDITABLE' },
+  { label: 'Emitida', value: 'EMITIDA' },
+  { label: 'Pagada', value: 'PAGADA' },
+  { label: 'Anulada', value: 'ANULADA' },
 ]
 
-// Computed
-const facturasFiltrradas = computed(() => {
-  return facturas.value.filter(f => {
+const headers = [
+  { title: 'Número', key: 'numeroFactura' },
+  { title: 'Cliente', key: 'nombreCliente' },
+  { title: 'Cédula', key: 'cedulaCliente' },
+  { title: 'Total', key: 'total', align: 'end' as const },
+  { title: 'Estado', key: 'estadoFactura' },
+  { title: 'Fecha', key: 'createdAt' },
+  { title: 'Acciones', key: 'actions', sortable: false },
+]
+
+const MAPA_LEGADO_A_CANONICO: Record<string, EstadoFactura> = {
+  pendiente: 'BORRADOR',
+  borrador: 'BORRADOR',
+  editable: 'EDITABLE',
+  emitida: 'EMITIDA',
+  pagada: 'PAGADA',
+  anulada: 'ANULADA',
+}
+
+const facturasFiltradas = computed(() => {
+  return facturas.value.filter((f) => {
+    const estadoCanonico = getEstadoCanonico(f)
     let matches = true
-    if (filtroEstado.value) matches = matches && f.estado === filtroEstado.value
+    if (filtroEstado.value) matches = matches && estadoCanonico === filtroEstado.value
     if (busquedaNumero.value) matches = matches && f.numeroFactura.includes(busquedaNumero.value.toUpperCase())
     if (busquedaCliente.value) matches = matches && f.nombreCliente.toLowerCase().includes(busquedaCliente.value.toLowerCase())
     return matches
   })
 })
 
-// Methods
 const formatoPrecio = (precio: number): string => {
   return new Intl.NumberFormat('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(precio)
 }
 
-const formatoFecha = (fecha: string) => {
+const formatoFecha = (fecha?: string) => {
+  if (!fecha) return '-'
   return new Date(fecha).toLocaleDateString('es-CO')
 }
 
-const getEstadoColor = (estado: string): string => {
-  const colores: Record<string, string> = {
-    pendiente: 'warning',
-    emitida: 'info',
-    pagada: 'success',
-    anulada: 'error',
-  }
-  return colores[estado] || 'grey'
+const getEstadoCanonico = (factura: Partial<Factura> | null): EstadoFactura => {
+  const estadoFactura = factura?.estadoFactura
+  if (estadoFactura) return estadoFactura
+
+  const legacy = String(factura?.estado || '').trim().toLowerCase()
+  return MAPA_LEGADO_A_CANONICO[legacy] || 'BORRADOR'
+}
+
+const puedeEmitir = (factura: Partial<Factura>) => {
+  const estado = getEstadoCanonico(factura)
+  return ['BORRADOR', 'EDITABLE'].includes(estado)
+}
+
+const puedeAnular = (factura: Partial<Factura>) => {
+  const estado = getEstadoCanonico(factura)
+  return ['BORRADOR', 'EDITABLE', 'EMITIDA'].includes(estado)
+}
+
+const puedeMostrarAcciones = (factura: Partial<Factura>) => {
+  return puedeEmitir(factura) || puedeAnular(factura)
+}
+
+const tieneDesgloseFactura = (factura: Partial<Factura> | null) => {
+  return Boolean(factura?.desgloseMonetario && Object.keys(factura.desgloseMonetario).length > 0)
 }
 
 const cargarFacturas = async () => {
   loading.value = true
   try {
-    facturas.value = await api.get(`/facturas`)
+    facturas.value = await api.get<Factura[]>('/facturas')
   } catch (err: any) {
     error(err.message || 'Error al cargar facturas')
   } finally {
@@ -300,10 +383,10 @@ const cargarFacturas = async () => {
 }
 
 const aplicarFiltros = () => {
-  // El computed ya filtra automáticamente
+  // El computed filtra automáticamente
 }
 
-const abrirDetalle = (factura: any) => {
+const abrirDetalle = (factura: Factura) => {
   facturaSeleccionada.value = factura
   showDetalle.value = true
 }
@@ -312,19 +395,24 @@ const emitirFactura = async (id: number) => {
   try {
     await api.patch(`/facturas/${id}/emitir`)
     success('Factura emitida exitosamente')
-    cargarFacturas()
+    await cargarFacturas()
   } catch (err: any) {
     error(err.message || 'Error al emitir factura')
   }
 }
 
-const abrirDialogoAnular = (factura: any) => {
+const abrirDialogoAnular = (factura: Factura) => {
   facturaSeleccionada.value = factura
   motivoAnulacion.value = ''
   showAnular.value = true
 }
 
 const confirmarAnular = async () => {
+  if (!facturaSeleccionada.value) {
+    error('No hay factura seleccionada')
+    return
+  }
+
   if (!motivoAnulacion.value.trim()) {
     error('Debes especificar un motivo')
     return
@@ -337,7 +425,7 @@ const confirmarAnular = async () => {
     })
     success('Factura anulada exitosamente')
     showAnular.value = false
-    cargarFacturas()
+    await cargarFacturas()
   } catch (err: any) {
     error(err.message || 'Error al anular factura')
   } finally {
@@ -349,14 +437,3 @@ onMounted(() => {
   cargarFacturas()
 })
 </script>
-
-<style scoped>
-.card-glow {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.card-glow:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-</style>

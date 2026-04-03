@@ -1,9 +1,19 @@
 <template>
   <div class="d-flex align-center justify-center" style="min-height: 100vh">
-    <div class="text-center">
-      <v-progress-circular indeterminate color="primary" size="48" class="mb-4" />
-      <p class="text-body-2 text-medium-emphasis">Iniciando sesión...</p>
-    </div>
+    <v-container class="d-flex justify-center">
+      <v-col cols="12" sm="8" md="6" lg="5" xl="4">
+        <SectionCard>
+          <div class="text-center py-6">
+            <v-avatar color="primary" size="56" rounded="xl" class="mb-4">
+              <v-icon icon="mdi-google" size="28" />
+            </v-avatar>
+            <h1 class="text-h5 font-weight-bold mb-2">Iniciando sesión</h1>
+            <p class="text-body-2 text-medium-emphasis mb-6">Estamos validando tu acceso de Google.</p>
+            <v-progress-circular indeterminate color="primary" size="48" class="mb-4" />
+          </div>
+        </SectionCard>
+      </v-col>
+    </v-container>
   </div>
 </template>
 
@@ -11,9 +21,10 @@
 import { onMounted } from 'vue'
 import { useAuthStore } from '~/stores/auth'
 import { useNotification } from '~/composables/useNotification'
+import SectionCard from '~/components/shared/SectionCard.vue'
 
 definePageMeta({
-  layout: false,
+  layout: 'auth',
   middleware: [],
 })
 

@@ -1,11 +1,14 @@
 <template>
-  <div>
-    <h1 class="text-h5 font-weight-bold mb-6">Mi Perfil</h1>
+  <div class="ds-page">
+    <PageHeader
+      title="Mi Perfil"
+      subtitle="Actualiza tus datos y consulta el estado de tu cuenta"
+    />
 
     <v-row>
       <!-- Info del usuario -->
       <v-col cols="12" md="6">
-        <v-card class="card-glow pa-6">
+        <SectionCard title="Datos personales" subtitle="Información principal de autenticación">
           <div class="d-flex align-center mb-6">
             <v-avatar color="primary" size="64" rounded="xl" class="mr-4">
               <span class="text-h5 font-weight-bold">{{ userInitials }}</span>
@@ -57,12 +60,12 @@
               Guardar cambios
             </v-btn>
           </v-form>
-        </v-card>
+        </SectionCard>
       </v-col>
 
       <!-- Info adicional -->
       <v-col cols="12" md="6">
-        <v-card class="card-glow pa-6">
+        <SectionCard title="Información de la cuenta" subtitle="Actividad y estado del usuario">
           <h3 class="text-subtitle-1 font-weight-bold mb-4">Información de la cuenta</h3>
 
           <v-list density="compact" class="bg-transparent">
@@ -106,7 +109,7 @@
               </v-list-item-subtitle>
             </v-list-item>
           </v-list>
-        </v-card>
+        </SectionCard>
       </v-col>
     </v-row>
   </div>
@@ -119,6 +122,8 @@ import { useApi } from '~/composables/useApi'
 import { useNotification } from '~/composables/useNotification'
 import { UserRole } from '~/types/auth'
 import { ROLE_LABELS, ROLE_COLORS, ROLE_ICONS } from '~/utils/constants'
+import PageHeader from '~/components/shared/PageHeader.vue'
+import SectionCard from '~/components/shared/SectionCard.vue'
 
 definePageMeta({
   layout: 'default',

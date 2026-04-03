@@ -1,14 +1,16 @@
 <template>
-  <div>
-    <div class="mb-6">
-      <h1 class="text-h5 font-weight-bold mb-1">Bienvenido, {{ authStore.userName }}</h1>
-      <p class="text-body-2 text-medium-emphasis">Panel de control del huésped</p>
-    </div>
+  <div class="ds-page">
+    <PageHeader :title="`Bienvenido, ${authStore.userName}`" subtitle="Panel de control del huésped">
+      <template #status>
+        <StatusBadge status="success" label="Estadía activa" />
+      </template>
+    </PageHeader>
 
     <!-- Info rápida del huésped -->
-    <v-row class="mb-6">
-      <v-col cols="12" sm="6">
-        <v-card class="card-glow pa-5">
+    <SectionCard title="Resumen personal" subtitle="Datos de sesión y acceso rápido a perfil">
+      <v-row>
+        <v-col cols="12" sm="6">
+          <v-card class="card-glow pa-5 h-100">
           <div class="d-flex align-center">
             <v-avatar color="primary" size="44" variant="tonal" rounded="lg" class="mr-4">
               <v-icon icon="mdi-account" size="22" />
@@ -20,10 +22,10 @@
             </div>
           </div>
         </v-card>
-      </v-col>
+        </v-col>
 
-      <v-col cols="12" sm="6">
-        <v-card to="/dashboard/profile" class="card-glow pa-5" style="cursor: pointer">
+        <v-col cols="12" sm="6">
+          <v-card to="/dashboard/profile" class="card-glow pa-5 h-100" style="cursor: pointer">
           <div class="d-flex align-center">
             <v-avatar color="secondary" size="44" variant="tonal" rounded="lg" class="mr-4">
               <v-icon icon="mdi-account-edit-outline" size="22" />
@@ -36,12 +38,14 @@
             <v-icon icon="mdi-chevron-right" size="20" color="medium-emphasis" />
           </div>
         </v-card>
-      </v-col>
-    </v-row>
+        </v-col>
+      </v-row>
+    </SectionCard>
 
     <!-- Accesos rápidos -->
-    <v-row>
-      <v-col cols="12" sm="4">
+    <SectionCard title="Accesos rápidos" subtitle="Tareas frecuentes del huésped">
+      <v-row>
+        <v-col cols="12" sm="6" md="3">
         <v-card to="/cliente/servicios" class="card-glow pa-5" style="cursor: pointer">
           <div class="d-flex align-center">
             <v-avatar color="orange" size="44" variant="tonal" rounded="lg" class="mr-4">
@@ -57,7 +61,7 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" sm="4">
+        <v-col cols="12" sm="6" md="3">
         <v-card to="/cliente/servicios/mis-pedidos" class="card-glow pa-5" style="cursor: pointer">
           <div class="d-flex align-center">
             <v-avatar color="blue" size="44" variant="tonal" rounded="lg" class="mr-4">
@@ -73,7 +77,7 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" sm="4">
+        <v-col cols="12" sm="6" md="3">
         <v-card to="/cliente/cuenta" class="card-glow pa-5" style="cursor: pointer">
           <div class="d-flex align-center">
             <v-avatar color="green" size="44" variant="tonal" rounded="lg" class="mr-4">
@@ -88,16 +92,36 @@
           </div>
         </v-card>
       </v-col>
-    </v-row>
+
+        <v-col cols="12" sm="6" md="3">
+          <v-card to="/cliente/reservas/mis-reservas" class="card-glow pa-5" style="cursor: pointer">
+            <div class="d-flex align-center">
+              <v-avatar color="primary" size="44" variant="tonal" rounded="lg" class="mr-4">
+                <v-icon icon="mdi-calendar-check-outline" size="22" />
+              </v-avatar>
+              <div>
+                <div class="text-subtitle-2 font-weight-bold">Mis Reservas</div>
+                <div class="text-caption text-medium-emphasis">Ver y gestionar reservas</div>
+              </div>
+              <v-spacer />
+              <v-icon icon="mdi-chevron-right" size="20" color="medium-emphasis" />
+            </div>
+          </v-card>
+        </v-col>
+      </v-row>
+    </SectionCard>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/auth'
 import { UserRole } from '~/types/auth'
+import PageHeader from '~/components/shared/PageHeader.vue'
+import SectionCard from '~/components/shared/SectionCard.vue'
+import StatusBadge from '~/components/shared/StatusBadge.vue'
 
 definePageMeta({
-  layout: 'default',
+  layout: 'cliente',
   middleware: ['auth', 'role'],
   roles: [UserRole.CLIENTE],
 })

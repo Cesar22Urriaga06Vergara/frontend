@@ -14,7 +14,7 @@
         </div>
 
         <!-- Card de login -->
-        <v-card class="card-glow pa-6 pa-sm-8">
+        <SectionCard>
           <AuthLoginForm
             @success="onLoginSuccess"
             @error="onLoginError"
@@ -34,7 +34,7 @@
           >
             Continuar con Google
           </v-btn>
-        </v-card>
+        </SectionCard>
 
         <!-- Links -->
         <div class="text-center mt-6">
@@ -54,6 +54,7 @@
 import { useAuthStore } from '~/stores/auth'
 import { useNotification } from '~/composables/useNotification'
 import AuthLoginForm from '~/components/auth/LoginForm.vue'
+import SectionCard from '~/components/shared/SectionCard.vue'
 
 definePageMeta({
   layout: 'auth',

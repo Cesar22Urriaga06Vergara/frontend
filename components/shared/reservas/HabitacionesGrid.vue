@@ -15,23 +15,42 @@
         md="6"
       >
         <v-card class="h-100 card-glow d-flex flex-column">
-          <!-- Imagen -->
-          <div v-if="getImagenes(habitacion.imagenes).length > 0" class="position-relative">
+          <!-- Imagen principal (click → galería) -->
+          <div
+            v-if="parseImagenes(habitacion.imagenes).length > 0"
+            class="position-relative img-trigger"
+            @click="abrirGaleria(habitacion.imagenes)"
+          >
             <v-img
-              :src="getImagenes(habitacion.imagenes)[0]"
+              :src="parseImagenes(habitacion.imagenes)[0]"
               height="300"
               cover
               class="rounded-t"
-            />
+            >
+              <template #placeholder>
+                <div class="d-flex align-center justify-center h-100">
+                  <v-progress-circular indeterminate color="grey" />
+                </div>
+              </template>
+            </v-img>
+
+            <!-- Badge fotos (hace lo mismo que click en la imagen) -->
             <v-chip
-              v-if="getImagenes(habitacion.imagenes).length > 1"
+              v-if="parseImagenes(habitacion.imagenes).length > 1"
               size="small"
               variant="tonal"
+              prepend-icon="mdi-image-multiple"
               class="position-absolute"
-              style="bottom: 10px; right: 10px; background: rgba(0, 0, 0, 0.6); color: white"
+              style="bottom: 10px; right: 10px; background: rgba(0,0,0,0.65); color: white"
+              @click.stop="abrirGaleria(habitacion.imagenes)"
             >
-              +{{ getImagenes(habitacion.imagenes).length - 1 }} foto{{ getImagenes(habitacion.imagenes).length > 2 ? 's' : '' }}
+              +{{ parseImagenes(habitacion.imagenes).length - 1 }}&nbsp;foto{{ parseImagenes(habitacion.imagenes).length > 2 ? 's' : '' }}
             </v-chip>
+
+            <!-- Icono lupa visible en hover -->
+            <div class="img-overlay d-flex align-center justify-center">
+              <v-icon icon="mdi-magnify-plus-outline" size="36" color="white" />
+            </div>
           </div>
           <div v-else class="bg-grey-lighten-3 d-flex align-center justify-center" style="height: 300px">
             <v-icon icon="mdi-image-off" size="48" color="grey-darken-1" />
@@ -129,11 +148,20 @@
         </v-card>
       </v-col>
     </v-row>
+    <!-- Galería lightbox (compartida para todas las tarjetas) -->
+    <HabitacionGaleria
+      v-model="galeriaOpen"
+      :imagenes="galeriaImagenes"
+      titulo="Fotos de la habitación"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import type { HabitacionDisponibleDto } from '~/types/api'
+import { parseImagenes } from '~/utils/imagenes'
+import HabitacionGaleria from '~/components/shared/HabitacionGaleria.vue'
 
 interface Props {
   habitaciones?: HabitacionDisponibleDto[]
@@ -150,9 +178,14 @@ const emit = defineEmits<{
   reservar: [habitacion: HabitacionDisponibleDto]
 }>()
 
-const getImagenes = (imagenes?: string): string[] => {
-  if (!imagenes || !imagenes.trim()) return []
-  return imagenes.split(',').map(img => img.trim()).filter(img => img)
+// Galería
+const galeriaOpen = ref(false)
+const galeriaImagenes = ref('')
+
+const abrirGaleria = (imagenes?: string) => {
+  if (!imagenes || !parseImagenes(imagenes).length) return
+  galeriaImagenes.value = imagenes
+  galeriaOpen.value = true
 }
 
 const calcularPrecio = (precioBase: number): string => {
@@ -174,5 +207,22 @@ const emitReservar = (habitacion: HabitacionDisponibleDto) => {
 .card-glow:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transform: translateY(-2px);
+}
+
+.img-trigger {
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.img-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  transition: background 0.2s;
+  pointer-events: none;
+}
+
+.img-trigger:hover .img-overlay {
+  background: rgba(0, 0, 0, 0.28);
 }
 </style>

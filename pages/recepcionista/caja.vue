@@ -1,74 +1,70 @@
 <template>
-  <div class="caja-page">
-    <!-- Breadcrumb + titulo -->
-    <v-breadcrumbs :items="breadcrumbs" class="mb-4"></v-breadcrumbs>
-
-    <div class="d-flex align-center justify-space-between mb-6">
-      <div>
-        <h1 class="text-h4 font-weight-bold mb-1">Caja / Folios</h1>
-        <p class="text-body-2 text-medium-emphasis">
-          Gestión de cargos y cobros de habitaciones
-        </p>
-      </div>
-      <div class="d-flex gap-2">
-        <v-btn
-          prepend-icon="mdi-history"
-          variant="tonal"
-          @click="showHistorial = true"
-        >
+  <div>
+    <PageHeader
+      title="Caja / Folios"
+      subtitle="Gestión de cargos, cobros y control diario de folios"
+    >
+      <template #actions>
+        <v-btn prepend-icon="mdi-history" variant="tonal" @click="showHistorial = true">
           Ver historial
         </v-btn>
-        <v-btn
-          prepend-icon="mdi-refresh"
-          variant="tonal"
-          @click="recargar"
-          :loading="loading"
-        >
+        <v-btn prepend-icon="mdi-refresh" variant="tonal" @click="recargar" :loading="loading">
           Recargar
         </v-btn>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <!-- Stats bar -->
     <v-row class="mb-6">
       <v-col cols="12" sm="6" md="3">
-        <v-card>
-          <v-card-text>
-            <div class="text-caption text-medium-emphasis">Folios abiertos</div>
-            <div class="text-h5 font-weight-bold">{{ statsStore.foliosDelDia.filter(f => f.estado === 'ABIERTO').length }}</div>
-          </v-card-text>
-        </v-card>
+        <StatCard
+          label="Folios abiertos"
+          :value="statsStore.foliosDelDia.filter(f => f.estado === 'ABIERTO').length"
+          icon="mdi-folder-open"
+          color="info"
+        />
       </v-col>
       <v-col cols="12" sm="6" md="3">
-        <v-card>
-          <v-card-text>
-            <div class="text-caption text-medium-emphasis">Folios cerrados</div>
-            <div class="text-h5 font-weight-bold">{{ foliosStore.foliosCerrados }}</div>
-          </v-card-text>
-        </v-card>
+        <StatCard label="Folios cerrados" :value="foliosStore.foliosCerrados" icon="mdi-folder-check" color="warning" />
       </v-col>
       <v-col cols="12" sm="6" md="3">
-        <v-card>
-          <v-card-text>
-            <div class="text-caption text-medium-emphasis">Folios pagados</div>
-            <div class="text-h5 font-weight-bold">{{ foliosStore.foliosPagados }}</div>
-          </v-card-text>
-        </v-card>
+        <StatCard label="Folios pagados" :value="foliosStore.foliosPagados" icon="mdi-cash-check" color="success" />
       </v-col>
       <v-col cols="12" sm="6" md="3">
-        <v-card>
-          <v-card-text>
-            <div class="text-caption text-medium-emphasis">Total cobrado</div>
-            <div class="text-h5 font-weight-bold text-success">
-              ${{ foliosStore.totalIngresos.toLocaleString('es-CO') }}
-            </div>
-          </v-card-text>
-        </v-card>
+        <StatCard
+          label="Total cobrado"
+          :value="`$${foliosStore.totalIngresos.toLocaleString('es-CO')}`"
+          icon="mdi-currency-usd"
+          color="primary"
+        />
       </v-col>
     </v-row>
 
-    <!-- Panel principal -->
-    <CajaPanel />
+    <SectionCard class="mb-6" title="Panel principal" subtitle="Operación de cargos y cobros en habitaciones">
+      <CajaPanel />
+    </SectionCard>
+
+    <StandardDataTable
+      title="Historial del día"
+      subtitle="Folios procesados en caja"
+      :headers="historialHeaders"
+      :items="foliosStore.historialDelDia"
+      :items-per-page="8"
+      empty-title="Sin folios registrados"
+      empty-description="Cuando existan movimientos aparecerán en este listado."
+    >
+      <template #item.numeroHabitacion="{ item }">
+        #{{ item.numeroHabitacion }}
+      </template>
+      <template #item.estado="{ item }">
+        <v-chip size="small" :color="estadoColor(item.estado)">
+          {{ estadoLabel(item.estado) }}
+        </v-chip>
+      </template>
+      <template #item.total="{ item }">
+        <span class="font-weight-bold">${{ item.total.toLocaleString('es-CO') }}</span>
+      </template>
+    </StandardDataTable>
 
     <!-- Dialog historial -->
     <v-dialog v-model="showHistorial" max-width="900px">
@@ -121,6 +117,10 @@ import { ref, computed } from 'vue'
 import { useFolios } from '~/composables/useFolios'
 import { useFoliosStore } from '~/stores/folios'
 import { usePermissions } from '~/composables/usePermissions'
+import PageHeader from '~/components/shared/PageHeader.vue'
+import SectionCard from '~/components/shared/SectionCard.vue'
+import StatCard from '~/components/shared/StatCard.vue'
+import StandardDataTable from '~/components/shared/StandardDataTable.vue'
 import CajaPanel from '~/components/recepcionista/Caja/CajaPanel.vue'
 
 const { can } = usePermissions()
@@ -137,24 +137,16 @@ import { UserRole } from '~/types/auth'
 definePageMeta({
   middleware: ['auth', 'role'],
   roles: [UserRole.RECEPCIONISTA, UserRole.ADMIN, UserRole.SUPERADMIN],
-  layout: 'default'
+  layout: 'recepcion'
 })
 
-// Breadcrumbs
-const breadcrumbs = computed(() => [
-  {
-    title: 'Dashboard',
-    href: '/dashboard'
-  },
-  {
-    title: 'Recepción',
-    href: '/recepcionista'
-  },
-  {
-    title: 'Caja / Folios',
-    disabled: true
-  }
-])
+const historialHeaders = [
+  { title: 'Habitación', key: 'numeroHabitacion' },
+  { title: 'Cliente', key: 'nombreCliente' },
+  { title: 'Estado', key: 'estado' },
+  { title: 'Total', key: 'total' },
+  { title: 'Medio Pago', key: 'medioPago' },
+]
 
 // Stats (mock - en real vendría de un composable)
 const statsStore = computed(() => ({
@@ -210,8 +202,3 @@ if (!can('caja:ver')) {
 }
 </script>
 
-<style scoped>
-.caja-page {
-  width: 100%;
-}
-</style>

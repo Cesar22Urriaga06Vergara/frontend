@@ -38,12 +38,31 @@
 
           <v-row>
             <v-col v-if="getImagenes(reserva.habitacion?.imagenes).length > 0" cols="12" md="5">
-              <v-img
-                :src="getImagenes(reserva.habitacion?.imagenes)[0]"
-                height="200"
-                cover
-                class="rounded"
-              />
+              <!-- Carrusel inline; click abre el lightbox completo -->
+              <div
+                class="img-trigger position-relative rounded overflow-hidden"
+                @click="galeriaOpen = true"
+              >
+                <HabitacionGaleria
+                  inline
+                  :imagenes="reserva.habitacion!.imagenes || ''"
+                  :height="200"
+                />
+                <div class="img-overlay d-flex align-center justify-center">
+                  <v-icon icon="mdi-magnify-plus-outline" size="28" color="white" />
+                </div>
+              </div>
+              <v-btn
+                v-if="getImagenes(reserva.habitacion?.imagenes).length > 1"
+                variant="text"
+                color="primary"
+                size="small"
+                prepend-icon="mdi-image-multiple"
+                class="mt-1 px-0"
+                @click="galeriaOpen = true"
+              >
+                Ver todas las fotos ({{ getImagenes(reserva.habitacion?.imagenes).length }})
+              </v-btn>
             </v-col>
 
             <v-col cols="12" :md="getImagenes(reserva.habitacion?.imagenes).length > 0 ? 7 : 12">
@@ -161,11 +180,21 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <!-- Lightbox completo: se abre desde el carrusel inline -->
+  <HabitacionGaleria
+    v-if="reserva"
+    v-model="galeriaOpen"
+    :imagenes="reserva.habitacion?.imagenes || ''"
+    :titulo="`Habitación ${reserva.habitacion?.numeroHabitacion || ''}`"
+  />
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { Reserva } from '~/types/api'
+import { parseImagenes as getImagenes } from '~/utils/imagenes'
+import HabitacionGaleria from '~/components/shared/HabitacionGaleria.vue'
 
 interface Props {
   modelValue: boolean
@@ -185,6 +214,8 @@ const isOpen = computed({
     emit('update:modelValue', value)
   },
 })
+
+const galeriaOpen = ref(false)
 
 const numeroNoches = computed(() => {
   if (!props.reserva) return 0
@@ -216,11 +247,6 @@ const formatDateTime = (fecha?: Date | string): string => {
   })
 }
 
-const getImagenes = (imagenes?: string): string[] => {
-  if (!imagenes || !imagenes.trim()) return []
-  return imagenes.split(',').map(img => img.trim()).filter(img => img)
-}
-
 const getEstadoColor = (estado?: string): string => {
   const colores: Record<string, string> = {
     reservada: 'warning',
@@ -248,5 +274,21 @@ const calcularTotal = (): number => {
 
 .border-t {
   border-top: 1px solid rgba(0, 0, 0, 0.12);
+
+.img-trigger {
+  cursor: pointer;
+}
+
+.img-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  transition: background 0.2s;
+  pointer-events: none;
+}
+
+.img-trigger:hover .img-overlay {
+  background: rgba(0, 0, 0, 0.28);
+}
 }
 </style>

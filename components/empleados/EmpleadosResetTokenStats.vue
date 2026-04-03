@@ -59,6 +59,7 @@
                 variant="tonal"
                 block
                 :loading="cleaningUp"
+                :disabled="disabled"
                 @click="handleCleanup"
               >
                 <v-icon icon="mdi-broom" class="mr-1" size="18" />
@@ -86,6 +87,7 @@
                 variant="tonal"
                 block
                 :loading="loading"
+                :disabled="disabled"
                 @click="$emit('refresh')"
               >
                 <v-icon icon="mdi-refresh" class="mr-1" size="18" />
@@ -110,15 +112,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, toRefs } from 'vue'
 import { useUsersStore } from '~/stores/users'
 import { useNotification } from '~/composables/useNotification'
 import type { PasswordResetStats } from '~/types/auth'
 
-defineProps<{
+const props = withDefaults(defineProps<{
   stats: PasswordResetStats | null
   loading: boolean
-}>()
+  disabled?: boolean
+}>(), {
+  disabled: false,
+})
+const { stats, loading, disabled } = toRefs(props)
 
 defineEmits<{
   refresh: []
@@ -157,6 +163,11 @@ const statsCards = computed(() => [
 ])
 
 const handleCleanup = async () => {
+  if (props.disabled) {
+    notification.info('Módulo no disponible por ahora')
+    return
+  }
+
   cleaningUp.value = true
   try {
     const deleted = await usersStore.cleanupExpiredTokens()

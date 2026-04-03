@@ -12,7 +12,7 @@
 
 import { ref, computed } from 'vue'
 import { useApi } from './useApi'
-import { useNotification } from './useNotification'
+import { getErrorMessage } from '~/utils/http'
 import type {
   HotelReportConsolidado,
   TopArea,
@@ -22,7 +22,6 @@ import type {
 
 export const useAdminReportes = () => {
   const api = useApi()
-  const { success, error: mostrarError } = useNotification()
 
   // State
   const reporte = ref<HotelReportConsolidado | null>(null)
@@ -74,12 +73,10 @@ export const useAdminReportes = () => {
 
       reporte.value = response
       ultimaCarga.value = new Date()
-
-      success('Reporte consolidado del hotel cargado exitosamente')
     } catch (err: any) {
-      const mensaje = err.response?.data?.message || 'Error al cargar reporte del hotel'
+      const mensaje = getErrorMessage(err, 'Error al cargar reporte del hotel')
       error.value = mensaje
-      mostrarError(mensaje)
+      throw err
     } finally {
       loading.value = false
     }
@@ -90,7 +87,6 @@ export const useAdminReportes = () => {
    */
   const exportarCSV = (nombreArchivo: string = 'reporte-hotel.csv'): void => {
     if (!tieneReporte.value) {
-      mostrarError('No hay datos para exportar')
       return
     }
 

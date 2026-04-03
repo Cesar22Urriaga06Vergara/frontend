@@ -38,7 +38,6 @@ export const useServiciosStore = defineStore('servicios', () => {
       const data = await api.get(`/servicios/catalogo-agrupado/${idHotel}`);
       catalogo.value = data;
     } catch (error) {
-      console.error('Error cargando catálogo:', error);
       throw error;
     } finally {
       loading.value = false;
@@ -51,7 +50,6 @@ export const useServiciosStore = defineStore('servicios', () => {
       const data = await api.get(`/servicios/pedidos/mis-pedidos/${idReserva}`);
       pedidosActivos.value = data;
     } catch (error) {
-      console.error('Error cargando pedidos:', error);
       throw error;
     } finally {
       loading.value = false;
@@ -64,7 +62,6 @@ export const useServiciosStore = defineStore('servicios', () => {
       const data = await api.get(`/servicios/cuenta/${idReserva}`);
       cuentaActual.value = data;
     } catch (error) {
-      console.error('Error cargando cuenta:', error);
       throw error;
     } finally {
       loading.value = false;
@@ -77,7 +74,6 @@ export const useServiciosStore = defineStore('servicios', () => {
       const data = await api.post('/servicios/pedidos', payload);
       return data;
     } catch (error) {
-      console.error('Error creando pedido:', error);
       throw error;
     } finally {
       loading.value = false;
@@ -95,7 +91,6 @@ export const useServiciosStore = defineStore('servicios', () => {
       }
       return data;
     } catch (error) {
-      console.error('Error cancelando pedido:', error);
       throw error;
     } finally {
       loading.value = false;

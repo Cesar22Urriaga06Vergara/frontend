@@ -1,19 +1,39 @@
 <template>
-  <div class="config-page">
-    <div class="mb-8">
-      <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Configuración del Sistema</h1>
-      <p class="text-gray-600 dark:text-gray-400">Gestiona features flags y parámetros globales</p>
-    </div>
+  <div>
+    <PageHeader
+      title="Configuración del Sistema"
+      subtitle="Gestiona feature flags y parámetros globales de operación"
+    />
 
-    <!-- Tabs -->
-    <v-tabs v-model="tabActiva" class="mb-6">
-      <v-tab value="features" prepend-icon="mdi-toggle-switch">
-        Features Flags ({{ featuresFlags.length }})
-      </v-tab>
-      <v-tab value="parametros" prepend-icon="mdi-cog">
-        Parámetros Globales ({{ parametrosGlobales.length }})
-      </v-tab>
-    </v-tabs>
+    <v-row class="mb-6">
+      <v-col cols="12" sm="6" md="3">
+        <StatCard label="Feature Flags" :value="featuresFlags.length" icon="mdi-toggle-switch" color="primary" />
+      </v-col>
+      <v-col cols="12" sm="6" md="3">
+        <StatCard label="Parámetros" :value="parametrosGlobales.length" icon="mdi-cog" color="info" />
+      </v-col>
+    </v-row>
+
+    <v-alert
+      type="warning"
+      variant="tonal"
+      class="mb-6"
+      prepend-icon="mdi-clock-alert-outline"
+    >
+      <strong>Módulo en despliegue.</strong> Los features flags y parámetros globales están en modo solo lectura. Los cambios no se guardarán hasta que el backend de configuración esté activo.
+    </v-alert>
+
+
+    <SectionCard class="mb-6" title="Módulos de configuración" subtitle="Selecciona la sección a administrar">
+      <v-tabs v-model="tabActiva">
+        <v-tab value="features" prepend-icon="mdi-toggle-switch">
+          Features Flags ({{ featuresFlags.length }})
+        </v-tab>
+        <v-tab value="parametros" prepend-icon="mdi-cog">
+          Parámetros Globales ({{ parametrosGlobales.length }})
+        </v-tab>
+      </v-tabs>
+    </SectionCard>
 
     <!-- Tab Features Flags -->
     <div v-if="tabActiva === 'features'" class="space-y-6">
@@ -34,7 +54,7 @@
             </div>
             <v-switch
               :model-value="flag.esActivo"
-              @update:model-value="actualizarFeaturesFlag(flag.id, { esActivo: $event || false })"
+              :disabled="true"
               :color="flag.esActivo ? 'green' : 'red'"
             ></v-switch>
           </div>
@@ -80,7 +100,7 @@
           <div v-if="param.tipo === 'boolean'" class="mb-4">
             <v-switch
               :model-value="param.valor === 'true'"
-              @update:model-value="actualizarParametroGlobal(param.clave, $event ? 'true' : 'false')"
+              :disabled="true"
               density="compact"
             ></v-switch>
           </div>
@@ -129,11 +149,26 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <StandardDataTable
+      class="mt-6"
+      title="Resumen de configuración"
+      subtitle="Estado actual de módulos disponibles"
+      :headers="resumenHeaders"
+      :items="resumenItems"
+      :items-per-page="5"
+      empty-title="Sin datos"
+      empty-description="No hay información de resumen disponible."
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
+import PageHeader from '~/components/shared/PageHeader.vue'
+import SectionCard from '~/components/shared/SectionCard.vue'
+import StatCard from '~/components/shared/StatCard.vue'
+import StandardDataTable from '~/components/shared/StandardDataTable.vue'
 import { useSuperAdminConfiguracion } from '~/composables/useSuperAdminConfiguracion'
 
 import { UserRole } from '~/types/auth'
@@ -141,7 +176,7 @@ import { UserRole } from '~/types/auth'
 definePageMeta({
   middleware: ['auth', 'role'],
   roles: [UserRole.SUPERADMIN],
-  layout: 'default'
+  layout: 'superadmin'
 })
 
 const {
@@ -156,14 +191,20 @@ const {
 
 const tabActiva = ref('features')
 
+const resumenHeaders = [
+  { title: 'Módulo', key: 'modulo' },
+  { title: 'Total', key: 'total' },
+  { title: 'Estado', key: 'estado' },
+]
+
+const resumenItems = computed(() => [
+  { modulo: 'Feature Flags', total: featuresFlags.value.length, estado: 'Operativo' },
+  { modulo: 'Parámetros Globales', total: parametrosGlobales.value.length, estado: 'Operativo' },
+])
+
 onMounted(async () => {
   await obtenerFeaturesFlags()
   await obtenerParametrosGlobales()
 })
 </script>
 
-<style scoped>
-.config-page {
-  padding: 2rem;
-}
-</style>

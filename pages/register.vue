@@ -14,12 +14,12 @@
         </div>
 
         <!-- Card de registro -->
-        <v-card class="card-glow pa-6 pa-sm-8">
+        <SectionCard>
           <AuthRegisterForm
             @success="onRegisterSuccess"
             @error="onRegisterError"
           />
-        </v-card>
+        </SectionCard>
 
         <!-- Links -->
         <div class="text-center mt-6">
@@ -38,6 +38,7 @@
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/auth'
 import { useNotification } from '~/composables/useNotification'
+import SectionCard from '~/components/shared/SectionCard.vue'
 
 definePageMeta({
   layout: 'auth',

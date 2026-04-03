@@ -2,6 +2,8 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import type { Pedido } from '~/types/servicios';
 import { useApi } from '~/composables/useApi';
+import { normalizePedido } from '~/utils/entityAdapters';
+import { getErrorMessage, isUnavailableError } from '~/utils/http';
 
 export const usePedidosAreaStore = defineStore('pedidosArea', () => {
   const api = useApi();
@@ -9,6 +11,8 @@ export const usePedidosAreaStore = defineStore('pedidosArea', () => {
   // State
   const pedidos = ref<Pedido[]>([]);
   const loading = ref(false);
+  const error = ref<string | null>(null);
+  const unavailable = ref(false);
   const categoria = ref<string>('');
   const idHotel = ref<number>(0);
   const filtroEstado = ref<string | null>(null);
@@ -16,6 +20,8 @@ export const usePedidosAreaStore = defineStore('pedidosArea', () => {
   // Actions
   const cargarPedidos = async (hotelId: number, categor: string, estado?: string) => {
     loading.value = true;
+    error.value = null;
+    unavailable.value = false;
     try {
       idHotel.value = hotelId;
       categoria.value = categor;
@@ -27,10 +33,11 @@ export const usePedidosAreaStore = defineStore('pedidosArea', () => {
       }
 
       const data = await api.get(url);
-      pedidos.value = data;
-    } catch (error) {
-      console.error('Error cargando pedidos del área:', error);
-      throw error;
+      pedidos.value = (data || []).map((pedido: Pedido) => normalizePedido(pedido));
+    } catch (err: any) {
+      unavailable.value = isUnavailableError(err);
+      error.value = getErrorMessage(err, 'No fue posible cargar pedidos del area');
+      throw err;
     } finally {
       loading.value = false;
     }
@@ -42,13 +49,14 @@ export const usePedidosAreaStore = defineStore('pedidosArea', () => {
     nota?: string,
   ): Promise<Pedido> => {
     loading.value = true;
+    error.value = null;
     try {
       const payload: any = { estadoPedido: estadoNuevo };
       if (nota) {
         payload.notaEmpleado = nota;
       }
 
-      const data = await api.patch(`/servicios/pedidos/${idPedido}/estado`, payload);
+      const data = normalizePedido(await api.patch(`/servicios/pedidos/${idPedido}/estado`, payload));
 
       // Actualizar en la lista local
       const index = pedidos.value.findIndex((p) => p.id === idPedido);
@@ -57,20 +65,21 @@ export const usePedidosAreaStore = defineStore('pedidosArea', () => {
       }
 
       return data;
-    } catch (error) {
-      console.error('Error actualizando estado:', error);
-      throw error;
+    } catch (err: any) {
+      error.value = getErrorMessage(err, 'No fue posible actualizar el estado del pedido');
+      throw err;
     } finally {
       loading.value = false;
     }
   };
 
   const obtenerPedido = async (idPedido: number): Promise<Pedido> => {
+    error.value = null;
     try {
-      return await api.get(`/servicios/pedidos/${idPedido}`);
-    } catch (error) {
-      console.error('Error obteniendo pedido:', error);
-      throw error;
+      return normalizePedido(await api.get(`/servicios/pedidos/${idPedido}`));
+    } catch (err: any) {
+      error.value = getErrorMessage(err, 'No fue posible consultar el pedido');
+      throw err;
     }
   };
 
@@ -84,6 +93,8 @@ export const usePedidosAreaStore = defineStore('pedidosArea', () => {
     // State
     pedidos,
     loading,
+    error,
+    unavailable,
     categoria,
     idHotel,
     filtroEstado,

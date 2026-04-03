@@ -15,11 +15,11 @@
 
           <v-row class="mb-3">
             <v-col v-if="getImagenes(habitacion.imagenes).length > 0" cols="12" md="5">
-              <v-img
-                :src="getImagenes(habitacion.imagenes)[0]"
-                height="200"
-                cover
-                class="rounded"
+              <!-- Carrusel compacto inline (sin abrir otro dialog encima) -->
+              <HabitacionGaleria
+                inline
+                :imagenes="habitacion.imagenes"
+                :height="200"
               />
             </v-col>
 
@@ -174,6 +174,8 @@
 <script setup lang="ts">
 import { ref, reactive, watch } from 'vue'
 import type { HabitacionDisponibleDto } from '~/types/api'
+import { parseImagenes as getImagenes } from '~/utils/imagenes'
+import HabitacionGaleria from '~/components/shared/HabitacionGaleria.vue'
 
 interface Props {
   modelValue: boolean
@@ -201,11 +203,6 @@ const formData = reactive({
   numeroHuespedes: 1,
   observaciones: '',
 })
-
-const getImagenes = (imagenes?: string): string[] => {
-  if (!imagenes || !imagenes.trim()) return []
-  return imagenes.split(',').map(img => img.trim()).filter(img => img)
-}
 
 const formatDate = (fecha?: string): string => {
   if (!fecha) return ''

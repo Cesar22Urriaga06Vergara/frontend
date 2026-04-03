@@ -1,19 +1,39 @@
 <template>
-  <div class="soporte-page">
-    <div class="mb-8">
-      <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Soporte y Debugging</h1>
-      <p class="text-gray-600 dark:text-gray-400">Herramientas avanzadas para soporte y troubleshooting</p>
-    </div>
+  <div>
+    <PageHeader
+      title="Soporte y Debugging"
+      subtitle="Herramientas avanzadas para soporte, trazabilidad y troubleshooting"
+    />
 
-    <!-- Tabs -->
-    <v-tabs v-model="tabActiva" class="mb-6">
-      <v-tab value="impersonacion" prepend-icon="mdi-account-switch">
-        Impersonaciones ({{ impersonacionesActivas.length }})
-      </v-tab>
-      <v-tab value="logs" prepend-icon="mdi-file-document">
-        Logs del Sistema
-      </v-tab>
-    </v-tabs>
+    <v-row class="mb-6">
+      <v-col cols="12" sm="6" md="3">
+        <StatCard label="Impersonaciones" :value="impersonacionesActivas.length" icon="mdi-account-switch" color="warning" />
+      </v-col>
+      <v-col cols="12" sm="6" md="3">
+        <StatCard label="Logs" :value="logsActivos.length" icon="mdi-file-document" color="info" />
+      </v-col>
+    </v-row>
+
+    <v-alert
+      type="info"
+      variant="tonal"
+      class="mb-6"
+      prepend-icon="mdi-clock-alert-outline"
+    >
+      <strong>Módulo en despliegue.</strong> La impersonación de hoteles y los logs del sistema están en desarrollo. Las acciones de este módulo no tendrán efecto hasta que el backend de soporte esté disponible.
+    </v-alert>
+
+
+    <SectionCard class="mb-6" title="Módulos de soporte" subtitle="Selecciona el flujo a gestionar">
+      <v-tabs v-model="tabActiva">
+        <v-tab value="impersonacion" prepend-icon="mdi-account-switch">
+          Impersonaciones ({{ impersonacionesActivas.length }})
+        </v-tab>
+        <v-tab value="logs" prepend-icon="mdi-file-document">
+          Logs del Sistema
+        </v-tab>
+      </v-tabs>
+    </SectionCard>
 
     <!-- Tab Impersonaciones -->
     <div v-if="tabActiva === 'impersonacion'" class="space-y-6">
@@ -95,57 +115,63 @@
         </v-btn>
       </div>
 
-      <!-- Tabla de Logs -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-        <v-table>
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Tipo Evento</th>
-              <th>Descripción</th>
-              <th>Severidad</th>
-              <th>Hotel/Usuario</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="log in logsActivos" :key="log.id">
-              <td class="text-sm">{{ new Date(log.fechaCreacion).toLocaleString('es-CO') }}</td>
-              <td>
-                <v-chip size="small" variant="outlined">{{ log.tipoEvento }}</v-chip>
-              </td>
-              <td class="text-sm">{{ log.descripcion }}</td>
-              <td>
-                <v-chip
-                  :color="log.nivelSeveridad === 'critical' ? 'red' : log.nivelSeveridad === 'error' ? 'orange' : log.nivelSeveridad === 'warning' ? 'amber' : 'blue'"
-                  size="small"
-                  text-color="white"
-                >
-                  {{ log.nivelSeveridad }}
-                </v-chip>
-              </td>
-              <td class="text-sm">
-                <span v-if="log.hotelId">Hotel {{ log.hotelId }}</span>
-                <span v-else-if="log.usuarioId">Usuario {{ log.usuarioId }}</span>
-                <span v-else>Sistema</span>
-              </td>
-            </tr>
-          </tbody>
-        </v-table>
-      </div>
+      <StandardDataTable
+        title="Logs del sistema"
+        subtitle="Trazas operativas filtradas por severidad y tipo"
+        :headers="logsHeaders"
+        :items="logsActivos"
+        :items-per-page="12"
+        empty-title="No hay logs disponibles"
+        empty-description="El backend de logs aún no está activo."
+      >
+        <template #item.fechaCreacion="{ item }">
+          {{ new Date(item.fechaCreacion).toLocaleString('es-CO') }}
+        </template>
+        <template #item.tipoEvento="{ item }">
+          <v-chip size="small" variant="outlined">{{ item.tipoEvento }}</v-chip>
+        </template>
+        <template #item.nivelSeveridad="{ item }">
+          <v-chip
+            :color="item.nivelSeveridad === 'critical' ? 'red' : item.nivelSeveridad === 'error' ? 'orange' : item.nivelSeveridad === 'warning' ? 'amber' : 'blue'"
+            size="small"
+            text-color="white"
+          >
+            {{ item.nivelSeveridad }}
+          </v-chip>
+        </template>
+        <template #item.origen="{ item }">
+          <span v-if="item.hotelId">Hotel {{ item.hotelId }}</span>
+          <span v-else-if="item.usuarioId">Usuario {{ item.usuarioId }}</span>
+          <span v-else>Sistema</span>
+        </template>
+      </StandardDataTable>
     </div>
+
+    <StandardDataTable
+      class="mt-6"
+      title="Resumen de soporte"
+      subtitle="Estado de módulos operativos"
+      :headers="resumenHeaders"
+      :items="resumenItems"
+      :items-per-page="5"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import PageHeader from '~/components/shared/PageHeader.vue'
+import SectionCard from '~/components/shared/SectionCard.vue'
+import StatCard from '~/components/shared/StatCard.vue'
+import StandardDataTable from '~/components/shared/StandardDataTable.vue'
 import { useSuperAdminSoporte } from '~/composables/useSuperAdminSoporte'
-
+import { useSuperAdminHoteles } from '~/composables/useSuperAdminHoteles'
 import { UserRole } from '~/types/auth'
 
 definePageMeta({
   middleware: ['auth', 'role'],
   roles: [UserRole.SUPERADMIN],
-  layout: 'default'
+  layout: 'superadmin'
 })
 
 const {
@@ -164,20 +190,36 @@ const {
 
 const tabActiva = ref('impersonacion')
 const hotelSeleccionadoId = ref<number | null>(null)
-const hotelesDisponibles = ref([
-  { id: 1, nombre: 'Hotel Premium' },
-  { id: 2, nombre: 'Hotel Standard' },
-  { id: 3, nombre: 'Hotel Económico' }
-])
+
+const logsHeaders = [
+  { title: 'Fecha', key: 'fechaCreacion' },
+  { title: 'Tipo Evento', key: 'tipoEvento' },
+  { title: 'Descripción', key: 'descripcion' },
+  { title: 'Severidad', key: 'nivelSeveridad' },
+  { title: 'Origen', key: 'origen' },
+]
+
+const resumenHeaders = [
+  { title: 'Módulo', key: 'modulo' },
+  { title: 'Total', key: 'total' },
+  { title: 'Estado', key: 'estado' },
+]
+
+const resumenItems = [
+  { modulo: 'Impersonaciones activas', total: impersonacionesActivas.value.length, estado: 'Operativo' },
+  { modulo: 'Logs cargados', total: logsActivos.value.length, estado: 'Operativo' },
+]
+
+// Cargar hoteles reales desde el backend
+const { hoteles, obtenerHoteles } = useSuperAdminHoteles()
+const hotelesDisponibles = hoteles
 
 onMounted(async () => {
-  await obtenerImpersonacionesActivas()
-  await obtenerLogs()
+  await Promise.all([
+    obtenerHoteles(),
+    obtenerImpersonacionesActivas(),
+    obtenerLogs(),
+  ])
 })
 </script>
 
-<style scoped>
-.soporte-page {
-  padding: 2rem;
-}
-</style>

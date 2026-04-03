@@ -1,14 +1,15 @@
 <template>
   <div>
-    <!-- Header con Estadísticas -->
-    <div class="mb-6">
-      <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
-        <div>
-          <h1 class="text-h5 font-weight-bold mb-1">Gestión de Reservas</h1>
-          <p class="text-body-2 text-medium-emphasis">
-            Total: {{ reservasStore.totalCount }} reservas | Actualizado hace poco
-          </p>
-        </div>
+    <PageHeader
+      title="Gestión de Reservas"
+      :subtitle="`${reservasStore.totalCount} reservas registradas en el sistema`"
+    >
+      <template #status>
+        <v-chip color="primary" variant="tonal" size="small">
+          {{ countByEstado.confirmada }} confirmadas hoy
+        </v-chip>
+      </template>
+      <template #actions>
         <v-btn
           @click="loadReservas"
           :loading="reservasStore.loading"
@@ -17,79 +18,54 @@
         >
           Actualizar
         </v-btn>
-      </div>
+      </template>
+    </PageHeader>
 
-      <!-- Cards de Resumen por Estado -->
-      <v-row class="ga-2">
-        <v-col cols="12" sm="6" md="3">
-          <v-card class="card-glow">
-            <v-card-text class="pa-4">
-              <div class="d-flex align-center justify-space-between">
-                <div>
-                  <p class="text-caption text-medium-emphasis">Reservadas</p>
-                  <p class="text-h6 font-weight-bold">{{ countByEstado.reservada || 0 }}</p>
-                </div>
-                <v-avatar color="warning" variant="tonal" size="40">
-                  <v-icon icon="mdi-calendar" />
-                </v-avatar>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
+    <!-- Stats Cards -->
+    <v-row class="mb-6">
+      <v-col cols="12" sm="6" md="3">
+        <StatCard
+          label="Reservadas"
+          :value="countByEstado.reservada || 0"
+          icon="mdi-calendar"
+          color="warning"
+          :loading="reservasStore.loading"
+        />
+      </v-col>
 
-        <v-col cols="12" sm="6" md="3">
-          <v-card class="card-glow">
-            <v-card-text class="pa-4">
-              <div class="d-flex align-center justify-space-between">
-                <div>
-                  <p class="text-caption text-medium-emphasis">Confirmadas</p>
-                  <p class="text-h6 font-weight-bold">{{ countByEstado.confirmada || 0 }}</p>
-                </div>
-                <v-avatar color="success" variant="tonal" size="40">
-                  <v-icon icon="mdi-check-circle" />
-                </v-avatar>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
+      <v-col cols="12" sm="6" md="3">
+        <StatCard
+          label="Confirmadas"
+          :value="countByEstado.confirmada || 0"
+          icon="mdi-check-circle"
+          color="success"
+          :loading="reservasStore.loading"
+        />
+      </v-col>
 
-        <v-col cols="12" sm="6" md="3">
-          <v-card class="card-glow">
-            <v-card-text class="pa-4">
-              <div class="d-flex align-center justify-space-between">
-                <div>
-                  <p class="text-caption text-medium-emphasis">En Ocupancia</p>
-                  <p class="text-h6 font-weight-bold">{{ countByEstado.ocupada || 0 }}</p>
-                </div>
-                <v-avatar color="info" variant="tonal" size="40">
-                  <v-icon icon="mdi-door-open" />
-                </v-avatar>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
+      <v-col cols="12" sm="6" md="3">
+        <StatCard
+          label="En Ocupancia"
+          :value="countByEstado.ocupada || 0"
+          icon="mdi-door-open"
+          color="info"
+          :loading="reservasStore.loading"
+        />
+      </v-col>
 
-        <v-col cols="12" sm="6" md="3">
-          <v-card class="card-glow">
-            <v-card-text class="pa-4">
-              <div class="d-flex align-center justify-space-between">
-                <div>
-                  <p class="text-caption text-medium-emphasis">Canceladas</p>
-                  <p class="text-h6 font-weight-bold">{{ countByEstado.cancelada || 0 }}</p>
-                </div>
-                <v-avatar color="error" variant="tonal" size="40">
-                  <v-icon icon="mdi-cancel" />
-                </v-avatar>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-    </div>
+      <v-col cols="12" sm="6" md="3">
+        <StatCard
+          label="Canceladas"
+          :value="countByEstado.cancelada || 0"
+          icon="mdi-cancel"
+          color="error"
+          :loading="reservasStore.loading"
+        />
+      </v-col>
+    </v-row>
 
-    <!-- Búsqueda y Filtros Avanzados -->
-    <v-card class="card-glow mb-6 pa-6">
-      <div class="text-subtitle-2 font-weight-bold mb-4">Buscar y Filtrar Reservas</div>
+    <!-- Búsqueda y Filtros -->
+    <SectionCard class="mb-6" title="Buscar y Filtrar" subtitle="Localiza reservas por cliente, cédula o estado">
       <v-row>
         <v-col cols="12" sm="8">
           <v-text-field
@@ -134,7 +110,7 @@
           </div>
         </v-col>
       </v-row>
-    </v-card>
+    </SectionCard>
 
     <!-- Tabla de reservas -->
     <RecepcionistaReservasTable
@@ -403,12 +379,15 @@ import { ref, computed, onMounted } from 'vue'
 import { useReservasStore } from '~/stores/reservas'
 import { useNotification } from '~/composables/useNotification'
 import { useAuthStore } from '~/stores/auth'
+import PageHeader from '~/components/shared/PageHeader.vue'
+import SectionCard from '~/components/shared/SectionCard.vue'
+import StatCard from '~/components/shared/StatCard.vue'
 import { UserRole } from '~/types/auth'
 import type { Reserva } from '~/types/api'
 import RecepcionistaReservasTable from '~/components/shared/RecepcionistaReservasTable.vue'
 
 definePageMeta({
-  layout: 'default',
+  layout: 'admin',
   middleware: ['auth', 'role'],
   roles: [UserRole.ADMIN],
 })
@@ -634,10 +613,4 @@ const onFilterChanged = () => {
   // Aquí se pueden manejar cambios en filtros de la tabla si es necesario
 }
 </script>
-
-<style scoped>
-.card-glow {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-</style>
 

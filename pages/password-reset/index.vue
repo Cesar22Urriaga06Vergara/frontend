@@ -23,7 +23,7 @@
         />
 
         <!-- Card -->
-        <v-card class="card-glow pa-6 pa-sm-8">
+        <SectionCard>
           <!-- Step 1: Request -->
           <AuthPasswordResetRequest
             v-if="currentStep === 1"
@@ -65,7 +65,7 @@
               Ir a iniciar sesión
             </v-btn>
           </div>
-        </v-card>
+        </SectionCard>
 
         <!-- Back to login -->
         <div class="text-center mt-6">
@@ -82,6 +82,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useNotification } from '~/composables/useNotification'
+import SectionCard from '~/components/shared/SectionCard.vue'
 
 definePageMeta({
   layout: 'auth',

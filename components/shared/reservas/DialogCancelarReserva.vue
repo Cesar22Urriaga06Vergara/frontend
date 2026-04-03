@@ -147,6 +147,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { Reserva } from '~/types/api'
+import { parseImagenes as getImagenes } from '~/utils/imagenes'
 
 interface Props {
   modelValue: boolean
@@ -196,11 +197,6 @@ const formatDate = (fecha?: Date | string): string => {
     month: 'short',
     day: 'numeric',
   })
-}
-
-const getImagenes = (imagenes?: string): string[] => {
-  if (!imagenes || !imagenes.trim()) return []
-  return imagenes.split(',').map(img => img.trim()).filter(img => img)
 }
 
 const confirmar = () => {

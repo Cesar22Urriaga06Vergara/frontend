@@ -198,6 +198,42 @@ export interface TopArea {
   porcentajeDelTotal: number;
 }
 
+/**
+ * Configuración de un área facturable por pedido.
+ * Se pasa como prop a AreaPedidosPanel para que el mismo componente
+ * sirva a cafetería, lavandería, room service, spa, etc.
+ */
+export interface AreaPedidosConfig {
+  /** Slug que coincide con el campo `categoria` del backend */
+  categoria: Servicio['categoria'];
+  /** Título visible en el encabezado del panel */
+  titulo: string;
+  /** Subtítulo descriptivo bajo el título */
+  subtitulo: string;
+  /** Icono MDI para la tarjeta "Total del día" */
+  iconoArea: string;
+  /** Color Vuetify principal del área (p.ej. 'orange', 'indigo') */
+  colorArea: string;
+  /** Etiqueta de la tarjeta de estado intermedio ("En preparación", "En proceso", "En ruta"…) */
+  labelMedio: string;
+  /** Icono MDI para la tarjeta de estado intermedio */
+  iconoMedio: string;
+  /** Estado de la máquina de estados que representa "en progreso" */
+  estadoMedio: Pedido['estadoPedido'];
+  /** Estado que se cuenta como completado para este área */
+  estadoCompletado: Pedido['estadoPedido'];
+  /** Etiqueta de la tarjeta de completados ("Entregados hoy", "Listos hoy"…) */
+  labelCompleto: string;
+  /** Icono MDI para el estado vacío de la lista */
+  iconoVacio: string;
+  /** Mensaje cuando no hay ítems en la lista */
+  mensajeVacio: string;
+  /** Término en singular para un ítem ("pedido", "lote", "entrega", "cita") */
+  etiquetaItem: string;
+  /** Término en plural para varios ítems */
+  etiquetaItems: string;
+}
+
 export interface EstadisticasEntregaConsolidado {
   delivery: {
     cantidad: number;

@@ -7,8 +7,14 @@ export default defineNuxtConfig({
 
   devtools: { enabled: true },
 
+  devServer: {
+    port: 3000,
+  },
+
   css: [
+    '~/assets/styles/tailwind.css',
     '~/assets/styles/main.scss',
+    '~/assets/styles/design-system.scss',
   ],
 
   build: {
@@ -17,12 +23,20 @@ export default defineNuxtConfig({
 
   modules: [
     '@pinia/nuxt',
+    '@nuxtjs/tailwindcss',
     (_options, nuxt) => {
       nuxt.hooks.hook('vite:extendConfig', (config) => {
         config.plugins!.push(vuetify({ autoImport: true }) as any)
       })
     },
   ],
+
+  tailwindcss: {
+    configPath: '~/tailwind.config.ts',
+    cssPath: '~/assets/styles/tailwind.css',
+    exposeConfig: false,
+    viewer: false,
+  },
 
   pinia: {
     storesDirs: ['./stores/**'],
@@ -55,6 +69,9 @@ export default defineNuxtConfig({
     // Cache some routes when deployed
     '/': { cache: { maxAge: 60 * 10 } },
     '/login': { cache: { maxAge: 60 * 10 } },
+    '/cliente/servicios/servicios': { redirect: '/cliente/servicios' },
+    '/cliente/servicios/servicios/carrito': { redirect: '/cliente/servicios/carrito' },
+    '/cliente/servicios/servicios/mis-pedidos': { redirect: '/cliente/servicios/mis-pedidos' },
   },
 
   compatibilityDate: '2024-11-01',

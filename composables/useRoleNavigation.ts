@@ -62,7 +62,8 @@ const ROUTE_META: Record<string, { title: string; parent?: string }> = {
   '/admin/reset-stats': { title: 'Reset Stats', parent: '/admin' },
 
   // ── Reportes ──
-  '/reportes/oficina': { title: 'Reportes Oficina', parent: '/' },
+  '/reportes/oficina': { title: 'Reportes y Análisis', parent: '/admin' },
+  '/reportes/oficina/servicios': { title: 'Reportes Servicios', parent: '/reportes/oficina' },
   '/reportes/area': { title: 'Mi Área', parent: '/' },
   '/reportes/area/cafeteria': { title: 'Mi Área — Cafetería', parent: '/reportes/area' },
   '/reportes/area/lavanderia': { title: 'Mi Área — Lavandería', parent: '/reportes/area' },
@@ -119,54 +120,25 @@ export const useRoleNavigation = () => {
       case UserRole.SUPERADMIN:
         return [
           {
-            title: 'Dashboard SaaS',
+            title: 'SaaS',
             items: [
               { title: 'Inicio', icon: 'mdi-view-dashboard-outline', to: '/superadmin' },
             ],
           },
           {
-            title: 'Hoteles',
+            title: 'Operaciones',
             items: [
-              { title: 'Crear Hotel', icon: 'mdi-plus-circle', to: '/superadmin/hoteles' },
-              { title: 'Suspender Hotel', icon: 'mdi-pause-circle', to: '/superadmin/hoteles' },
-              { title: 'Bloquear Hotel', icon: 'mdi-lock', to: '/superadmin/hoteles' },
-              { title: 'Ver Hoteles', icon: 'mdi-hospital-box-outline', to: '/superadmin/hoteles' },
+              { title: 'Hoteles', icon: 'mdi-domain', to: '/superadmin/hoteles' },
+              { title: 'Categorías', icon: 'mdi-shape-outline', to: '/superadmin/categorias' },
+              { title: 'Métricas', icon: 'mdi-chart-line', to: '/superadmin/metricas' },
             ],
           },
           {
-            title: 'Planes',
+            title: 'Plataforma',
             items: [
-              { title: 'Crear Planes', icon: 'mdi-plus-circle', to: '/superadmin/planes' },
-              { title: 'Editar Planes', icon: 'mdi-pencil', to: '/superadmin/planes' },
-              { title: 'Límites Sistema', icon: 'mdi-gauge', to: '/superadmin/planes' },
-            ],
-          },
-          {
-            title: 'Categorías Globales',
-            items: [
-              { title: 'Categorías Servicios', icon: 'mdi-folder-outline', to: '/superadmin/categorias' },
-              { title: 'Módulos Sistema', icon: 'mdi-puzzle-outline', to: '/superadmin/categorias' },
-            ],
-          },
-          {
-            title: 'Métricas',
-            items: [
-              { title: 'Uso Plataforma', icon: 'mdi-chart-line-variant', to: '/superadmin/metricas' },
-              { title: 'Crecimiento Hoteles', icon: 'mdi-trending-up', to: '/superadmin/metricas' },
-            ],
-          },
-          {
-            title: 'Soporte',
-            items: [
-              { title: 'Impersonate Hotel', icon: 'mdi-account-switch-outline', to: '/superadmin/soporte' },
-              { title: 'Logs Sistema', icon: 'mdi-file-document-outline', to: '/superadmin/soporte' },
-            ],
-          },
-          {
-            title: 'Configuración Sistema',
-            items: [
-              { title: 'Features Flags', icon: 'mdi-toggle-switch-outline', to: '/superadmin/configuracion' },
-              { title: 'Parámetros Globales', icon: 'mdi-cog-outline', to: '/superadmin/configuracion' },
+              { title: 'Planes SaaS', icon: 'mdi-layers-outline', to: '/superadmin/planes' },
+              { title: 'Configuración', icon: 'mdi-cog-outline', to: '/superadmin/configuracion' },
+              { title: 'Soporte', icon: 'mdi-lifebuoy', to: '/superadmin/soporte' },
             ],
           },
           accountSection,

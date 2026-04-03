@@ -1,197 +1,198 @@
 <template>
   <div>
-    <!-- Header -->
-    <div class="d-flex align-center justify-space-between mb-6 flex-wrap ga-2">
-      <div>
-        <h1 class="text-h5 font-weight-bold mb-1">Reportes y Análisis</h1>
-        <p class="text-body-2 text-medium-emphasis">
-          Visualizar estadísticas y reportes del hotel
-        </p>
-      </div>
-    </div>
+    <PageHeader
+      title="Reportes y Análisis"
+      subtitle="Visualizar estadísticas consolidadas del hotel"
+    >
+      <template #status>
+        <StatusBadge :status="viewState.status.value" />
+      </template>
+    </PageHeader>
 
-    <!-- Filtros -->
-    <v-card class="card-glow mb-6 pa-6">
-      <v-row>
-        <v-col cols="12" sm="6" md="3">
+    <SectionCard class="mb-6">
+      <ActionToolbar>
+        <template #filters>
           <v-select
             v-model="periodoReporte"
             label="Período"
             :items="periodosOptions"
+            class="toolbar-field"
+            :disabled="reportesStore.loading"
             @update:model-value="refrescarReportes"
           />
-        </v-col>
-        <v-col cols="12" sm="6" md="3">
           <v-select
             v-model="tipoReporte"
             label="Tipo de Reporte"
             :items="tiposReporte"
+            class="toolbar-field"
+            :disabled="reportesStore.loading"
             @update:model-value="refrescarReportes"
+          />
+        </template>
+        <template #actions>
+          <v-btn color="primary" variant="tonal" prepend-icon="mdi-refresh" :loading="reportesStore.loading" @click="refrescarReportes">
+            Actualizar
+          </v-btn>
+        </template>
+      </ActionToolbar>
+    </SectionCard>
+
+    <SectionCard v-if="viewState.isUnavailable.value || viewState.isError.value" :padded="false" class="mb-6">
+      <EmptyState
+        v-if="viewState.isUnavailable.value"
+        icon="mdi-cloud-off-outline"
+        title="Backend de reportes no disponible"
+        description="El endpoint de estadísticas no está disponible por ahora para este hotel."
+        action-label="Reintentar"
+        @action="refrescarReportes"
+      />
+      <EmptyState
+        v-else
+        icon="mdi-alert-circle-outline"
+        title="No fue posible cargar reportes"
+        :description="reportesStore.error || 'Error inesperado consultando reportes'"
+        action-label="Reintentar"
+        @action="refrescarReportes"
+      />
+    </SectionCard>
+
+    <template v-if="!viewState.isUnavailable.value && !viewState.isError.value">
+      <v-row class="mb-6">
+        <v-col cols="12" sm="6" md="3">
+          <StatCard
+            label="Reservas"
+            :value="totalReservas"
+            icon="mdi-calendar-check"
+            color="primary"
+            :loading="reportesStore.loading"
+          />
+        </v-col>
+
+        <v-col cols="12" sm="6" md="3">
+          <StatCard
+            label="Ingresos Totales"
+            :value="`$${totalIngresos}`"
+            icon="mdi-cash"
+            color="success"
+            :loading="reportesStore.loading"
+          />
+        </v-col>
+
+        <v-col cols="12" sm="6" md="3">
+          <StatCard
+            label="Tasa de Ocupación"
+            :value="`${tasaOcupacion}%`"
+            icon="mdi-percent"
+            color="warning"
+            :loading="reportesStore.loading"
+          />
+        </v-col>
+
+        <v-col cols="12" sm="6" md="3">
+          <StatCard
+            label="ADR"
+            :value="`$${averageDailyRate}`"
+            icon="mdi-chart-line"
+            color="info"
+            :loading="reportesStore.loading"
           />
         </v-col>
       </v-row>
-    </v-card>
 
-    <!-- Tarjetas de Estadísticas -->
-    <v-row class="mb-6">
-      <v-col cols="12" sm="6" md="3">
-        <v-card class="card-glow pa-4">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <div class="text-caption text-medium-emphasis mb-1">Reservas</div>
-              <div class="text-h6 font-weight-bold">{{ totalReservas }}</div>
-            </div>
-            <v-avatar color="primary" size="40" variant="tonal" rounded="lg">
-              <v-icon icon="mdi-calendar-check" size="20" />
-            </v-avatar>
-          </div>
-        </v-card>
-      </v-col>
+      <SectionCard v-if="viewState.isEmpty.value" :padded="false" class="mb-6">
+        <EmptyState
+          icon="mdi-chart-box-outline"
+          title="Sin datos para el período seleccionado"
+          description="Ajusta filtros o espera nuevas transacciones para visualizar métricas."
+        />
+      </SectionCard>
 
-      <v-col cols="12" sm="6" md="3">
-        <v-card class="card-glow pa-4">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <div class="text-caption text-medium-emphasis mb-1">Ingresos Totales</div>
-              <div class="text-h6 font-weight-bold text-success">${{ totalIngresos }}</div>
-            </div>
-            <v-avatar color="success" size="40" variant="tonal" rounded="lg">
-              <v-icon icon="mdi-cash" size="20" />
-            </v-avatar>
-          </div>
-        </v-card>
-      </v-col>
+      <template v-else>
+        <v-row>
+          <v-col cols="12" md="6">
+            <SectionCard title="Ocupación Mensual" subtitle="Placeholder estructural para futura gráfica">
+              <div class="d-flex align-center justify-center" style="height: 220px">
+                <p class="text-medium-emphasis">Gráfico de ocupación pendiente de integración</p>
+              </div>
+            </SectionCard>
+          </v-col>
 
-      <v-col cols="12" sm="6" md="3">
-        <v-card class="card-glow pa-4">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <div class="text-caption text-medium-emphasis mb-1">Tasa de Ocupación</div>
-              <div class="text-h6 font-weight-bold">{{ tasaOcupacion }}%</div>
-            </div>
-            <v-avatar color="warning" size="40" variant="tonal" rounded="lg">
-              <v-icon icon="mdi-percent" size="20" />
-            </v-avatar>
-          </div>
-        </v-card>
-      </v-col>
+          <v-col cols="12" md="6">
+            <SectionCard title="Ingresos por Tipo" subtitle="Placeholder estructural para futura gráfica">
+              <div class="d-flex align-center justify-center" style="height: 220px">
+                <p class="text-medium-emphasis">Gráfico de ingresos pendiente de integración</p>
+              </div>
+            </SectionCard>
+          </v-col>
+        </v-row>
 
-      <v-col cols="12" sm="6" md="3">
-        <v-card class="card-glow pa-4">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <div class="text-caption text-medium-emphasis mb-1">ADR</div>
-              <div class="text-h6 font-weight-bold">${{ averageDailyRate }}</div>
-            </div>
-            <v-avatar color="info" size="40" variant="tonal" rounded="lg">
-              <v-icon icon="mdi-chart-line" size="20" />
-            </v-avatar>
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <!-- Gráficos (Placeholder) -->
-    <v-row>
-      <v-col cols="12" md="6">
-        <v-card class="card-glow pa-6">
-          <v-card-title class="text-subtitle-1 font-weight-bold mb-4">
-            Ocupación Mensual
-          </v-card-title>
-          <v-card-text class="d-flex align-center justify-center" style="height: 300px">
-            <p class="text-medium-emphasis">Gráfico de ocupación (implementar con Chart.js)</p>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" md="6">
-        <v-card class="card-glow pa-6">
-          <v-card-title class="text-subtitle-1 font-weight-bold mb-4">
-            Ingresos por Tipo
-          </v-card-title>
-          <v-card-text class="d-flex align-center justify-center" style="height: 300px">
-            <p class="text-medium-emphasis">Gráfico de ingresos (implementar con Chart.js)</p>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <!-- Tabla de Detalles -->
-    <v-card class="card-glow mt-6">
-      <v-card-title class="text-subtitle-1 font-weight-bold">
-        Detalles del Período — {{ periodoReporte }}
-      </v-card-title>
-      <v-card-text class="pa-0">
-        <v-data-table
+        <StandardDataTable
+          class="mt-6"
+          :title="`Detalles del período — ${periodoReporte}`"
+          subtitle="Comparativo de reservas y servicios"
           :headers="headersDetalles"
           :items="detallesReporte"
           :loading="reportesStore.loading"
-          class="elevation-0"
-          density="compact"
+          :items-per-page="6"
+          empty-icon="mdi-table-off"
+          empty-title="Sin detalles para el período"
+          empty-description="Modifica los filtros para consultar más información."
         />
-      </v-card-text>
-    </v-card>
 
-    <!-- Resumen por Categoría de Servicios -->
-    <v-card class="card-glow mt-6" v-if="resumenPorCategoria.length > 0">
-      <v-card-title class="text-subtitle-1 font-weight-bold">
-        Ingresos por Categoría de Servicios
-      </v-card-title>
-      <v-card-text>
-        <v-list density="compact">
-          <v-list-item
-            v-for="(item, idx) in resumenPorCategoria"
-            :key="idx"
-          >
-            <template #prepend>
-              <v-avatar
-                :color="['primary', 'success', 'warning', 'info', 'error'][idx % 5]"
-                size="small"
-                variant="tonal"
-              >
-                <v-icon icon="mdi-tag" size="18" />
-              </v-avatar>
-            </template>
-            <v-list-item-title>{{ item.categoria }}</v-list-item-title>
-            <template #append>
-              <div class="text-right">
-                <div class="text-body-2 font-weight-bold">{{ item.ingreso }}</div>
-              </div>
-            </template>
-          </v-list-item>
-        </v-list>
-      </v-card-text>
-    </v-card>
+        <SectionCard class="mt-6" v-if="resumenPorCategoria.length > 0" title="Ingresos por Categoría de Servicios">
+          <v-list density="compact">
+            <v-list-item
+              v-for="(item, idx) in resumenPorCategoria"
+              :key="idx"
+            >
+              <template #prepend>
+                <v-avatar
+                  :color="['primary', 'success', 'warning', 'info', 'error'][idx % 5]"
+                  size="small"
+                  variant="tonal"
+                >
+                  <v-icon icon="mdi-tag" size="18" />
+                </v-avatar>
+              </template>
+              <v-list-item-title>{{ item.categoria }}</v-list-item-title>
+              <template #append>
+                <div class="text-right">
+                  <div class="text-body-2 font-weight-bold">{{ item.ingreso }}</div>
+                </div>
+              </template>
+            </v-list-item>
+          </v-list>
+        </SectionCard>
 
-    <!-- Actions -->
-    <v-card class="card-glow mt-6 pa-6">
-      <v-btn
-        prepend-icon="mdi-download"
-        color="primary"
-        variant="tonal"
-      >
-        Descargar PDF
-      </v-btn>
-      <v-btn
-        prepend-icon="mdi-file-excel"
-        color="success"
-        variant="tonal"
-        class="ml-2"
-      >
-        Exportar Excel
-      </v-btn>
-    </v-card>
+        <SectionCard class="mt-6">
+          <v-btn prepend-icon="mdi-download" color="primary" variant="tonal">
+            Descargar PDF
+          </v-btn>
+          <v-btn prepend-icon="mdi-file-excel" color="success" variant="tonal" class="ml-2">
+            Exportar Excel
+          </v-btn>
+        </SectionCard>
+      </template>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { UserRole } from '~/types/auth'
+import { useViewState } from '~/composables/useViewState'
 import { useReportesStore } from '~/stores/reportes'
 import { useAuthStore } from '~/stores/auth'
+import PageHeader from '~/components/shared/PageHeader.vue'
+import StatusBadge from '~/components/shared/StatusBadge.vue'
+import SectionCard from '~/components/shared/SectionCard.vue'
+import ActionToolbar from '~/components/shared/ActionToolbar.vue'
+import StatCard from '~/components/shared/StatCard.vue'
+import EmptyState from '~/components/shared/EmptyState.vue'
+import StandardDataTable from '~/components/shared/StandardDataTable.vue'
 
 definePageMeta({
-  layout: 'default',
+  layout: 'admin',
   middleware: ['auth', 'role'],
   roles: [UserRole.ADMIN, UserRole.SUPERADMIN],
 })
@@ -224,10 +225,24 @@ const headersDetalles = [
   { title: 'Total', key: 'total', align: 'end' as const },
 ]
 
+const hasData = computed(() => {
+  return Number(reportesStore.totalReservas) > 0 || Object.keys(reportesStore.resumenPorCategoria || {}).length > 0
+})
+const viewState = useViewState(
+  computed(() => reportesStore.loading),
+  hasData,
+  computed(() => reportesStore.error),
+  computed(() => reportesStore.unavailable),
+)
+
 onMounted(async () => {
   const idHotel = authStore.user?.idHotel
   if (idHotel) {
-    await refrescarReportes()
+    try {
+      await refrescarReportes()
+    } catch (_error) {
+      // El store ya marca error/unavailable; evitamos romper render por rechazo no controlado.
+    }
   }
 })
 
@@ -235,24 +250,19 @@ const refrescarReportes = async () => {
   const idHotel = authStore.user?.idHotel
   if (!idHotel) return
 
-  try {
-    const periodo = periodoReporte.value || undefined
-    await reportesStore.cargarTodosLosReportes(idHotel, periodo)
-  } catch (err) {
-    console.error('Error al refrescar reportes:', err)
-  }
+  const periodo = periodoReporte.value || undefined
+  await reportesStore.cargarTodosLosReportes(idHotel, periodo)
 }
 
-// Computados para acceso fácil
 const totalReservas = computed(() => reportesStore.totalReservas)
 const totalIngresos = computed(() => reportesStore.totalIngresos.toFixed(2))
-const tasaOcupacion = computed(() => reportesStore.tasaOcupacion.toFixed(2))
+const tasaOcupacion = computed(() => Number(reportesStore.tasaOcupacion || 0).toFixed(2))
 const averageDailyRate = computed(() => reportesStore.adr)
 
 const detallesReporte = computed(() => {
   const res = reportesStore.estadisticasReservas
   const serv = reportesStore.estadisticasServicios
-  
+
   return [
     {
       metrica: 'Total de Transacciones',
@@ -301,12 +311,12 @@ const resumenPorCategoria = computed(() => {
     montoNumerado: monto as number,
   }))
 })
-
 </script>
 
 <style scoped>
-.card-glow {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.toolbar-field {
+  width: 240px;
+  max-width: 100%;
 }
 </style>
 

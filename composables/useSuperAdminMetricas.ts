@@ -3,8 +3,8 @@ import { useApi } from './useApi'
 import type { MetricasPlataforma, MetricasCrecimiento } from '~/types/superadmin'
 
 export const useSuperAdminMetricas = () => {
-  const { get, post, patch } = useApi()
-  
+  const { get } = useApi()
+
   // State
   const metricasPlataforma = ref<MetricasPlataforma | null>(null)
   const metricasCrecimiento = ref<MetricasCrecimiento | null>(null)
@@ -17,7 +17,7 @@ export const useSuperAdminMetricas = () => {
     isLoading.value = true
     error.value = null
     try {
-      metricasPlataforma.value = await $fetch('/superadmin/metricas/plataforma')
+      metricasPlataforma.value = await get<MetricasPlataforma>('/superadmin/metricas/plataforma')
     } catch (err: any) {
       error.value = err.message || 'Error al obtener métricas'
     } finally {
@@ -29,9 +29,9 @@ export const useSuperAdminMetricas = () => {
     isLoading.value = true
     error.value = null
     try {
-      metricasCrecimiento.value = await $fetch('/superadmin/metricas/crecimiento', {
-        query: { periodo }
-      })
+      metricasCrecimiento.value = await get<MetricasCrecimiento>(
+        `/superadmin/metricas/crecimiento?periodo=${encodeURIComponent(periodo)}`,
+      )
       periodoCrecimiento.value = periodo
     } catch (err: any) {
       error.value = err.message || 'Error al obtener métricas de crecimiento'
@@ -44,44 +44,6 @@ export const useSuperAdminMetricas = () => {
     await obtenerMetricasCrecimiento(periodo)
   }
 
-  const obtenerMetricasDetalladas = async (hotelId?: number) => {
-    isLoading.value = true
-    error.value = null
-    try {
-      const params = hotelId ? { hotelId } : {}
-      return await $fetch('/superadmin/metricas/detalladas', {
-        query: params
-      })
-    } catch (err: any) {
-      error.value = err.message || 'Error al obtener métricas detalladas'
-      return null
-    } finally {
-      isLoading.value = false
-    }
-  }
-
-  const exportarMetricas = async (formato: 'pdf' | 'csv' = 'pdf') => {
-    isLoading.value = true
-    error.value = null
-    try {
-      const blob = await get<Blob>('/superadmin/metricas/exportar', { formato })
-      
-      // Descargar archivo
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.setAttribute('download', `metricas-plataforma.${formato}`)
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
-    } catch (err: any) {
-      error.value = err.message || 'Error al exportar métricas'
-    } finally {
-      isLoading.value = false
-    }
-  }
-
   return {
     metricasPlataforma,
     metricasCrecimiento,
@@ -91,7 +53,5 @@ export const useSuperAdminMetricas = () => {
     obtenerMetricasPlataforma,
     obtenerMetricasCrecimiento,
     cambiarPeriodoCrecimiento,
-    obtenerMetricasDetalladas,
-    exportarMetricas
   }
 }

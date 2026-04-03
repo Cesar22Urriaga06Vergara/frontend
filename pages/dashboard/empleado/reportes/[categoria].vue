@@ -1,28 +1,19 @@
 <template>
-  <div class="pa-4">
-    <!-- Header -->
-    <div class="mb-6">
-      <v-breadcrumbs
-        :items="[
-          { title: 'Dashboard', href: '/dashboard/empleado' },
-          { title: 'Reportes', href: '/dashboard/empleado/reportes' },
-          { title: formatearCategoria(categoria), disabled: true },
-        ]"
-        divider="/"
-      />
-      <h1 class="text-h4 font-weight-bold mt-2 mb-1">
-        Reporte - {{ formatearCategoria(categoria) }}
-      </h1>
-      <p class="text-body-2 text-medium-emphasis">análisis detallado de pedidos y ingresos</p>
-    </div>
+  <div>
+    <PageHeader
+      :title="`Reporte - ${formatearCategoria(categoria)}`"
+      subtitle="Análisis detallado de pedidos e ingresos por categoría"
+    />
 
     <!-- Filtros -->
-    <ReporteFiltros
-      :loading="loading"
-      :tiene-reporte="tieneReporte"
-      @actualizar="cargarReporte"
-      @exportar="exportarCSV"
-    />
+    <SectionCard class="mb-6" title="Filtros" subtitle="Ajusta período y exporta resultados">
+      <ReporteFiltros
+        :loading="loading"
+        :tiene-reporte="tieneReporte"
+        @actualizar="cargarReporte"
+        @exportar="exportarCSV"
+      />
+    </SectionCard>
 
     <!-- Loading -->
     <div v-if="loading" class="text-center py-8">
@@ -35,78 +26,46 @@
       <!-- KPIs del Área -->
       <v-row class="mb-6">
         <v-col cols="12" sm="6" md="3">
-          <v-card class="card-glow pa-4">
-            <div class="text-caption text-medium-emphasis mb-1">Total Pedidos</div>
-            <div class="text-h5 font-weight-bold">{{ resumen?.contadores.total || 0 }}</div>
-            <v-sparkline
-              :value="[1, 2, 3, 2, 3, 4, 3]"
-              color="primary"
-              line-width="2"
-              padding="8"
-              class="mt-2"
-            />
-          </v-card>
+          <StatCard label="Total pedidos" :value="resumen?.contadores.total || 0" icon="mdi-clipboard-list" color="primary" />
         </v-col>
 
         <v-col cols="12" sm="6" md="3">
-          <v-card class="card-glow pa-4">
-            <div class="text-caption text-medium-emphasis mb-1">Ingresos Total</div>
-            <div class="text-h5 font-weight-bold text-success">
-              ${{ formatearMoneda(resumen?.financiero.ingresoTotal || 0) }}
-            </div>
-            <v-sparkline
-              :value="[2, 3, 4, 3, 4, 5, 4]"
-              color="success"
-              line-width="2"
-              padding="8"
-              class="mt-2"
-            />
-          </v-card>
+          <StatCard
+            label="Ingresos"
+            :value="`$${formatearMoneda(resumen?.financiero.ingresoTotal || 0)}`"
+            icon="mdi-cash"
+            color="success"
+          />
         </v-col>
 
         <v-col cols="12" sm="6" md="3">
-          <v-card class="card-glow pa-4">
-            <div class="text-caption text-medium-emphasis mb-1">Entregados</div>
-            <div class="text-h5 font-weight-bold text-success">
-              {{ resumen?.contadores.entregado || 0 }}
-            </div>
-            <div class="text-caption text-success mt-2">
-              {{ getTasaEntrega(resumen) }}% de tasa
-            </div>
-          </v-card>
+          <StatCard
+            label="Entregados"
+            :value="resumen?.contadores.entregado || 0"
+            icon="mdi-check-circle"
+            color="info"
+            :helper="`${getTasaEntrega(resumen)}% de tasa`"
+          />
         </v-col>
 
         <v-col cols="12" sm="6" md="3">
-          <v-card class="card-glow pa-4">
-            <div class="text-caption text-medium-emphasis mb-1">Ticket Promedio</div>
-            <div class="text-h5 font-weight-bold">
-              ${{ formatearMoneda(resumen?.financiero.ticketPromedio || 0) }}
-            </div>
-            <v-sparkline
-              :value="[3, 2, 1, 2, 2, 3, 2]"
-              color="info"
-              line-width="2"
-              padding="8"
-              class="mt-2"
-            />
-          </v-card>
+          <StatCard
+            label="Ticket promedio"
+            :value="`$${formatearMoneda(resumen?.financiero.ticketPromedio || 0)}`"
+            icon="mdi-chart-line"
+            color="warning"
+          />
         </v-col>
       </v-row>
 
-      <!-- Tabla de Pedidos -->
-      <v-card class="card-glow mb-6">
-        <v-card-title class="text-subtitle-1 font-weight-bold">
-          <v-icon icon="mdi-clipboard-list" class="mr-2" />
-          Pedidos Detallados
-        </v-card-title>
-
-        <v-data-table
-          :headers="headers"
-          :items="detalle"
-          density="compact"
-          :items-per-page="10"
-          class="elevation-0"
-        >
+      <StandardDataTable
+        class="mb-6"
+        title="Pedidos Detallados"
+        subtitle="Desglose de pedidos e importes del período"
+        :headers="headers"
+        :items="detalle"
+        :items-per-page="10"
+      >
           <template #item.totalPedido="{ item }">
             <span class="font-weight-bold text-success">
               ${{ formatearMoneda(item.totalPedido) }}
@@ -126,8 +85,7 @@
           <template #item.items="{ item }">
             <span class="text-body-2">{{ item.items?.length || 0 }} artículos</span>
           </template>
-        </v-data-table>
-      </v-card>
+      </StandardDataTable>
     </div>
 
     <!-- Sin datos -->
@@ -144,9 +102,14 @@ import { useRoute } from 'vue-router'
 import { useAreaReportes } from '~/composables/useAreaReportes'
 import { useAuthStore } from '~/stores/auth'
 import { UserRole } from '~/types/auth'
+import PageHeader from '~/components/shared/PageHeader.vue'
+import SectionCard from '~/components/shared/SectionCard.vue'
+import StatCard from '~/components/shared/StatCard.vue'
+import StandardDataTable from '~/components/shared/StandardDataTable.vue'
 import ReporteFiltros from '~/components/reportes/ReporteFiltros.vue'
 
 definePageMeta({
+  layout: 'operacion',
   middleware: ['auth', 'role'],
   roles: [UserRole.CAFETERIA, UserRole.LAVANDERIA, UserRole.SPA, UserRole.ROOM_SERVICE],
 })
@@ -191,6 +154,8 @@ const cargarReporte = async (desde?: Date, hasta?: Date) => {
       desde,
       hasta,
     )
+  } catch (_error) {
+    // El composable ya expone el estado de error; evitamos romper el render.
   } finally {
     loading.value = false
   }
@@ -246,8 +211,3 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
-.card-glow {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-</style>

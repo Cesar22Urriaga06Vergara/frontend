@@ -1,79 +1,81 @@
 <template>
-  <div class="planes-page">
-    <div class="mb-8 flex items-center justify-between">
-      <div>
-        <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Gestión de Planes</h1>
-        <p class="text-gray-600 dark:text-gray-400">Total: {{ planes.length }} planes</p>
-      </div>
-      <v-btn color="primary" @click="abrirDialogoCrearPlan" prepend-icon="mdi-plus">
-        Crear Plan
-      </v-btn>
-    </div>
+  <div>
+    <PageHeader title="Gestión de Planes" :subtitle="`Total: ${planes.length} planes`">
+      <template #actions>
+        <v-btn color="primary" @click="abrirDialogoCrearPlan" prepend-icon="mdi-plus" :disabled="true">
+          Crear Plan
+        </v-btn>
+      </template>
+    </PageHeader>
 
-    <!-- Tabla de Planes -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden mb-8">
-      <v-table>
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Precio Mensual</th>
-            <th>Usuarios Máx</th>
-            <th>Habitaciones Máx</th>
-            <th>Módulos</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="plan in planes" :key="plan.id">
-            <td class="font-semibold">{{ plan.nombre }}</td>
-            <td>${{ plan.precioMensual.toLocaleString('es-CO') }}</td>
-            <td>{{ plan.usuariosMaximos }}</td>
-            <td>{{ plan.habitacionesMaximas }}</td>
-            <td>
-              <div class="flex gap-1 flex-wrap">
-                <v-chip v-for="mod in plan.modulos.slice(0, 2)" :key="mod" size="small">
-                  {{ mod }}
-                </v-chip>
-                <v-chip v-if="plan.modulos.length > 2" size="small">
-                  +{{ plan.modulos.length - 2 }}
-                </v-chip>
-              </div>
-            </td>
-            <td>
-              <v-chip
-                :color="plan.esActivo ? 'green' : 'red'"
-                size="small"
-                text-color="white"
-              >
-                {{ plan.esActivo ? 'Activo' : 'Inactivo' }}
-              </v-chip>
-            </td>
-            <td>
-              <v-menu>
-                <template #activator="{ props }">
-                  <v-btn icon="mdi-dots-vertical" size="small" variant="text" v-bind="props"></v-btn>
-                </template>
-                <v-list>
-                  <v-list-item @click="abrirDialogoEditarPlan(plan)">
-                    <template #prepend><v-icon>mdi-pencil</v-icon></template>
-                    <v-list-item-title>Editar</v-list-item-title>
-                  </v-list-item>
-                  <v-list-item v-if="plan.esActivo" @click="desactivarPlan(plan.id)">
-                    <template #prepend><v-icon color="red">mdi-toggle-off</v-icon></template>
-                    <v-list-item-title>Desactivar</v-list-item-title>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
-            </td>
-          </tr>
-        </tbody>
-      </v-table>
-    </div>
+    <v-row class="mb-6">
+      <v-col cols="12" sm="6" md="3">
+        <StatCard label="Planes totales" :value="planes.length" icon="mdi-file-document-multiple" color="primary" />
+      </v-col>
+      <v-col cols="12" sm="6" md="3">
+        <StatCard label="Activos" :value="planes.filter(p => p.esActivo).length" icon="mdi-check-circle" color="success" />
+      </v-col>
+      <v-col cols="12" sm="6" md="3">
+        <StatCard label="Inactivos" :value="planes.filter(p => !p.esActivo).length" icon="mdi-close-circle" color="warning" />
+      </v-col>
+    </v-row>
 
-    <!-- Sección Límites Sistema -->
-    <div class="mb-8">
-      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Límites del Sistema</h2>
+    <v-alert
+      type="warning"
+      variant="tonal"
+      class="mb-6"
+      prepend-icon="mdi-clock-alert-outline"
+    >
+      <strong>Módulo en despliegue.</strong> La visualización está disponible, pero las operaciones de escritura (crear, editar, desactivar) aún no están activas en el backend. Los cambios no se guardarán.
+    </v-alert>
+
+    <StandardDataTable
+      class="mb-8"
+      title="Planes"
+      subtitle="Catálogo de planes y límites comerciales"
+      :headers="planesHeaders"
+      :items="planes"
+      :loading="isLoading"
+      empty-title="No hay planes configurados"
+      empty-description="Las funciones de escritura estarán disponibles próximamente."
+    >
+      <template #item.nombre="{ item }">
+        <span class="font-weight-medium">{{ item.nombre }}</span>
+      </template>
+      <template #item.precioMensual="{ item }">
+        ${{ item.precioMensual.toLocaleString('es-CO') }}
+      </template>
+      <template #item.modulos="{ item }">
+        <div class="d-flex ga-1 flex-wrap">
+          <v-chip v-for="mod in item.modulos.slice(0, 2)" :key="mod" size="small">{{ mod }}</v-chip>
+          <v-chip v-if="item.modulos.length > 2" size="small">+{{ item.modulos.length - 2 }}</v-chip>
+        </div>
+      </template>
+      <template #item.esActivo="{ item }">
+        <v-chip :color="item.esActivo ? 'green' : 'red'" size="small" text-color="white">
+          {{ item.esActivo ? 'Activo' : 'Inactivo' }}
+        </v-chip>
+      </template>
+      <template #item.actions="{ item }">
+        <v-menu>
+          <template #activator="{ props }">
+            <v-btn icon="mdi-dots-vertical" size="small" variant="text" v-bind="props" />
+          </template>
+          <v-list>
+            <v-list-item @click="abrirDialogoEditarPlan(item)">
+              <template #prepend><v-icon>mdi-pencil</v-icon></template>
+              <v-list-item-title>Editar</v-list-item-title>
+            </v-list-item>
+            <v-list-item v-if="item.esActivo" @click="desactivarPlan(item.id)">
+              <template #prepend><v-icon color="red">mdi-toggle-off</v-icon></template>
+              <v-list-item-title>Desactivar</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </template>
+    </StandardDataTable>
+
+    <SectionCard class="mb-8" title="Límites del Sistema" subtitle="Parámetros y topes por categoría">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div v-for="limite in limites" :key="limite.clave" class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div class="flex items-center justify-between mb-4">
@@ -95,7 +97,7 @@
           ></v-text-field>
         </div>
       </div>
-    </div>
+    </SectionCard>
 
     <!-- Diálogo Crear/Editar Plan -->
     <v-dialog v-model="dialogo" max-width="600">
@@ -152,6 +154,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import PageHeader from '~/components/shared/PageHeader.vue'
+import SectionCard from '~/components/shared/SectionCard.vue'
+import StatCard from '~/components/shared/StatCard.vue'
+import StandardDataTable from '~/components/shared/StandardDataTable.vue'
 import { useSuperAdminPlanes } from '~/composables/useSuperAdminPlanes'
 import type { CreatePlanDto, UpdatePlanDto } from '~/types/superadmin'
 
@@ -160,8 +166,18 @@ import { UserRole } from '~/types/auth'
 definePageMeta({
   middleware: ['auth', 'role'],
   roles: [UserRole.SUPERADMIN],
-  layout: 'default'
+  layout: 'superadmin'
 })
+
+const planesHeaders = [
+  { title: 'Nombre', key: 'nombre' },
+  { title: 'Precio Mensual', key: 'precioMensual' },
+  { title: 'Usuarios Máx', key: 'usuariosMaximos' },
+  { title: 'Habitaciones Máx', key: 'habitacionesMaximas' },
+  { title: 'Módulos', key: 'modulos' },
+  { title: 'Estado', key: 'esActivo' },
+  { title: 'Acciones', key: 'actions', sortable: false },
+]
 
 const {
   planes,
@@ -215,8 +231,3 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
-.planes-page {
-  padding: 2rem;
-}
-</style>

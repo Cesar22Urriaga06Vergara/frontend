@@ -2,34 +2,43 @@
 export interface Hotel {
   id: number
   nombre: string
+  nit: string
   email: string
   telefono: string
   direccion: string
   ciudad: string
-  paisId: number
-  planId: number
-  estado: 'activo' | 'suspendido' | 'bloqueado'
+  pais: string
+  estrellas: number
+  descripcion: string
+  estado: 'activo' | 'suspendido'
   fechaRegistro: Date
-  usuariosActivos: number
+  empleadosActivos: number
   habitacionesTotal: number
 }
 
 export interface CreateHotelDto {
   nombre: string
-  email: string
-  telefono: string
-  direccion: string
-  ciudad: string
-  paisId: number
-  planId: number
-}
-
-export interface UpdateHotelDto {
-  nombre?: string
+  nit: string
   email?: string
   telefono?: string
   direccion?: string
   ciudad?: string
+  pais?: string
+  estrellas?: number
+  descripcion?: string
+}
+
+export interface UpdateHotelDto {
+  nombre?: string
+  nit?: string
+  email?: string
+  telefono?: string
+  direccion?: string
+  ciudad?: string
+  pais?: string
+  estrellas?: number
+  descripcion?: string
+  estado?: 'activo' | 'suspendido'
 }
 
 // Planes
@@ -85,10 +94,11 @@ export interface UpdateLimiteDto {
 // Categorías Globales
 export interface CategoriaServicio {
   id: number
+  idHotel: number
   nombre: string
-  descripcion: string
-  icono?: string
-  esActiva: boolean
+  descripcion: string | null
+  codigo: string
+  activa: boolean
 }
 
 export interface ModuloSistema {
@@ -123,6 +133,7 @@ export interface MetricasCrecimiento {
   usuariosNuevos: number
   tasaCrecimiento: number
   ingresoPromedio: number
+  reservasPeriodo: number
   datos: Array<{
     fecha: Date
     hoteles: number
@@ -186,8 +197,8 @@ export interface DashboardSaaSData {
     ingresosSaaS: number
   }
   tendencias: {
-    hotelesArquivo: number
-    usuariosAñadidos: number
+    hotelesNuevos: number
+    usuariosNuevos: number
     serviciosNuevos: number
     ingresosMes: number
   }

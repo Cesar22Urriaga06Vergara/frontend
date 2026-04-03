@@ -1,77 +1,66 @@
 <template>
-  <v-card class="card-glow">
-    <!-- Toolbar: búsqueda + filtros -->
-    <v-card-text class="pb-0">
-      <v-row align="center" class="ga-2">
-        <!-- Búsqueda -->
-        <v-col cols="12" sm="5" md="4">
-          <v-text-field
-            v-model="search"
-            prepend-inner-icon="mdi-magnify"
-            label="Buscar usuario..."
-            clearable
-            hide-details
-            density="compact"
-          />
-        </v-col>
-
-        <!-- Filtro de rol -->
-        <v-col cols="6" sm="3" md="2">
-          <v-select
-            v-model="filterRole"
-            :items="roleOptions"
-            label="Rol"
-            clearable
-            hide-details
-            density="compact"
-          />
-        </v-col>
-
-        <!-- Filtro de estado -->
-        <v-col cols="6" sm="3" md="2">
-          <v-select
-            v-model="filterStatus"
-            :items="statusOptions"
-            label="Estado"
-            clearable
-            hide-details
-            density="compact"
-          />
-        </v-col>
-
-        <v-spacer class="d-none d-md-block" />
-
-        <!-- Botón refresh -->
-        <v-col cols="auto">
-          <v-btn
-            icon
-            variant="text"
-            size="small"
-            :loading="usersStore.loading"
-            @click="$emit('refresh')"
-          >
-            <v-icon icon="mdi-refresh" />
-            <v-tooltip activator="parent" location="bottom">Actualizar</v-tooltip>
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-card-text>
-
-    <!-- Tabla de datos -->
-    <v-data-table
+  <StandardDataTable
+      title="Usuarios"
+      subtitle="Gestión centralizada de cuentas y permisos"
       :headers="headers"
       :items="filteredUsers"
-      :search="search"
       :loading="usersStore.loading"
       :items-per-page="10"
-      :sort-by="[{ key: 'createdAt', order: 'desc' }]"
-      hover
-      class="users-table"
+      empty-icon="mdi-account-search-outline"
+      empty-title="No se encontraron usuarios"
+      empty-description="Ajusta filtros o recarga para consultar nuevamente."
+      @empty-action="$emit('refresh')"
     >
+      <template #filters>
+        <v-text-field
+          v-model="search"
+          prepend-inner-icon="mdi-magnify"
+          label="Buscar usuario"
+          clearable
+          hide-details
+          density="compact"
+          style="min-width: 240px"
+        />
+
+        <v-select
+          v-model="filterRole"
+          :items="roleOptions"
+          label="Rol"
+          clearable
+          hide-details
+          density="compact"
+          style="min-width: 180px"
+        />
+
+        <v-select
+          v-model="filterStatus"
+          :items="statusOptions"
+          label="Estado"
+          clearable
+          hide-details
+          density="compact"
+          style="min-width: 180px"
+        />
+      </template>
+
+      <template #actions>
+        <v-btn
+          icon
+          variant="text"
+          size="small"
+          :loading="usersStore.loading"
+          :disabled="usersStore.loading"
+          @click="$emit('refresh')"
+        >
+          <v-icon icon="mdi-refresh" />
+          <v-tooltip activator="parent" location="bottom">Actualizar</v-tooltip>
+        </v-btn>
+      </template>
+
       <!-- Nombre + Email -->
       <template #item.name="{ item }">
         <NuxtLink
-          :to="`/admin/usuarios/${item._id}`"
+          :to="item.id ? `/admin/usuarios/${item.id}` : '/admin/usuarios'"
           class="d-flex align-center py-2 text-decoration-none"
           style="color: inherit"
         >
@@ -85,7 +74,7 @@
             </span>
           </v-avatar>
           <div>
-            <div class="text-body-2 font-weight-medium user-name-link">{{ item.name }}</div>
+            <div class="text-body-2 font-weight-medium user-name-link">{{ item.name || item.fullName || 'Sin nombre' }}</div>
             <div class="text-caption text-medium-emphasis">{{ item.email }}</div>
           </div>
         </NuxtLink>
@@ -140,6 +129,7 @@
             variant="text"
             size="x-small"
             color="primary"
+            :disabled="usersStore.loading"
             @click="$emit('edit', item)"
           >
             <v-icon icon="mdi-pencil-outline" size="18" />
@@ -152,6 +142,7 @@
             variant="text"
             size="x-small"
             :color="item.isActive ? 'warning' : 'success'"
+            :disabled="usersStore.loading"
             @click="$emit('toggle-status', item)"
           >
             <v-icon
@@ -169,6 +160,7 @@
             variant="text"
             size="x-small"
             color="error"
+            :disabled="usersStore.loading"
             @click="$emit('invalidate-tokens', item)"
           >
             <v-icon icon="mdi-lock-reset" size="18" />
@@ -177,20 +169,7 @@
         </div>
       </template>
 
-      <!-- Empty state -->
-      <template #no-data>
-        <div class="text-center py-8">
-          <v-icon icon="mdi-account-search-outline" size="48" color="medium-emphasis" class="mb-3" />
-          <div class="text-body-2 text-medium-emphasis">No se encontraron usuarios</div>
-        </div>
-      </template>
-
-      <!-- Loading -->
-      <template #loading>
-        <v-skeleton-loader type="table-row@5" />
-      </template>
-    </v-data-table>
-  </v-card>
+    </StandardDataTable>
 </template>
 
 <script setup lang="ts">
@@ -198,6 +177,7 @@ import { computed, ref } from 'vue'
 import { useUsersStore } from '~/stores/users'
 import { ROLE_LABELS, ROLE_COLORS, ROLE_ICONS } from '~/utils/constants'
 import type { User, UserRole } from '~/types/auth'
+import StandardDataTable from '~/components/shared/StandardDataTable.vue'
 
 defineEmits<{
   edit: [user: User]
@@ -239,6 +219,15 @@ const headers = [
 // ── Usuarios filtrados ──
 const filteredUsers = computed(() => {
   let result = usersStore.users
+
+  if (search.value.trim()) {
+    const term = search.value.trim().toLowerCase()
+    result = result.filter((u) =>
+      [u.name, u.fullName, u.email, String(u.id)]
+        .filter(Boolean)
+        .some((val) => String(val).toLowerCase().includes(term)),
+    )
+  }
 
   if (filterRole.value) {
     result = result.filter((u) => u.role === filterRole.value)
@@ -284,12 +273,6 @@ const formatDate = (dateStr?: string): string => {
 </script>
 
 <style scoped lang="scss">
-.users-table {
-  :deep(.v-data-table__tr:hover) {
-    background: rgba(var(--v-theme-primary), 0.04) !important;
-  }
-}
-
 .user-name-link {
   transition: color 0.15s ease;
 

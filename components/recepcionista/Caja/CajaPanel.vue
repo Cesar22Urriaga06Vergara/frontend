@@ -373,18 +373,20 @@
             <div v-if="facturaGenerada.desgloseImpuestos" style="border: 1px solid #e0e0e0; padding: 15px; border-radius: 4px; background: #f9f9f9;">
               <h4 style="margin: 0 0 12px 0; font-size: 12px; font-weight: bold; color: #1976d2; text-transform: uppercase;">Desglose por Categoría</h4>
               <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
-                <tr v-for="(montos, categoria) in facturaGenerada.desgloseImpuestos" :key="categoria" style="border-bottom: 1px solid #e0e0e0;">
-                  <td style="padding: 6px 0; font-weight: bold; color: #333;">{{ categoria }}</td>
-                  <td style="padding: 6px 0; text-align: right; color: #1976d2;">
-                    <strong>${{ Number(montos.subtotal || 0).toLocaleString('es-CO') }}</strong>
-                  </td>
-                </tr>
-                <tr style="background: #e3f2fd; font-weight: bold;">
-                  <td style="padding: 8px 0; border-top: 2px solid #1976d2;">Subtotal</td>
-                  <td style="padding: 8px 0; text-align: right; border-top: 2px solid #1976d2;">
-                    ${{ (facturaGenerada.subtotal || 0).toLocaleString('es-CO') }}
-                  </td>
-                </tr>
+                <tbody>
+                  <tr v-for="(montos, categoria) in facturaGenerada.desgloseImpuestos" :key="categoria" style="border-bottom: 1px solid #e0e0e0;">
+                    <td style="padding: 6px 0; font-weight: bold; color: #333;">{{ categoria }}</td>
+                    <td style="padding: 6px 0; text-align: right; color: #1976d2;">
+                      <strong>${{ Number(montos.subtotal || 0).toLocaleString('es-CO') }}</strong>
+                    </td>
+                  </tr>
+                  <tr style="background: #e3f2fd; font-weight: bold;">
+                    <td style="padding: 8px 0; border-top: 2px solid #1976d2;">Subtotal</td>
+                    <td style="padding: 8px 0; text-align: right; border-top: 2px solid #1976d2;">
+                      ${{ (facturaGenerada.subtotal || 0).toLocaleString('es-CO') }}
+                    </td>
+                  </tr>
+                </tbody>
               </table>
             </div>
 
@@ -393,30 +395,32 @@
               <h4 style="margin: 0 0 15px 0; font-size: 12px; font-weight: bold; color: #d32f2f; text-transform: uppercase;">Resumen de Impuestos</h4>
               
               <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
-                <tr style="border-bottom: 1px solid #ffe0b2;">
-                  <td style="padding: 8px 0; color: #666;">Subtotal</td>
-                  <td style="padding: 8px 0; text-align: right; font-weight: bold;">
-                    ${{ (facturaGenerada.subtotal || 0).toLocaleString('es-CO') }}
-                  </td>
-                </tr>
-                <tr v-if="facturaGenerada.montoIva > 0" style="border-bottom: 1px solid #ffe0b2;">
-                  <td style="padding: 8px 0; color: #666;">IVA (19%)</td>
-                  <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #1976d2;">
-                    ${{ (facturaGenerada.montoIva || 0).toLocaleString('es-CO') }}
-                  </td>
-                </tr>
-                <tr v-if="facturaGenerada.montoInc > 0" style="border-bottom: 1px solid #ffe0b2;">
-                  <td style="padding: 8px 0; color: #666;">INC Alcohol (8%)</td>
-                  <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #d32f2f;">
-                    ${{ (facturaGenerada.montoInc || 0).toLocaleString('es-CO') }}
-                  </td>
-                </tr>
-                <tr style="background: #d32f2f; color: white; font-weight: bold; border-top: 2px solid #d32f2f; border-bottom: 2px solid #d32f2f;">
-                  <td style="padding: 12px 0; font-size: 14px;">TOTAL A PAGAR</td>
-                  <td style="padding: 12px 0; text-align: right; font-size: 16px;">
-                    ${{ (facturaGenerada.total || 0).toLocaleString('es-CO') }}
-                  </td>
-                </tr>
+                <tbody>
+                  <tr style="border-bottom: 1px solid #ffe0b2;">
+                    <td style="padding: 8px 0; color: #666;">Subtotal</td>
+                    <td style="padding: 8px 0; text-align: right; font-weight: bold;">
+                      ${{ (facturaGenerada.subtotal || 0).toLocaleString('es-CO') }}
+                    </td>
+                  </tr>
+                  <tr v-if="facturaGenerada.montoIva > 0" style="border-bottom: 1px solid #ffe0b2;">
+                    <td style="padding: 8px 0; color: #666;">IVA (19%)</td>
+                    <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #1976d2;">
+                      ${{ (facturaGenerada.montoIva || 0).toLocaleString('es-CO') }}
+                    </td>
+                  </tr>
+                  <tr v-if="facturaGenerada.montoInc > 0" style="border-bottom: 1px solid #ffe0b2;">
+                    <td style="padding: 8px 0; color: #666;">INC Alcohol (8%)</td>
+                    <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #d32f2f;">
+                      ${{ (facturaGenerada.montoInc || 0).toLocaleString('es-CO') }}
+                    </td>
+                  </tr>
+                  <tr style="background: #d32f2f; color: white; font-weight: bold; border-top: 2px solid #d32f2f; border-bottom: 2px solid #d32f2f;">
+                    <td style="padding: 12px 0; font-size: 14px;">TOTAL A PAGAR</td>
+                    <td style="padding: 12px 0; text-align: right; font-size: 16px;">
+                      ${{ (facturaGenerada.total || 0).toLocaleString('es-CO') }}
+                    </td>
+                  </tr>
+                </tbody>
               </table>
             </div>
           </div>
