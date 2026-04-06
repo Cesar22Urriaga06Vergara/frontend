@@ -41,9 +41,11 @@ export interface DetalleFactura {
   subtotal: number
   descuento: number
   total: number
+  montoIva?: number
   porcentajeInc?: number
   montoInc?: number
   categoriaServiciosId?: number
+  categoriaNombre?: string
   idReferencia?: number
 }
 

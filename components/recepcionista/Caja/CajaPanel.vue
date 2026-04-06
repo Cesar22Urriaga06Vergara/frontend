@@ -299,9 +299,9 @@
           <!-- Encabezado del Hotel -->
           <div style="display: flex; justify-content: space-between;Align-items: center; margin-bottom: 30px; border-bottom: 3px solid #1976d2; padding-bottom: 20px;">
             <div>
-              <h1 style="margin: 0; font-size: 28px; color: #1976d2; font-weight: bold;">HOTEL SENA</h1>
-              <p style="margin: 5px 0; font-size: 12px; color: #666;">NIT: 900.123.456-7</p>
-              <p style="margin: 5px 0; font-size: 12px; color: #666;">Resolución DIAN: 18764013615-64</p>
+              <h1 style="margin: 0; font-size: 28px; color: #1976d2; font-weight: bold;">{{ hotelActual?.nombre?.toUpperCase() || 'HOTEL SENA' }}</h1>
+              <p style="margin: 5px 0; font-size: 12px; color: #666;">NIT: {{ hotelActual?.nit || 'N/A' }}</p>
+              <p style="margin: 5px 0; font-size: 12px; color: #666;">{{ hotelActual?.direccion || 'N/A' }} - {{ hotelActual?.ciudad || 'N/A' }}</p>
             </div>
             <div style="text-align: right;">
               <h2 style="margin: 0; font-size: 24px; color: #d32f2f; font-weight: bold;">FACTURA</h2>
@@ -343,24 +343,24 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(cargo, idx) in folios.folioActual.value?.cargos || []" :key="cargo.id" :style="{ backgroundColor: idx % 2 === 0 ? '#fafafa' : 'white', borderBottom: '1px solid #e0e0e0' }">
-                  <td style="padding: 8px 10px; text-align: left;">{{ cargo.descripcion }}</td>
-                  <td style="padding: 8px 10px; text-align: center;">{{ cargo.cantidad || 1 }}</td>
-                  <td style="padding: 8px 10px; text-align: right;">${{ ((cargo.monto || 0) / (cargo.cantidad || 1)).toLocaleString('es-CO') }}</td>
-                  <td style="padding: 8px 10px; text-align: right; font-weight: bold;">${{ (cargo.monto || 0).toLocaleString('es-CO') }}</td>
-                  <!-- IVA: 19% aplicable a todas las categorías -->
+                <tr v-for="(detalle, idx) in facturaGenerada?.detalles || []" :key="detalle.id" :style="{ backgroundColor: (idx as number) % 2 === 0 ? '#fafafa' : 'white', borderBottom: '1px solid #e0e0e0' }">
+                  <td style="padding: 8px 10px; text-align: left;">{{ detalle.descripcion }}</td>
+                  <td style="padding: 8px 10px; text-align: center;">{{ detalle.cantidad || 1 }}</td>
+                  <td style="padding: 8px 10px; text-align: right;">${{ (detalle.precioUnitario || 0).toLocaleString('es-CO') }}</td>
+                  <td style="padding: 8px 10px; text-align: right; font-weight: bold;">${{ (detalle.subtotal || 0).toLocaleString('es-CO') }}</td>
+                  <!-- IVA real calculado por el backend -->
                   <td style="padding: 8px 10px; text-align: right; color: #1976d2; font-size: 10px;">
-                    ${{ (Math.round((cargo.monto || 0) * 0.19 * 100) / 100).toLocaleString('es-CO') }}
+                    ${{ (detalle.montoIva || 0).toLocaleString('es-CO') }}
                   </td>
-                  <!-- INC: 8% solo para bebidas alcohólicas (Cafetería, Minibar) -->
+                  <!-- INC real calculado por el backend -->
                   <td style="padding: 8px 10px; text-align: right; color: #d32f2f; font-size: 10px;">
-                    ${{ (Math.round((['Cafetería', 'Minibar'].includes(cargo.categoria || '') ? (cargo.monto || 0) * 0.08 : 0) * 100) / 100).toLocaleString('es-CO') }}
+                    ${{ (detalle.montoInc || 0).toLocaleString('es-CO') }}
                   </td>
-                  <!-- Total por línea: Subtotal + IVA + INC -->
+                  <!-- Total por línea calculado por el backend -->
                   <td style="padding: 8px 10px; text-align: right; font-weight: bold; background: #fffacd;">
-                    ${{ (Math.round(((cargo.monto || 0) + ((cargo.monto || 0) * 0.19) + (['Cafetería', 'Minibar'].includes(cargo.categoria || '') ? (cargo.monto || 0) * 0.08 : 0)) * 100) / 100).toLocaleString('es-CO') }}
+                    ${{ (detalle.total || 0).toLocaleString('es-CO') }}
                   </td>
-                  <td style="padding: 8px 10px; text-align: center; font-size: 10px; color: #1976d2;"><strong>{{ cargo.categoria || 'Servicio' }}</strong></td>
+                  <td style="padding: 8px 10px; text-align: center; font-size: 10px; color: #1976d2;"><strong>{{ detalle.categoriaNombre || 'N/A' }}</strong></td>
                 </tr>
               </tbody>
             </table>
@@ -370,11 +370,11 @@
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
             
             <!-- Ítem izquierdo: Desglose por Categoría -->
-            <div v-if="facturaGenerada.desgloseImpuestos" style="border: 1px solid #e0e0e0; padding: 15px; border-radius: 4px; background: #f9f9f9;">
+            <div v-if="facturaGenerada.desgloseMonetario" style="border: 1px solid #e0e0e0; padding: 15px; border-radius: 4px; background: #f9f9f9;">
               <h4 style="margin: 0 0 12px 0; font-size: 12px; font-weight: bold; color: #1976d2; text-transform: uppercase;">Desglose por Categoría</h4>
               <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
                 <tbody>
-                  <tr v-for="(montos, categoria) in facturaGenerada.desgloseImpuestos" :key="categoria" style="border-bottom: 1px solid #e0e0e0;">
+                  <tr v-for="(montos, categoria) in facturaGenerada.desgloseMonetario" :key="categoria" style="border-bottom: 1px solid #e0e0e0;">
                     <td style="padding: 6px 0; font-weight: bold; color: #333;">{{ categoria }}</td>
                     <td style="padding: 6px 0; text-align: right; color: #1976d2;">
                       <strong>${{ Number(montos.subtotal || 0).toLocaleString('es-CO') }}</strong>
@@ -403,13 +403,13 @@
                     </td>
                   </tr>
                   <tr v-if="facturaGenerada.montoIva > 0" style="border-bottom: 1px solid #ffe0b2;">
-                    <td style="padding: 8px 0; color: #666;">IVA (19%)</td>
+                    <td style="padding: 8px 0; color: #666;">IVA ({{ facturaGenerada.porcentajeIva || 0 }}%)</td>
                     <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #1976d2;">
                       ${{ (facturaGenerada.montoIva || 0).toLocaleString('es-CO') }}
                     </td>
                   </tr>
                   <tr v-if="facturaGenerada.montoInc > 0" style="border-bottom: 1px solid #ffe0b2;">
-                    <td style="padding: 8px 0; color: #666;">INC Alcohol (8%)</td>
+                    <td style="padding: 8px 0; color: #666;">INC ({{ facturaGenerada.porcentajeInc || 0 }}%)</td>
                     <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #d32f2f;">
                       ${{ (facturaGenerada.montoInc || 0).toLocaleString('es-CO') }}
                     </td>
@@ -476,6 +476,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useFolios } from '~/composables/useFolios'
 import { useFoliosStore } from '~/stores/folios'
 import { useNotification } from '~/composables/useNotification'
+import { useHotel } from '~/composables/useHotel'
 import type { AgregarCargoDto } from '~/types/folio'
 
 import FolioCard from './FolioCard.vue'
@@ -486,6 +487,7 @@ import ConfirmarCobroForm from './ConfirmarCobroForm.vue'
 const { success, error } = useNotification()
 const folios = useFolios()
 const foliosStore = useFoliosStore()
+const hotel = useHotel()
 const route = useRoute()
 
 // State local
@@ -497,6 +499,7 @@ const observacionesCierre = ref('')
 const motivoCancelacion = ref('')
 const facturaDialog = ref(false)
 const facturaGenerada = ref<any>(null)
+const hotelActual = ref<any>(null)
 
 const habitacionesOcupadas = computed(() => {
   const habitaciones = new Map<number, { id: number; numero: string; piso?: string }>()
@@ -619,6 +622,14 @@ const ejecutarCobro = async (datos: any) => {
       // Si hay factura, mostrar dialog de factura
       if (respuesta.factura) {
         facturaGenerada.value = respuesta.factura
+        // Obtener datos del hotel
+        if (respuesta.factura.idHotel) {
+          hotel.obtenerPorId(respuesta.factura.idHotel).then((hotelData) => {
+            hotelActual.value = hotelData
+          }).catch(() => {
+            hotelActual.value = null
+          })
+        }
         facturaDialog.value = true
       }
     } else {

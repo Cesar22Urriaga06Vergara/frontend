@@ -172,11 +172,18 @@ const loading = ref(false)
 
 const quickActions = [
   {
-    to: '/recepcionista/checkin-checkout',
-    title: 'Check-in / Check-out',
-    description: 'Gestionar ingresos, salidas y validaciones operativas.',
-    icon: 'mdi-door-open',
-    color: 'primary',
+    to: '/recepcionista/checkin',
+    title: 'Check-in',
+    description: 'Registrar entrada de huéspedes.',
+    icon: 'mdi-login',
+    color: 'info',
+  },
+  {
+    to: '/recepcionista/checkout',
+    title: 'Check-out',
+    description: 'Registrar salida de huéspedes y validar habitaciones.',
+    icon: 'mdi-logout',
+    color: 'warning',
   },
   {
     to: '/recepcionista/caja',
@@ -190,7 +197,7 @@ const quickActions = [
     title: 'Incidencias',
     description: 'Escalar novedades de habitaciones o atención.',
     icon: 'mdi-alert-circle',
-    color: 'warning',
+    color: 'error',
   },
 ]
 

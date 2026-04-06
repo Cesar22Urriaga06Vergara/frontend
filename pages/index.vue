@@ -7,7 +7,7 @@
             <v-avatar color="primary" size="56" rounded="xl" class="mb-4">
               <v-icon icon="mdi-hotel" size="28" />
             </v-avatar>
-            <h1 class="text-h5 font-weight-bold mb-2">Hotel Sena</h1>
+            <h1 class="text-h5 font-weight-bold mb-2">Sistema Hotelero</h1>
             <p class="text-body-2 text-medium-emphasis mb-6">Inicializando sesión y preparando tu panel.</p>
             <v-progress-circular indeterminate color="primary" />
           </div>

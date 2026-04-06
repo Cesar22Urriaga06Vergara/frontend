@@ -9,6 +9,11 @@ export enum UserRole {
   LAVANDERIA = 'lavanderia',
   SPA = 'spa',
   ROOM_SERVICE = 'room_service',
+  MINIBAR = 'minibar',
+  TRANSPORTE = 'transporte',
+  TOURS = 'tours',
+  EVENTOS = 'eventos',
+  MANTENIMIENTO = 'mantenimiento',
 }
 
 export interface User {

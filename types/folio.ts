@@ -139,12 +139,26 @@ export interface FacturaResumen {
   id: number
   numeroFactura: string
   uuid?: string
+  idHotel?: number
   subtotal: number
   montoIva: number
   montoInc: number
+  porcentajeIva?: number
+  porcentajeInc?: number
   total: number
   desgloseImpuestos?: Record<string, Record<string, number>>
   desgloseMonetario?: Record<string, any>
+  detalles?: Array<{
+    id: number
+    descripcion: string
+    cantidad: number
+    precioUnitario: number
+    subtotal: number
+    montoIva?: number
+    montoInc?: number
+    total: number
+    categoriaNombre?: string
+  }>
   xmlDian?: string
 }
 

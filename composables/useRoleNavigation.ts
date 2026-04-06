@@ -61,14 +61,17 @@ const ROUTE_META: Record<string, { title: string; parent?: string }> = {
   '/admin/medios-pago': { title: 'Medios de Pago', parent: '/admin' },
   '/admin/reset-stats': { title: 'Reset Stats', parent: '/admin' },
 
-  // ── Reportes ──
-  '/reportes/oficina': { title: 'Reportes y Análisis', parent: '/admin' },
-  '/reportes/oficina/servicios': { title: 'Reportes Servicios', parent: '/reportes/oficina' },
-  '/reportes/area': { title: 'Mi Área', parent: '/' },
-  '/reportes/area/cafeteria': { title: 'Mi Área — Cafetería', parent: '/reportes/area' },
-  '/reportes/area/lavanderia': { title: 'Mi Área — Lavandería', parent: '/reportes/area' },
-  '/reportes/area/spa': { title: 'Mi Área — Spa', parent: '/reportes/area' },
-  '/reportes/area/room-service': { title: 'Mi Área — Room Service', parent: '/reportes/area' },
+  // ── Áreas Operativas (empleados de área) ──
+  '/areas': { title: 'Panel Operativo', parent: '/' },
+  '/areas/cafeteria': { title: 'Cafetería — Gestión de Pedidos', parent: '/areas' },
+  '/areas/lavanderia': { title: 'Lavandería — Gestión de Lotes', parent: '/areas' },
+  '/areas/spa': { title: 'Spa — Gestión de Servicios', parent: '/areas' },
+  '/areas/room-service': { title: 'Room Service — Entregas', parent: '/areas' },
+  '/areas/minibar': { title: 'Minibar — Reposiciones', parent: '/areas' },
+  '/areas/transporte': { title: 'Transporte — Traslados', parent: '/areas' },
+  '/areas/tours': { title: 'Tours — Excursiones', parent: '/areas' },
+  '/areas/eventos': { title: 'Eventos — Salonería', parent: '/areas' },
+  '/areas/mantenimiento': { title: 'Mantenimiento — Tareas', parent: '/areas' },
 
   // ── Cliente ──
   '/cliente': { title: 'Mi Dashboard', parent: '/' },
@@ -163,7 +166,7 @@ export const useRoleNavigation = () => {
             items: [
               { title: 'Usuarios', icon: 'mdi-account-group-outline', to: '/admin/usuarios' },
               { title: 'Facturas', icon: 'mdi-file-document-outline', to: '/admin/facturas' },
-              { title: 'Supervisar Áreas', icon: 'mdi-eye-outline', to: '/reportes/area' },
+              { title: 'Supervisar Áreas', icon: 'mdi-eye-outline', to: '/areas' },
               { title: 'Reportes', icon: 'mdi-chart-bar', to: '/admin/reportes' },
               { title: 'Reset Stats', icon: 'mdi-lock-reset', to: '/admin/reset-stats' },
             ],
@@ -231,7 +234,7 @@ export const useRoleNavigation = () => {
           {
             title: 'Área de Trabajo',
             items: [
-              { title: 'Panel Kanban', icon: 'mdi-coffee', to: '/reportes/area' },
+              { title: 'Panel Cafetería', icon: 'mdi-coffee', to: '/areas/cafeteria' },
               { title: 'Mis Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
             ],
           },
@@ -243,7 +246,7 @@ export const useRoleNavigation = () => {
           {
             title: 'Área de Trabajo',
             items: [
-              { title: 'Panel Kanban', icon: 'mdi-washing-machine', to: '/reportes/area' },
+              { title: 'Panel Lavandería', icon: 'mdi-washing-machine', to: '/areas/lavanderia' },
               { title: 'Mis Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
             ],
           },
@@ -255,7 +258,7 @@ export const useRoleNavigation = () => {
           {
             title: 'Área de Trabajo',
             items: [
-              { title: 'Panel Kanban', icon: 'mdi-spa', to: '/reportes/area' },
+              { title: 'Panel Spa', icon: 'mdi-spa', to: '/areas/spa' },
               { title: 'Mis Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
             ],
           },
@@ -267,7 +270,67 @@ export const useRoleNavigation = () => {
           {
             title: 'Área de Trabajo',
             items: [
-              { title: 'Panel Kanban', icon: 'mdi-bell-service-outline', to: '/reportes/area' },
+              { title: 'Panel Room Service', icon: 'mdi-bell-service-outline', to: '/areas/room-service' },
+              { title: 'Mis Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
+            ],
+          },
+          accountSection,
+        ]
+
+      case UserRole.MINIBAR:
+        return [
+          {
+            title: 'Área de Trabajo',
+            items: [
+              { title: 'Panel Minibar', icon: 'mdi-fridge-outline', to: '/areas/minibar' },
+              { title: 'Mis Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
+            ],
+          },
+          accountSection,
+        ]
+
+      case UserRole.TRANSPORTE:
+        return [
+          {
+            title: 'Área de Trabajo',
+            items: [
+              { title: 'Panel Transporte', icon: 'mdi-car-outline', to: '/areas/transporte' },
+              { title: 'Mis Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
+            ],
+          },
+          accountSection,
+        ]
+
+      case UserRole.TOURS:
+        return [
+          {
+            title: 'Área de Trabajo',
+            items: [
+              { title: 'Panel Tours', icon: 'mdi-map-marker-path', to: '/areas/tours' },
+              { title: 'Mis Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
+            ],
+          },
+          accountSection,
+        ]
+
+      case UserRole.EVENTOS:
+        return [
+          {
+            title: 'Área de Trabajo',
+            items: [
+              { title: 'Panel Eventos', icon: 'mdi-party-popper', to: '/areas/eventos' },
+              { title: 'Mis Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
+            ],
+          },
+          accountSection,
+        ]
+
+      case UserRole.MANTENIMIENTO:
+        return [
+          {
+            title: 'Área de Trabajo',
+            items: [
+              { title: 'Panel Mantenimiento', icon: 'mdi-toolbox-outline', to: '/areas/mantenimiento' },
               { title: 'Mis Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
             ],
           },
