@@ -120,7 +120,13 @@ const abrirModalCheckin = (reserva: ReservaParaCheckin) => {
 
 const ejecutarCheckin = async (datos: any) => {
   try {
-    await cc.confirmarCheckin(reservaParaCheckin.value!.id, datos)
+    const reserva = reservaParaCheckin.value!
+    await cc.confirmarCheckin(
+      reserva.id,
+      reserva.idHabitacion,
+      reserva.idCliente,
+      datos.notas
+    )
     reservaParaCheckin.value = null
     // Recargar lista
     await cc.obtenerPendientes()

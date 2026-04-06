@@ -147,7 +147,13 @@ const folioPagado = (reserva: ReservaParaCheckin | null): boolean => {
 
 const ejecutarCheckout = async (datos: any) => {
   try {
-    await cc.confirmarCheckout(reservaParaCheckout.value!.id, datos)
+    const reserva = reservaParaCheckout.value!
+    await cc.confirmarCheckout(
+      reserva.id,
+      reserva.idHabitacion,
+      datos.notas,
+      datos.estado
+    )
     reservaParaCheckout.value = null
     // Recargar lista
     await cc.obtenerPendientes()

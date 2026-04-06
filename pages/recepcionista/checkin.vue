@@ -60,16 +60,7 @@
           :loading="loading"
         />
       </v-col>
-      <v-col cols="12" sm="6" md="4">
-        <StatCard
-          label="Tasa de check-in"
-          :value="`${calcularTasaCheckin()}%`"
-          icon="mdi-chart-line"
-          color="primary"
-          helper="Sobre reservas para hoy"
-          :loading="loading"
-        />
-      </v-col>
+
     </v-row>
 
     <!-- Panel principal -->
@@ -84,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useCheckinCheckout } from '~/composables/useCheckinCheckout'
 import { usePermissions } from '~/composables/usePermissions'
 import PageHeader from '~/components/shared/PageHeader.vue'
@@ -120,13 +111,7 @@ const recargar = async () => {
   }
 }
 
-const calcularTasaCheckin = computed(() => {
-  const flujo = cc.flujoDelDia.value
-  if (!flujo || !flujo.checkinsEsperados || flujo.checkinsEsperados === 0) {
-    return 0
-  }
-  return Math.round((flujo.checkinsRealizados / flujo.checkinsEsperados) * 100)
-})
+
 
 onMounted(async () => {
   await recargar()

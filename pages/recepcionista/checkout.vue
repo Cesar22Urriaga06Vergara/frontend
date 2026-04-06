@@ -60,16 +60,7 @@
           :loading="loading"
         />
       </v-col>
-      <v-col cols="12" sm="6" md="4">
-        <StatCard
-          label="Tasa de check-out"
-          :value="`${calcularTasaCheckout()}%`"
-          icon="mdi-chart-line"
-          color="primary"
-          helper="Sobre clientes alojados"
-          :loading="loading"
-        />
-      </v-col>
+
     </v-row>
 
     <!-- Alerta de pagos pendientes -->
@@ -99,7 +90,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useCheckinCheckout } from '~/composables/useCheckinCheckout'
 import { usePermissions } from '~/composables/usePermissions'
 import PageHeader from '~/components/shared/PageHeader.vue'
@@ -139,13 +130,7 @@ const checkoutsPendientePago = computed(() => {
   return cc.pendientesCheckout.value?.filter(r => !r.folioPagado) || []
 })
 
-const calcularTasaCheckout = computed(() => {
-  const flujo = cc.flujoDelDia.value
-  if (!flujo || !flujo.checkoutsEsperados || flujo.checkoutsEsperados === 0) {
-    return 0
-  }
-  return Math.round((flujo.checkoutsRealizados / flujo.checkoutsEsperados) * 100)
-})
+
 
 onMounted(async () => {
   await recargar()
