@@ -40,7 +40,8 @@ const ROUTE_META: Record<string, { title: string; parent?: string }> = {
   // ── Recepcionista ──
   '/recepcionista': { title: 'Panel Recepcionista', parent: '/' },
   '/recepcionista/caja': { title: 'Caja', parent: '/recepcionista' },
-  '/recepcionista/checkin-checkout': { title: 'Check-in / Check-out', parent: '/recepcionista' },
+  '/recepcionista/checkin': { title: 'Check-in', parent: '/recepcionista' },
+  '/recepcionista/checkout': { title: 'Check-out', parent: '/recepcionista' },
   '/recepcionista/incidencias': { title: 'Incidencias', parent: '/recepcionista' },
 
   // ── Admin ──
@@ -195,7 +196,8 @@ export const useRoleNavigation = () => {
             title: 'Gestión de Operaciones',
             items: [
               { title: 'Caja / Folios', icon: 'mdi-cash-register', to: '/recepcionista/caja' },
-              { title: 'Check-in / Check-out', icon: 'mdi-door-open', to: '/recepcionista/checkin-checkout' },
+              { title: 'Check-in', icon: 'mdi-login', to: '/recepcionista/checkin' },
+              { title: 'Check-out', icon: 'mdi-logout', to: '/recepcionista/checkout' },
               { title: 'Incidencias', icon: 'mdi-alert-circle', to: '/recepcionista/incidencias' },
             ],
           },
@@ -235,7 +237,7 @@ export const useRoleNavigation = () => {
             title: 'Área de Trabajo',
             items: [
               { title: 'Panel Cafetería', icon: 'mdi-coffee', to: '/areas/cafeteria' },
-              { title: 'Mis Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
+              { title: 'Gestión de Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
             ],
           },
           accountSection,
@@ -247,7 +249,7 @@ export const useRoleNavigation = () => {
             title: 'Área de Trabajo',
             items: [
               { title: 'Panel Lavandería', icon: 'mdi-washing-machine', to: '/areas/lavanderia' },
-              { title: 'Mis Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
+              { title: 'Gestión de Lotes', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
             ],
           },
           accountSection,
@@ -259,7 +261,7 @@ export const useRoleNavigation = () => {
             title: 'Área de Trabajo',
             items: [
               { title: 'Panel Spa', icon: 'mdi-spa', to: '/areas/spa' },
-              { title: 'Mis Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
+              { title: 'Gestión de Servicios', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
             ],
           },
           accountSection,
@@ -271,7 +273,7 @@ export const useRoleNavigation = () => {
             title: 'Área de Trabajo',
             items: [
               { title: 'Panel Room Service', icon: 'mdi-bell-service-outline', to: '/areas/room-service' },
-              { title: 'Mis Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
+              { title: 'Gestión de Entregas', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
             ],
           },
           accountSection,
@@ -283,7 +285,7 @@ export const useRoleNavigation = () => {
             title: 'Área de Trabajo',
             items: [
               { title: 'Panel Minibar', icon: 'mdi-fridge-outline', to: '/areas/minibar' },
-              { title: 'Mis Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
+              { title: 'Gestión de Reposiciones', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
             ],
           },
           accountSection,
@@ -295,7 +297,7 @@ export const useRoleNavigation = () => {
             title: 'Área de Trabajo',
             items: [
               { title: 'Panel Transporte', icon: 'mdi-car-outline', to: '/areas/transporte' },
-              { title: 'Mis Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
+              { title: 'Gestión de Traslados', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
             ],
           },
           accountSection,
@@ -307,7 +309,7 @@ export const useRoleNavigation = () => {
             title: 'Área de Trabajo',
             items: [
               { title: 'Panel Tours', icon: 'mdi-map-marker-path', to: '/areas/tours' },
-              { title: 'Mis Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
+              { title: 'Gestión de Tours', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
             ],
           },
           accountSection,
@@ -319,7 +321,7 @@ export const useRoleNavigation = () => {
             title: 'Área de Trabajo',
             items: [
               { title: 'Panel Eventos', icon: 'mdi-party-popper', to: '/areas/eventos' },
-              { title: 'Mis Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
+              { title: 'Gestión de Eventos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
             ],
           },
           accountSection,
@@ -331,7 +333,7 @@ export const useRoleNavigation = () => {
             title: 'Área de Trabajo',
             items: [
               { title: 'Panel Mantenimiento', icon: 'mdi-toolbox-outline', to: '/areas/mantenimiento' },
-              { title: 'Mis Pedidos', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
+              { title: 'Gestión de Tareas', icon: 'mdi-clipboard-list-outline', to: '/dashboard/empleado/pedidos' },
             ],
           },
           accountSection,

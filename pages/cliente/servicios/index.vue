@@ -77,15 +77,6 @@
       />
     </SectionCard>
 
-    <StandardDataTable
-      v-if="!isUnavailable && Object.keys(serviciosStore.catalogo).length > 0"
-      title="Servicios disponibles"
-      subtitle="Catálogo completo de servicios"
-      :headers="[]"
-      :items="[]"
-      :loading="serviciosStore.loading"
-    />
-
     <SectionCard
       v-if="!isUnavailable"
       title="Catalogo por categoria"
@@ -225,7 +216,6 @@ import PageHeader from '~/components/shared/PageHeader.vue'
 import SectionCard from '~/components/shared/SectionCard.vue'
 import EmptyState from '~/components/shared/EmptyState.vue'
 import StatCard from '~/components/shared/StatCard.vue'
-import StandardDataTable from '~/components/shared/StandardDataTable.vue'
 
 definePageMeta({
   layout: 'cliente',

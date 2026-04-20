@@ -1,9 +1,11 @@
+export type CategoriaServicio = 'cafeteria' | 'lavanderia' | 'spa' | 'room_service' | 'minibar' | 'transporte' | 'tours' | 'eventos' | 'mantenimiento' | 'otros';
+
 export interface Servicio {
   id: number;
   idHotel: number;
   nombre: string;
   descripcion?: string;
-  categoria: 'cafeteria' | 'lavanderia' | 'spa' | 'room_service' | 'minibar' | 'otros';
+  categoria: CategoriaServicio;
   precioUnitario: number;
   unidadMedida: string;
   imagenUrl?: string;
@@ -205,7 +207,7 @@ export interface TopArea {
  */
 export interface AreaPedidosConfig {
   /** Slug que coincide con el campo `categoria` del backend */
-  categoria: Servicio['categoria'];
+  categoria: CategoriaServicio;
   /** Título visible en el encabezado del panel */
   titulo: string;
   /** Subtítulo descriptivo bajo el título */
@@ -232,6 +234,10 @@ export interface AreaPedidosConfig {
   etiquetaItem: string;
   /** Término en plural para varios ítems */
   etiquetaItems: string;
+  /** Texto del botón para pasar de pendiente → estadoMedio ("Iniciar tour", "Preparar pedido"…) */
+  accionAceptar: string;
+  /** Texto del botón para pasar de estadoMedio → estadoCompletado ("Cerrar tour", "Entregar"…) */
+  accionCompletar: string;
 }
 
 export interface EstadisticasEntregaConsolidado {

@@ -60,7 +60,16 @@
           :loading="loading"
         />
       </v-col>
-
+      <v-col cols="12" sm="6" md="4">
+        <StatCard
+          label="Folios sin pagar"
+          :value="checkoutsPendientePago.length"
+          icon="mdi-cash-remove"
+          color="error"
+          helper="Clientes con saldo pendiente"
+          :loading="loading"
+        />
+      </v-col>
     </v-row>
 
     <!-- Alerta de pagos pendientes -->

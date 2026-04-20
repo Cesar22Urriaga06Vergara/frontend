@@ -462,12 +462,12 @@ export const useCheckinCheckout = () => {
     errorMessage.value = ''
 
     try {
-      void idHabitacion
-      void idCliente
-      void notasCheckin
-
       const response = await api.post<ConfirmarCheckinResponse>(
-        `/reservas/${idReserva}/checkin`
+        `/reservas/${idReserva}/checkin`,
+        {
+          idReserva,
+          ...(notasCheckin ? { observacionesCheckin: notasCheckin } : {}),
+        }
       )
 
       success('Check-in realizado correctamente. Folio abierto.')

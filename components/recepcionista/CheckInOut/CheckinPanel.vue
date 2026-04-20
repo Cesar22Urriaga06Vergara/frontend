@@ -51,15 +51,11 @@
     </v-card>
 
     <!-- Reservas pendientes de check-in -->
-    <v-card title="Reservas Pendientes Check-in">
-      <v-card-text>
-        <ReservasPendientesCheckin
-          :reservas="reservasFiltradasCheckin"
-          :loading="cc.loadingOperacion.value"
-          @confirmar-checkin="abrirModalCheckin"
-        />
-      </v-card-text>
-    </v-card>
+    <ReservasPendientesCheckin
+      :reservas="reservasFiltradasCheckin"
+      :loading="cc.loadingOperacion.value"
+      @confirmar-checkin="abrirModalCheckin"
+    />
 
     <!-- Modal Check-in -->
     <CheckinModal
@@ -73,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useCheckinCheckout } from '~/composables/useCheckinCheckout'
 import ReservasPendientesCheckin from './ReservasPendientesCheckin.vue'
 import CheckinModal from './CheckinModal.vue'
@@ -87,31 +83,29 @@ const reservaParaCheckin = ref<ReservaParaCheckin | null>(null)
 
 const reservasFiltradasCheckin = computed(() => {
   if (!busquedaActiva.value) {
-    return cc.pendientesCheckin.value || []
+    return []
   }
-  return cc.pendientesCheckin.value?.filter(r =>
-    r.cedulaCliente.includes(cedulaBusqueda.value)
-  ) || []
+  return cc.pendientesCheckin.value || []
 })
 
 const buscarPorCedula = async () => {
   if (!cedulaBusqueda.value.trim()) {
-    limpiarBusquedaCedula()
+    await limpiarBusquedaCedula()
     return
   }
   buscandoCedula.value = true
   try {
+    await cc.obtenerPendientesPorCedula(cedulaBusqueda.value)
     busquedaActiva.value = true
-    // La búsqueda se filtra en frontend por ahora
-    // Si necesita ser en backend, agregar un método en useCheckinCheckout
   } finally {
     buscandoCedula.value = false
   }
 }
 
-const limpiarBusquedaCedula = () => {
+const limpiarBusquedaCedula = async () => {
   cedulaBusqueda.value = ''
   busquedaActiva.value = false
+  await cc.limpiarBusqueda()
 }
 
 const abrirModalCheckin = (reserva: ReservaParaCheckin) => {
@@ -128,10 +122,13 @@ const ejecutarCheckin = async (datos: any) => {
       datos.notas
     )
     reservaParaCheckin.value = null
-    // Recargar lista
     await cc.obtenerPendientes()
   } catch (error) {
     console.error('Error en check-in:', error)
   }
 }
+
+onMounted(async () => {
+  // No precargar: el recepcionista debe buscar por cédula
+})
 </script>

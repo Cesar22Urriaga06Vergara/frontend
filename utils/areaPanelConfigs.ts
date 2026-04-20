@@ -1,7 +1,7 @@
 import { UserRole } from '~/types/auth'
-import type { AreaPedidosConfig } from '~/types/servicios'
+import type { AreaPedidosConfig, CategoriaServicio } from '~/types/servicios'
 
-export const AREA_PANEL_CONFIGS: Record<string, AreaPedidosConfig> = {
+export const AREA_PANEL_CONFIGS: Record<CategoriaServicio, AreaPedidosConfig> = {
   cafeteria: {
     categoria: 'cafeteria',
     titulo: 'Panel Cafetería',
@@ -17,6 +17,8 @@ export const AREA_PANEL_CONFIGS: Record<string, AreaPedidosConfig> = {
     mensajeVacio: 'Sin pedidos activos en este momento',
     etiquetaItem: 'pedido',
     etiquetaItems: 'pedidos',
+    accionAceptar: 'Preparar pedido',
+    accionCompletar: 'Entregar',
   },
   lavanderia: {
     categoria: 'lavanderia',
@@ -33,6 +35,8 @@ export const AREA_PANEL_CONFIGS: Record<string, AreaPedidosConfig> = {
     mensajeVacio: 'Sin lotes activos en este momento',
     etiquetaItem: 'lote',
     etiquetaItems: 'lotes',
+    accionAceptar: 'Iniciar lavado',
+    accionCompletar: 'Entregar lote',
   },
   spa: {
     categoria: 'spa',
@@ -49,6 +53,8 @@ export const AREA_PANEL_CONFIGS: Record<string, AreaPedidosConfig> = {
     mensajeVacio: 'Sin servicios activos en este momento',
     etiquetaItem: 'servicio',
     etiquetaItems: 'servicios',
+    accionAceptar: 'Iniciar servicio',
+    accionCompletar: 'Cerrar servicio',
   },
   room_service: {
     categoria: 'room_service',
@@ -65,6 +71,8 @@ export const AREA_PANEL_CONFIGS: Record<string, AreaPedidosConfig> = {
     mensajeVacio: 'Sin entregas activas en este momento',
     etiquetaItem: 'entrega',
     etiquetaItems: 'entregas',
+    accionAceptar: 'Preparar entrega',
+    accionCompletar: 'Confirmar entrega',
   },
   minibar: {
     categoria: 'minibar',
@@ -81,6 +89,8 @@ export const AREA_PANEL_CONFIGS: Record<string, AreaPedidosConfig> = {
     mensajeVacio: 'Sin reposiciones activas en este momento',
     etiquetaItem: 'reposición',
     etiquetaItems: 'reposiciones',
+    accionAceptar: 'Iniciar reposición',
+    accionCompletar: 'Cerrar reposición',
   },
   transporte: {
     categoria: 'transporte',
@@ -97,6 +107,8 @@ export const AREA_PANEL_CONFIGS: Record<string, AreaPedidosConfig> = {
     mensajeVacio: 'Sin traslados activos en este momento',
     etiquetaItem: 'traslado',
     etiquetaItems: 'traslados',
+    accionAceptar: 'Iniciar traslado',
+    accionCompletar: 'Cerrar traslado',
   },
   tours: {
     categoria: 'tours',
@@ -113,6 +125,8 @@ export const AREA_PANEL_CONFIGS: Record<string, AreaPedidosConfig> = {
     mensajeVacio: 'Sin tours activos en este momento',
     etiquetaItem: 'tour',
     etiquetaItems: 'tours',
+    accionAceptar: 'Iniciar tour',
+    accionCompletar: 'Cerrar tour',
   },
   eventos: {
     categoria: 'eventos',
@@ -129,6 +143,8 @@ export const AREA_PANEL_CONFIGS: Record<string, AreaPedidosConfig> = {
     mensajeVacio: 'Sin eventos activos en este momento',
     etiquetaItem: 'evento',
     etiquetaItems: 'eventos',
+    accionAceptar: 'Iniciar evento',
+    accionCompletar: 'Cerrar evento',
   },
   mantenimiento: {
     categoria: 'mantenimiento',
@@ -145,6 +161,26 @@ export const AREA_PANEL_CONFIGS: Record<string, AreaPedidosConfig> = {
     mensajeVacio: 'Sin tareas activas en este momento',
     etiquetaItem: 'tarea',
     etiquetaItems: 'tareas',
+    accionAceptar: 'Iniciar tarea',
+    accionCompletar: 'Cerrar tarea',
+  },
+  otros: {
+    categoria: 'otros',
+    titulo: 'Panel Otros',
+    subtitulo: 'Resumen operativo del área',
+    iconoArea: 'mdi-dots-horizontal-circle-outline',
+    colorArea: 'grey',
+    labelMedio: 'En proceso',
+    iconoMedio: 'mdi-progress-clock',
+    estadoMedio: 'en_preparacion',
+    estadoCompletado: 'entregado',
+    labelCompleto: 'Cerrados hoy',
+    iconoVacio: 'mdi-inbox-outline',
+    mensajeVacio: 'Sin solicitudes activas en este momento',
+    etiquetaItem: 'solicitud',
+    etiquetaItems: 'solicitudes',
+    accionAceptar: 'Procesar',
+    accionCompletar: 'Cerrar',
   },
 }
 
@@ -153,8 +189,9 @@ export const getAreaConfigByRole = (role: UserRole | null | undefined): AreaPedi
     return AREA_PANEL_CONFIGS.cafeteria
   }
 
-  if (role in AREA_PANEL_CONFIGS) {
-    return AREA_PANEL_CONFIGS[role]
+  const key = role as CategoriaServicio
+  if (key in AREA_PANEL_CONFIGS) {
+    return AREA_PANEL_CONFIGS[key]
   }
 
   return AREA_PANEL_CONFIGS.cafeteria

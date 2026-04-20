@@ -7,7 +7,7 @@
       </p>
     </div>
 
-    <v-row v-else class="ga-4">
+    <v-row v-else>
       <v-col v-for="reserva in reservas" :key="reserva.id" cols="12" md="6">
         <v-card class="card-glow h-100 d-flex flex-column">
           <!-- Header con estado -->

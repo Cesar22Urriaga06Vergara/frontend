@@ -61,10 +61,11 @@
             <v-divider class="my-3" />
             <div>
               <p class="text-caption text-medium-emphasis mb-1">Estado de Pago</p>
-              <v-linear-progress
-                :value="(totalPagado(factura) / Number(factura.total)) * 100"
+              <v-progress-linear
+                :model-value="(totalPagado(factura) / Number(factura.total)) * 100"
                 :color="totalPagado(factura) >= Number(factura.total) ? 'success' : 'info'"
                 class="mb-2"
+                rounded
               />
               <p class="text-caption">
                 Pagado: ${{ formatoPrecio(totalPagado(factura)) }} / ${{ formatoPrecio(factura.total) }}

@@ -146,15 +146,6 @@
         </template>
       </StandardDataTable>
     </div>
-
-    <StandardDataTable
-      class="mt-6"
-      title="Resumen de soporte"
-      subtitle="Estado de módulos operativos"
-      :headers="resumenHeaders"
-      :items="resumenItems"
-      :items-per-page="5"
-    />
   </div>
 </template>
 

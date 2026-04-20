@@ -49,16 +49,6 @@
       @refresh="loadUsers"
     />
 
-    <StandardDataTable
-      v-if="!viewState.isError.value"
-      class="mt-6"
-      title="Resumen de usuarios"
-      subtitle="Indicadores generales del módulo"
-      :headers="resumenHeaders"
-      :items="resumenItems"
-      :items-per-page="5"
-    />
-
     <!-- Diálogo de edición -->
     <EmpleadosUserEditDialog
       v-model="editDialog"
@@ -110,7 +100,6 @@ import StatusBadge from '~/components/shared/StatusBadge.vue'
 import EmptyState from '~/components/shared/EmptyState.vue'
 import SectionCard from '~/components/shared/SectionCard.vue'
 import StatCard from '~/components/shared/StatCard.vue'
-import StandardDataTable from '~/components/shared/StandardDataTable.vue'
 import EmpleadosUserStatsBar from '~/components/empleados/EmpleadosUserStatsBar.vue'
 import EmpleadosUsersTable from '~/components/empleados/EmpleadosUsersTable.vue'
 import EmpleadosUserEditDialog from '~/components/empleados/EmpleadosUserEditDialog.vue'
@@ -146,16 +135,6 @@ const invalidateDialog = ref(false)
 const invalidateLoading = ref(false)
 const hasData = computed(() => usersStore.users.length > 0)
 const viewState = useViewState(computed(() => usersStore.loading), hasData, computed(() => usersStore.error), computed(() => false))
-
-const resumenHeaders = [
-  { title: 'Métrica', key: 'metrica' },
-  { title: 'Valor', key: 'valor' },
-]
-
-const resumenItems = computed(() => [
-  { metrica: 'Usuarios totales', valor: usersStore.totalCount },
-  { metrica: 'Usuarios activos', valor: usersStore.users.filter(u => u.isActive).length },
-])
 
 // ── Toggle status computed ──
 const toggleStatusTitle = computed(() =>

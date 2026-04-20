@@ -60,7 +60,16 @@
           :loading="loading"
         />
       </v-col>
-
+      <v-col cols="12" sm="6" md="4">
+        <StatCard
+          label="Pendientes Check-out"
+          :value="cc.cantidadPendientesCheckout.value"
+          icon="mdi-logout"
+          color="warning"
+          helper="Clientes por salir"
+          :loading="loading"
+        />
+      </v-col>
     </v-row>
 
     <!-- Panel principal -->

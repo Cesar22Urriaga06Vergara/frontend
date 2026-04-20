@@ -3,9 +3,9 @@
     <v-card-text>
       <v-empty-state
         v-if="!reservas || reservas.length === 0"
-        icon="mdi-inbox-outline"
-        title="Sin pendientes"
-        text="No hay reservas pendientes de check-in hoy"
+        icon="mdi-card-account-details-outline"
+        title="Ingresa la cédula del cliente"
+        text="Busca por número de cédula para ver las reservas pendientes de check-in"
       ></v-empty-state>
 
       <v-table v-else density="compact" hover class="reservas-table">

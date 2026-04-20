@@ -63,15 +63,11 @@
     </v-alert>
 
     <!-- Reservas pendientes de check-out -->
-    <v-card title="Reservas Pendientes Check-out">
-      <v-card-text>
-        <ReservasPendientesCheckout
-          :reservas="reservasFiltradasCheckout"
-          :loading="cc.loadingOperacion.value"
-          @confirmar-checkout="abrirModalCheckout"
-        />
-      </v-card-text>
-    </v-card>
+    <ReservasPendientesCheckout
+      :reservas="reservasFiltradasCheckout"
+      :loading="cc.loadingOperacion.value"
+      @confirmar-checkout="abrirModalCheckout"
+    />
 
     <!-- Modal Check-out -->
     <CheckoutModal
@@ -86,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useCheckinCheckout } from '~/composables/useCheckinCheckout'
 import ReservasPendientesCheckout from './ReservasPendientesCheckout.vue'
 import CheckoutModal from './CheckoutModal.vue'
@@ -100,11 +96,9 @@ const reservaParaCheckout = ref<ReservaParaCheckin | null>(null)
 
 const reservasFiltradasCheckout = computed(() => {
   if (!busquedaActiva.value) {
-    return cc.pendientesCheckout.value || []
+    return []
   }
-  return cc.pendientesCheckout.value?.filter(r =>
-    r.cedulaCliente.includes(cedulaBusqueda.value)
-  ) || []
+  return cc.pendientesCheckout.value || []
 })
 
 const checkoutsPendientePago = computed(() => {
@@ -117,21 +111,22 @@ const tieneCheckoutsPendientePago = computed(() => {
 
 const buscarPorCedula = async () => {
   if (!cedulaBusqueda.value.trim()) {
-    limpiarBusquedaCedula()
+    await limpiarBusquedaCedula()
     return
   }
   buscandoCedula.value = true
   try {
+    await cc.obtenerPendientesPorCedula(cedulaBusqueda.value)
     busquedaActiva.value = true
-    // La búsqueda se filtra en frontend por ahora
   } finally {
     buscandoCedula.value = false
   }
 }
 
-const limpiarBusquedaCedula = () => {
+const limpiarBusquedaCedula = async () => {
   cedulaBusqueda.value = ''
   busquedaActiva.value = false
+  await cc.limpiarBusqueda()
 }
 
 const abrirModalCheckout = (reserva: ReservaParaCheckin) => {
@@ -140,9 +135,7 @@ const abrirModalCheckout = (reserva: ReservaParaCheckin) => {
 
 const folioPagado = (reserva: ReservaParaCheckin | null): boolean => {
   if (!reserva) return false
-  // Aquí iría la lógica para verificar si el folio está pagado
-  // Por ahora retorna true (asumiendo pagado)
-  return true
+  return Boolean(reserva.folioPagado)
 }
 
 const ejecutarCheckout = async (datos: any) => {
@@ -161,4 +154,8 @@ const ejecutarCheckout = async (datos: any) => {
     console.error('Error en check-out:', error)
   }
 }
+
+onMounted(async () => {
+  // No precargar: el recepcionista debe buscar por cédula
+})
 </script>

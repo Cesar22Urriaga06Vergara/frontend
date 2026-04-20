@@ -20,16 +20,6 @@
     <SectionCard class="mb-6" title="Panel operativo" subtitle="Seguimiento de pedidos por estado y prioridad">
       <AreaPedidosPanel :config="areaConfig" />
     </SectionCard>
-
-    <StandardDataTable
-      title="Resumen de navegación"
-      subtitle="Contexto del módulo actual"
-      :headers="resumenHeaders"
-      :items="resumenItems"
-      :items-per-page="5"
-      empty-title="Sin datos"
-      empty-description="No hay información de resumen disponible."
-    />
   </div>
 </template>
 
@@ -39,7 +29,6 @@ import { UserRole } from '~/types/auth'
 import PageHeader from '~/components/shared/PageHeader.vue'
 import SectionCard from '~/components/shared/SectionCard.vue'
 import StatCard from '~/components/shared/StatCard.vue'
-import StandardDataTable from '~/components/shared/StandardDataTable.vue'
 import AreaPedidosPanel from '~/components/shared/AreaPedidosPanel.vue'
 import { useAuthStore } from '~/stores/auth'
 import { getAreaConfigByRole } from '~/utils/areaPanelConfigs'
@@ -56,14 +45,4 @@ const areaConfig = computed(() => {
   const role = authStore.user?.role || UserRole.CAFETERIA
   return getAreaConfigByRole(role)
 })
-
-const resumenHeaders = [
-  { title: 'Elemento', key: 'elemento' },
-  { title: 'Valor', key: 'valor' },
-]
-
-const resumenItems = computed(() => [
-  { elemento: 'Rol', valor: authStore.user?.role || 'N/A' },
-  { elemento: 'Área', valor: areaConfig.value.titulo },
-])
 </script>

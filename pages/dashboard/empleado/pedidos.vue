@@ -1,8 +1,8 @@
 <template>
   <div>
     <PageHeader
-      title="Gestion de pedidos"
-      :subtitle="`Area: ${getAreaLabel(authStore.userRole)}`"
+      :title="tituloGestion"
+      :subtitle="`Área: ${getAreaLabel(authStore.userRole)}`"
     >
       <template #actions>
         <v-btn
@@ -84,7 +84,7 @@
     </SectionCard>
 
     <StandardDataTable
-      title="Cola operativa"
+      :title="tituloGestion"
       subtitle="Atiende pedidos segun prioridad y estado"
       :headers="headers"
       :items="pedidosFiltrados"
@@ -124,14 +124,87 @@
         />
       </template>
 
-      <template #item.createdAt="{ item }">
-        {{ formatearHora(item.fechaPedido || item.createdAt) }}
+      <template #item.fechaPedido="{ item }">
+        <div class="text-caption">
+          <div>{{ formatearFecha(item.fechaPedido) }}</div>
+          <div class="text-medium-emphasis">{{ formatearHora(item.fechaPedido) }}</div>
+        </div>
+      </template>
+
+      <template #item.cliente="{ item }">
+        <div class="text-caption">
+          <div class="font-weight-medium">Cliente #{{ item.idCliente }}</div>
+          <div class="text-medium-emphasis">Reserva #{{ item.idReserva }}</div>
+        </div>
       </template>
 
       <template #item.acciones="{ item }">
-        <v-btn icon="mdi-pencil" size="small" variant="text" @click="abrirDetalle(item)" />
+        <v-btn icon="mdi-eye" size="small" variant="text" color="primary" @click="abrirDetalle(item)" />
       </template>
     </StandardDataTable>
+
+    <!-- Dialog detalle -->
+    <v-dialog v-model="dialogAbierto" max-width="520" scrollable>
+      <v-card v-if="pedidoDetalle" rounded="lg">
+        <v-card-title class="d-flex align-center pa-4 pb-2">
+          <v-icon :icon="areaConfig.iconoArea" :color="areaConfig.colorArea" class="mr-2" />
+          {{ capitalizar(areaConfig.etiquetaItem) }} #{{ pedidoDetalle.id }}
+          <v-spacer />
+          <v-chip :color="getColorEstado(pedidoDetalle.estadoPedido)" size="small" variant="tonal">
+            {{ formatearEstado(pedidoDetalle.estadoPedido) }}
+          </v-chip>
+        </v-card-title>
+        <v-divider />
+        <v-card-text class="pa-4">
+          <v-row class="mb-3" dense>
+            <v-col cols="6">
+              <div class="text-caption text-medium-emphasis">Cliente</div>
+              <div class="text-body-2 font-weight-medium">#{{ pedidoDetalle.idCliente }}</div>
+            </v-col>
+            <v-col cols="6">
+              <div class="text-caption text-medium-emphasis">Reserva</div>
+              <div class="text-body-2 font-weight-medium">#{{ pedidoDetalle.idReserva }}</div>
+            </v-col>
+            <v-col cols="6">
+              <div class="text-caption text-medium-emphasis">Fecha</div>
+              <div class="text-body-2">{{ formatearFecha(pedidoDetalle.fechaPedido) }} {{ formatearHora(pedidoDetalle.fechaPedido) }}</div>
+            </v-col>
+            <v-col cols="6">
+              <div class="text-caption text-medium-emphasis">Entrega</div>
+              <v-chip :icon="pedidoDetalle.tipoEntrega === 'delivery' ? 'mdi-truck-fast' : 'mdi-store'" size="x-small" variant="tonal">
+                {{ pedidoDetalle.tipoEntrega === 'delivery' ? 'Delivery' : 'Recogida' }}
+              </v-chip>
+            </v-col>
+          </v-row>
+
+          <v-alert v-if="pedidoDetalle.notaCliente" type="info" variant="tonal" density="compact" icon="mdi-comment-text-outline" class="mb-3">
+            {{ pedidoDetalle.notaCliente }}
+          </v-alert>
+
+          <div class="text-subtitle-2 font-weight-bold mb-2">Ítems</div>
+          <v-list density="compact" class="bg-transparent pa-0">
+            <v-list-item v-for="item in pedidoDetalle.items" :key="item.id" class="px-0">
+              <template #prepend>
+                <v-avatar size="28" color="surface-variant" rounded="sm" class="mr-2">
+                  <span class="text-caption font-weight-bold">{{ item.cantidad }}</span>
+                </v-avatar>
+              </template>
+              <v-list-item-title class="text-body-2">{{ item.nombreServicioSnapshot }}</v-list-item-title>
+              <v-list-item-subtitle v-if="item.observacion" class="text-caption">Nota: {{ item.observacion }}</v-list-item-subtitle>
+            </v-list-item>
+          </v-list>
+
+          <div v-if="pedidoDetalle.notaEmpleado" class="mt-3">
+            <div class="text-caption text-medium-emphasis mb-1">Nota interna</div>
+            <div class="text-body-2">{{ pedidoDetalle.notaEmpleado }}</div>
+          </div>
+        </v-card-text>
+        <v-divider />
+        <v-card-actions class="pa-4">
+          <v-btn variant="text" @click="dialogAbierto = false">Cerrar</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -141,6 +214,7 @@ import { UserRole } from '~/types/auth'
 import { useAuthStore } from '~/stores/auth'
 import { usePedidosAreaStore } from '~/stores/pedidosArea'
 import type { Pedido } from '~/types/servicios'
+import { getAreaConfigByRole } from '~/utils/areaPanelConfigs'
 import PageHeader from '~/components/shared/PageHeader.vue'
 import SectionCard from '~/components/shared/SectionCard.vue'
 import StandardDataTable from '~/components/shared/StandardDataTable.vue'
@@ -149,18 +223,24 @@ import StatCard from '~/components/shared/StatCard.vue'
 definePageMeta({
   layout: 'operacion',
   middleware: ['auth', 'role'],
-  roles: [UserRole.CAFETERIA, UserRole.LAVANDERIA, UserRole.SPA, UserRole.ROOM_SERVICE],
+  roles: [UserRole.CAFETERIA, UserRole.LAVANDERIA, UserRole.SPA, UserRole.ROOM_SERVICE, UserRole.MINIBAR, UserRole.TRANSPORTE, UserRole.TOURS, UserRole.EVENTOS, UserRole.MANTENIMIENTO],
 })
 
 useHead({ title: 'Gestion de Pedidos' })
 
 const authStore = useAuthStore()
 const pedidosStore = usePedidosAreaStore()
+const areaConfig = computed(() => getAreaConfigByRole(authStore.userRole as any))
+const tituloGestion = computed(() => `Gestión de ${capitalizar(areaConfig.value.etiquetaItems)}`)
 
 const loading = ref(false)
+let refreshInterval: ReturnType<typeof setInterval> | null = null
+
 const estadoFiltro = ref<string | null>(null)
 const tipoEntregaFiltro = ref<string | null>(null)
-let refreshInterval: ReturnType<typeof setInterval> | null = null
+
+const dialogAbierto = ref(false)
+const pedidoDetalle = ref<Pedido | null>(null)
 
 const estadoOptions = [
   { label: 'Pendiente', value: 'pendiente' },
@@ -176,12 +256,13 @@ const tipoEntregaOptions = [
 ]
 
 const headers = [
-  { title: 'ID', key: 'id', width: '90px' },
-  { title: 'Items', key: 'items', width: '100px' },
+  { title: 'ID', key: 'id', width: '80px' },
+  { title: 'Cliente / Reserva', key: 'cliente', width: '140px' },
+  { title: 'Items', key: 'items', width: '90px' },
   { title: 'Estado', key: 'estadoPedido' },
-  { title: 'Entrega', key: 'tipoEntrega' },
-  { title: 'Hora', key: 'createdAt', width: '140px' },
-  { title: 'Acciones', key: 'acciones', sortable: false, width: '90px', align: 'end' },
+  { title: 'Entrega', key: 'tipoEntrega', width: '120px' },
+  { title: 'Fecha', key: 'fechaPedido', width: '130px' },
+  { title: 'Acciones', key: 'acciones', sortable: false, width: '80px', align: 'end' },
 ]
 
 const pedidosFiltrados = computed(() => {
@@ -198,10 +279,10 @@ const pedidosFiltrados = computed(() => {
   return result
 })
 
-const pendienteCount = computed(() => pedidosFiltrados.value.filter((p) => p.estadoPedido === 'pendiente').length)
-const enPreparacionCount = computed(() => pedidosFiltrados.value.filter((p) => p.estadoPedido === 'en_preparacion').length)
-const listosCount = computed(() => pedidosFiltrados.value.filter((p) => p.estadoPedido === 'listo').length)
-const totalCount = computed(() => pedidosFiltrados.value.length)
+const pendienteCount = computed(() => pedidosStore.pedidos.filter((p) => p.estadoPedido === 'pendiente').length)
+const enPreparacionCount = computed(() => pedidosStore.pedidos.filter((p) => p.estadoPedido === 'en_preparacion').length)
+const listosCount = computed(() => pedidosStore.pedidos.filter((p) => p.estadoPedido === 'listo').length)
+const totalCount = computed(() => pedidosStore.pedidos.length)
 
 const getAreaLabel = (role: string | null): string => {
   const labels: Record<string, string> = {
@@ -235,6 +316,11 @@ const formatearEstado = (estado: string): string => {
   return estados[estado] || estado
 }
 
+const formatearFecha = (fecha?: string): string => {
+  if (!fecha) return '-'
+  return new Date(fecha).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: '2-digit' })
+}
+
 const formatearHora = (fecha?: string): string => {
   if (!fecha) return '-'
   return new Date(fecha).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })
@@ -265,7 +351,8 @@ const cargarPedidosDelArea = async (): Promise<void> => {
     return
   }
 
-  await pedidosStore.cargarPedidos(hotelId, categoria)
+  // 'todos' evita que el backend excluya entregados/cancelados por defecto
+  await pedidosStore.cargarPedidos(hotelId, categoria, 'todos')
 }
 
 const refrescarPedidos = async () => {
@@ -277,8 +364,11 @@ const refrescarPedidos = async () => {
   }
 }
 
+const capitalizar = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1)
+
 const abrirDetalle = (pedido: Pedido) => {
-  console.log('Detalles del pedido:', pedido)
+  pedidoDetalle.value = pedido
+  dialogAbierto.value = true
 }
 
 onMounted(async () => {

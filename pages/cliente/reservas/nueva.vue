@@ -24,19 +24,19 @@
       <v-col cols="12" sm="6" md="4">
         <StatCard
           label="Habitaciones"
-          :value="habitacionesDisponibles.length"
+          :value="totalHabitacionesMostradas"
           icon="mdi-bed-outline"
           color="info"
-          :loading="loadingHabitaciones"
+          :loading="loadingHabitaciones || loadingDisponibilidad"
         />
       </v-col>
       <v-col cols="12" sm="6" md="4">
         <StatCard
           label="Reservas activas"
-          :value="0"
+          :value="totalReservasActivas"
           icon="mdi-calendar-check"
           color="success"
-          :loading="false"
+          :loading="loadingMisReservas"
         />
       </v-col>
     </v-row>
@@ -50,20 +50,7 @@
       />
     </SectionCard>
 
-    <!-- StandardDataTable de resumen de búsqueda -->
-    <StandardDataTable
-      v-if="disponibilidad"
-      title="Habitaciones encontradas"
-      :headers="[
-        { title: 'Tipo', key: 'nombreTipo' },
-        { title: 'Precio', key: 'precioNoche' }
-      ]"
-      :items="disponibilidad.habitacionesDisponibles"
-      :loading="loadingDisponibilidad"
-      class="mb-6"
-    />
-
-    <!-- Error si no hay tipos de habitación -->
+    <!-- Resultados de búsqueda -->
     <div v-if="disponibilidad">
       <v-alert type="success" variant="tonal" class="mb-6">
         <div class="d-flex align-center justify-space-between">
@@ -143,7 +130,6 @@ import FormularioBusqueda from '~/components/shared/reservas/FormularioBusqueda.
 import HabitacionesGrid from '~/components/shared/reservas/HabitacionesGrid.vue'
 import DialogConfirmarReserva from '~/components/shared/reservas/DialogConfirmarReserva.vue'
 import DialogCompletarPerfil from '~/components/auth/DialogCompletarPerfil.vue'
-import StandardDataTable from '~/components/shared/StandardDataTable.vue'
 import StatCard from '~/components/shared/StatCard.vue'
 
 import { UserRole } from '~/types/auth'
@@ -158,7 +144,7 @@ useHead({ title: 'Nueva Reserva' })
 
 const router = useRouter()
 const authStore = useAuthStore()
-const { consultarDisponibilidad, obtenerHabitacionesDisponibles, crearReserva, loadingDisponibilidad, loadingHabitaciones, creandoReserva, disponibilidad, habitacionesDisponibles } = useReservas()
+const { consultarDisponibilidad, obtenerHabitacionesDisponibles, crearReserva, obtenerMisReservas, loadingDisponibilidad, loadingHabitaciones, creandoReserva, disponibilidad, habitacionesDisponibles, reservas } = useReservas()
 const { actualizarCliente } = useCliente()
 const notification = useNotification()
 
@@ -173,6 +159,20 @@ const mostrarDialogoCompletarPerfil = ref(false)
 // De la sesión - El idHotel por defecto es 1, puede ser del usuario si lo tenemos
 const idHotel = computed(() => authStore.user?.idHotel || 1)
 const idCliente = ref(authStore.user?.idCliente || 0)
+
+// Stat cards computadas
+const totalHabitacionesMostradas = computed(() =>
+  disponibilidad.value?.totalDisponibles ??
+  disponibilidad.value?.habitacionesDisponibles?.length ??
+  habitacionesDisponibles.value?.length ??
+  0
+)
+const loadingMisReservas = ref(false)
+const totalReservasActivas = computed(() =>
+  (reservas.value || []).filter((r: any) =>
+    !['cancelada', 'completada', 'rechazada'].includes(String(r.estadoReserva || '').toLowerCase())
+  ).length
+)
 
 const ultimaReservaCreada = ref<any>(null)
 
@@ -274,8 +274,16 @@ const guardarDatosCliente = async (datos: any) => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   cargarTiposHabitacion()
+  if (idCliente.value) {
+    loadingMisReservas.value = true
+    try {
+      await obtenerMisReservas(idCliente.value)
+    } finally {
+      loadingMisReservas.value = false
+    }
+  }
 })
 </script>
 

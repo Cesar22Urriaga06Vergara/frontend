@@ -28,8 +28,8 @@
       </v-col>
       <v-col cols="12" sm="6" md="3">
         <StatCard
-          label="Categoria"
-          :value="formatearCategoria(serviciosStore.categoriaDelCarrito || 'otros')"
+          label="Categorías"
+          :value="`${serviciosStore.categoriasPedido.length} área(s)`"
           icon="mdi-shape-outline"
           color="info"
           :loading="serviciosStore.loading"
@@ -82,6 +82,12 @@
               <div class="font-weight-medium">{{ item.servicio.nombre }}</div>
               <div v-if="item.observacion" class="text-caption text-medium-emphasis">Nota: {{ item.observacion }}</div>
             </div>
+          </template>
+
+          <template #item.categoria="{ item }">
+            <v-chip size="small" color="info" variant="tonal">
+              {{ formatearCategoria(item.servicio.categoria) }}
+            </v-chip>
           </template>
 
           <template #item.cantidad="{ item }">
@@ -141,6 +147,28 @@
 
           <v-divider class="mb-4" />
 
+          <!-- Desglose por área -->
+          <div class="mb-3">
+            <p class="text-caption text-medium-emphasis mb-1">Desglose por área</p>
+            <div v-for="cat in serviciosStore.categoriasPedido" :key="cat" class="mb-1">
+              <div class="d-flex justify-space-between align-center text-body-2">
+                <div class="d-flex align-center gap-1">
+                  <v-chip size="x-small" color="info" variant="tonal">{{ formatearCategoria(cat) }}</v-chip>
+                  <v-chip
+                    size="x-small"
+                    :color="tipoEntregaEfectivoPorCategoria[cat] === 'delivery' ? 'success' : 'warning'"
+                    variant="tonal"
+                    class="ml-1"
+                  >
+                    {{ tipoEntregaEfectivoPorCategoria[cat] === 'delivery' ? 'Delivery' : 'Recogida' }}
+                  </v-chip>
+                </div>
+                <span>${{ formatearPrecio(subtotalPorCategoria[cat] ?? 0) }}</span>
+              </div>
+            </div>
+            <v-divider class="my-2" />
+          </div>
+
           <div class="d-flex justify-space-between align-center mb-4">
             <span class="text-subtitle-1 font-weight-bold">Total</span>
             <span class="text-h5 font-weight-bold text-success">${{ formatearPrecio(serviciosStore.totalCarrito) }}</span>
@@ -173,6 +201,11 @@
           <v-list density="comfortable" class="bg-transparent pa-0">
             <v-list-item prepend-icon="mdi-information-outline" title="Los precios pueden variar por disponibilidad" />
             <v-list-item prepend-icon="mdi-history" title="Podras seguir el pedido en Mis pedidos" />
+            <v-list-item
+              v-if="serviciosStore.categoriasPedido.length > 1"
+              prepend-icon="mdi-package-variant-closed"
+              :title="`Se crearán ${serviciosStore.categoriasPedido.length} pedidos, uno por área`"
+            />
           </v-list>
         </SectionCard>
       </v-col>
@@ -181,7 +214,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { UserRole } from '~/types/auth'
 import { useRouter } from 'vue-router'
 import { useServiciosStore } from '~/stores/servicios'
@@ -215,11 +248,42 @@ const isQaMockSession = () => {
 
 const headers = [
   { title: 'Servicio', key: 'servicio' },
+  { title: 'Área', key: 'categoria', width: '130px' },
   { title: 'Cantidad', key: 'cantidad', width: '120px' },
   { title: 'P. Unit.', key: 'precio', width: '130px' },
   { title: 'Subtotal', key: 'subtotal', width: '140px' },
   { title: 'Acciones', key: 'acciones', sortable: false, width: '90px', align: 'end' },
 ]
+
+const subtotalPorCategoria = computed(() => {
+  return serviciosStore.carrito.reduce((acc, item) => {
+    const cat = item.servicio.categoria
+    acc[cat] = (acc[cat] ?? 0) + item.servicio.precioUnitario * item.cantidad
+    return acc
+  }, {} as Record<string, number>)
+})
+
+// Para cada categoría, determina el tipo de entrega efectivo
+// Respeta la preferencia del usuario, pero si la categoría no lo soporta usa la opción disponible
+const tipoEntregaEfectivoPorCategoria = computed(() => {
+  const gruposPorCat = serviciosStore.carrito.reduce((acc, item) => {
+    const cat = item.servicio.categoria
+    if (!acc[cat]) acc[cat] = []
+    acc[cat].push(item.servicio)
+    return acc
+  }, {} as Record<string, typeof serviciosStore.carrito[0]['servicio'][]>)
+
+  const resultado: Record<string, 'delivery' | 'recogida'> = {}
+  const preferido = serviciosStore.tipoEntregaSeleccionado
+
+  for (const [cat, servicios] of Object.entries(gruposPorCat)) {
+    const soportaPreferido = preferido === 'delivery'
+      ? servicios.every((s) => s.disponibleDelivery)
+      : servicios.every((s) => s.disponibleRecogida)
+    resultado[cat] = soportaPreferido ? preferido : (preferido === 'delivery' ? 'recogida' : 'delivery')
+  }
+  return resultado
+})
 
 const formatearCategoria = (cat: string): string => {
   const map: Record<string, string> = {
@@ -259,20 +323,35 @@ const confirmarPedido = async () => {
     return
   }
 
-  const payload = {
-    idReserva: reservaActual.id,
-    tipoEntrega: serviciosStore.tipoEntregaSeleccionado,
-    items: serviciosStore.carrito.map((item) => ({
-      idServicio: item.servicio.id,
-      cantidad: item.cantidad,
-      observacion: item.observacion,
-    })),
-    notaCliente: serviciosStore.notaPedido || undefined,
-  }
+  // Agrupar ítems por categoría y crear un pedido por cada área
+  const gruposPorCategoria = serviciosStore.carrito.reduce((grupos, item) => {
+    const cat = item.servicio.categoria
+    if (!grupos[cat]) grupos[cat] = []
+    grupos[cat].push(item)
+    return grupos
+  }, {} as Record<string, typeof serviciosStore.carrito>)
+
+  const pedidosPromises = Object.entries(gruposPorCategoria).map(([cat, items]) =>
+    serviciosStore.crearPedido({
+      idReserva: reservaActual.id,
+      tipoEntrega: tipoEntregaEfectivoPorCategoria.value[cat] ?? serviciosStore.tipoEntregaSeleccionado,
+      items: items.map((item) => ({
+        idServicio: item.servicio.id,
+        cantidad: item.cantidad,
+        observacion: item.observacion,
+      })),
+      notaCliente: serviciosStore.notaPedido || undefined,
+    })
+  )
 
   try {
-    await serviciosStore.crearPedido(payload)
-    notification.success('Pedido confirmado exitosamente')
+    await Promise.all(pedidosPromises)
+    const total = Object.keys(gruposPorCategoria).length
+    notification.success(
+      total === 1
+        ? 'Pedido confirmado exitosamente'
+        : `${total} pedidos confirmados (uno por área)`,
+    )
     serviciosStore.limpiarCarrito()
     router.push(`/cliente/servicios/mis-pedidos?reservaId=${reservaActual.id}`)
   } catch (error: any) {

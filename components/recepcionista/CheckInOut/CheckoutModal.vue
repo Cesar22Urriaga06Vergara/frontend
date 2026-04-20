@@ -101,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { ReservaParaCheckin, EstadoLimpieza } from '~/types/checkinCheckout'
 
 interface Props {
@@ -132,7 +132,7 @@ const estadosLimpieza = [
   { label: 'En limpieza - Actualmente se está limpiando', value: 'EN_LIMPIEZA' }
 ]
 
-const mostrarAlertaPago = ref(false)
+const mostrarAlertaPago = computed(() => !props.folioPagado)
 
 const formatearFecha = (fecha?: string) => {
   if (!fecha) return '-'
@@ -152,7 +152,6 @@ const confirmar = async () => {
   if (!isValid) return
 
   if (!props.folioPagado) {
-    mostrarAlertaPago.value = true
     return
   }
 
@@ -172,7 +171,6 @@ const handleClose = () => {
   horaCheckout.value = ''
   notasCheckout.value = ''
   estadoLimpieza.value = ''
-  mostrarAlertaPago.value = false
   emit('cerrar')
 }
 </script>

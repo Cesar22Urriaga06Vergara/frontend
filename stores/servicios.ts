@@ -31,6 +31,10 @@ export const useServiciosStore = defineStore('servicios', () => {
     return carrito.value[0].servicio.categoria;
   });
 
+  const categoriasPedido = computed(() => {
+    return [...new Set(carrito.value.map((item) => item.servicio.categoria))];
+  });
+
   // Actions
   const cargarCatalogo = async (idHotel: number) => {
     loading.value = true;
@@ -99,11 +103,6 @@ export const useServiciosStore = defineStore('servicios', () => {
 
   // Métodos del carrito
   const agregarAlCarrito = (servicio: Servicio, cantidad: number = 1, observacion?: string) => {
-    // Validar que no se mezclen categorías
-    if (categoriaDelCarrito.value && categoriaDelCarrito.value !== servicio.categoria) {
-      throw new Error(`No puedes mezclar servicios de diferentes categorías. Ya tienes items de ${categoriaDelCarrito.value}`);
-    }
-
     const itemExistente = carrito.value.find((item) => item.servicio.id === servicio.id);
     if (itemExistente) {
       itemExistente.cantidad += cantidad;
@@ -153,6 +152,7 @@ export const useServiciosStore = defineStore('servicios', () => {
     totalCarrito,
     serviciosFlatten,
     categoriaDelCarrito,
+    categoriasPedido,
 
     // Actions
     cargarCatalogo,

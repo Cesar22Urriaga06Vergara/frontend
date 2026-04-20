@@ -76,22 +76,6 @@
       </v-tabs>
     </SectionCard>
 
-    <StandardDataTable
-      title="Resumen de reservas"
-      subtitle="Listado completo de tu historial de reservas"
-      :headers="[
-        { title: 'Estado', key: 'estadoReserva' },
-        { title: 'Hotel', key: 'hotelNombre' },
-        { title: 'Check-in', key: 'fechaCheckin' },
-        { title: 'Check-out', key: 'fechaCheckout' }
-      ]"
-      :items="reservas"
-      :loading="loading"
-      empty-icon="mdi-calendar-heart"
-      empty-title="Sin reservas"
-      empty-description="Aún no tienes reservas. ¡Crea una nueva!"
-    />
-
     <v-window v-model="tabActiva" class="mt-0">
       <v-window-item value="confirmadas" class="pa-0">
         <ReservasGrid
@@ -152,7 +136,6 @@ import type { Reserva } from '~/types/api'
 import PageHeader from '~/components/shared/PageHeader.vue'
 import SectionCard from '~/components/shared/SectionCard.vue'
 import StatCard from '~/components/shared/StatCard.vue'
-import StandardDataTable from '~/components/shared/StandardDataTable.vue'
 import DialogCancelarReserva from '~/components/shared/reservas/DialogCancelarReserva.vue'
 import DialogDetalleReserva from '~/components/shared/reservas/DialogDetalleReserva.vue'
 import ReservasGrid from '~/components/shared/reservas/ReservasGrid.vue'
