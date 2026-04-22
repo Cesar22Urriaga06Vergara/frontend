@@ -126,10 +126,13 @@ export interface CerrarFolioDto {
  * DTO para pagar folio
  */
 export interface CobrarFolioDto {
-  montoRecibido: number
-  medioPago: MetodoPago
-  usuarioPago?: string
-  referencia?: string
+  idHabitacion: number
+  idMedioPago: number
+  montoCobrar: number
+  montoRecibido?: number
+  referenciaPago?: string
+  observacionesCobro?: string
+  cobrador?: string
 }
 
 /**

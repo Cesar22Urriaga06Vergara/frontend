@@ -17,6 +17,10 @@ export const useFolios = () => {
   const api = useApi()
   const { success, error } = useNotification()
 
+  // Caché de medios de pago: nombre → ID
+  const medioPagoCache = ref<Record<string, number>>({})
+  const medioPagoCacheLoaded = ref(false)
+
   const mapEstadoFolio = (estado?: string): EstadoFolio => {
     const normalized = String(estado || '').toUpperCase()
 
@@ -264,7 +268,47 @@ export const useFolios = () => {
   }
 
   /**
+   * Obtener medios de pago del servidor (caché)
+   */
+  const cargarMediosPago = async () => {
+    if (medioPagoCacheLoaded.value && Object.keys(medioPagoCache.value).length > 0) {
+      return medioPagoCache.value
+    }
+
+    try {
+      const response = await api.get<any[]>('/medios-pago')
+      medioPagoCache.value = {}
+      
+      // Mapear nombre → id
+      if (response && Array.isArray(response)) {
+        response.forEach((medio: any) => {
+          if (medio.nombre) {
+            medioPagoCache.value[medio.nombre.toUpperCase()] = medio.id
+          }
+        })
+      }
+      
+      medioPagoCacheLoaded.value = true
+      return medioPagoCache.value
+    } catch (err: any) {
+      console.warn('No se pudieron obtener medios de pago, usando defaults:', err.message)
+      
+      // Fallback a valores por defecto si el servidor falla
+      medioPagoCache.value = {
+        'EFECTIVO': 1,
+        'TARJETA': 2,
+        'TRANSFERENCIA': 3,
+        'CHEQUE': 4,
+        'OTRO': 5,
+      }
+      medioPagoCacheLoaded.value = true
+      return medioPagoCache.value
+    }
+  }
+
+  /**
    * Cobrar folio (registra pago y cierra folio)
+   * Actualizado para usar el nuevo DTO con montoCobrar e idMedioPago
    */
   const cobrarFolio = async (
     idHabitacion: number,
@@ -282,10 +326,24 @@ export const useFolios = () => {
     }
 
     try {
-      const dto = {
-        monto: montoRecibido,
-        referencia,
-        concepto: `Pago de folio habitación ${idHabitacion} por ${medioPago}`,
+      // Obtener mapping de medios de pago
+      const medioPagoMap = await cargarMediosPago()
+      const idMedioPago = medioPagoMap[medioPago.toUpperCase()] || medioPagoMap['EFECTIVO'] || 1
+      const totalFolio = Number(folioActual.value?.total || 0)
+      
+      if (montoRecibido < totalFolio) {
+        error(`Monto insuficiente. Se requieren $${totalFolio.toLocaleString('es-CO')}, se recibió $${montoRecibido.toLocaleString('es-CO')}`)
+        loadingOperacion.value = false
+        return
+      }
+
+      // Nuevo DTO según backend
+      const dto: CobrarFolioDto = {
+        idHabitacion,
+        idMedioPago,
+        montoCobrar: totalFolio,
+        montoRecibido,
+        referenciaPago: referencia || undefined,
       }
 
       const response = await api.post<any>(
@@ -293,7 +351,6 @@ export const useFolios = () => {
         dto
       )
 
-      const totalFolio = Number(response?.folio?.total || folioActual.value?.total || 0)
       const vuelto = Number(response?.pago?.vuelto ?? Math.max(0, montoRecibido - totalFolio))
       const folioNormalizado = normalizarFolio(response?.folio, {
         montoRecibido,
@@ -436,6 +493,7 @@ export const useFolios = () => {
     eliminarCargo,
     cerrarFolio,
     cobrarFolio,
+    cargarMediosPago,
     obtenerHistorial,
     limpiarFolioActual
   }

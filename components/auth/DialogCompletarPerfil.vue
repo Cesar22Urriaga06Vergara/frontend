@@ -51,8 +51,19 @@
             <v-text-field
               v-model="formData.cedula"
               label="Número de Documento"
-              placeholder="5555555"
-              :rules="[v => !!v || 'El número es requerido']"
+              placeholder="1003001750"
+              type="number"
+              :error-messages="cedulaErrores"
+              :rules="[
+                v => !!v || 'El número es requerido',
+                v => v.length >= 4 || 'Mínimo 4 caracteres',
+                v => v.length <= 20 || 'Máximo 20 caracteres',
+                v => /^[\\d\\-]+$/.test(v) || 'Solo dígitos y guiones permitidos',
+                v => !esNumeroUno(v) || 'La cédula no puede ser solo 1'
+              ]"
+              hint="Mín. 4 dígitos, máx. 20 caracteres"
+              persistent-hint
+              @input="validarCedula"
               @keyup.enter="guardar"
             />
           </v-col>
@@ -62,7 +73,16 @@
         <v-text-field
           v-model="formData.telefono"
           label="Teléfono (opcional)"
-          placeholder="5551234567"
+          placeholder="+573001234567"
+          :error-messages="telefonoErrores"
+          :rules="[
+            v => !v || v.length >= 10 || 'Mínimo 10 caracteres',
+            v => !v || validarFormatoTelefono(v) || 'Formato: +57XXXXXXXXXX o 10+ dígitos'
+          ]"
+          hint="Formato: +57XX XXXXXXXX o 10 dígitos mínimo"
+          persistent-hint
+          type="tel"
+          @input="validarTelefono"
           @keyup.enter="guardar"
         />
 
@@ -83,6 +103,8 @@
           item-value="codigo"
           filterable
           clearable
+          hint="Selecciona tu país actual para validación de regrímenes de impuestos"
+          persistent-hint
         />
 
         <!-- Idioma preferido -->
@@ -161,6 +183,68 @@ const paises = [
 
 const cargando = ref(false)
 
+const cedulaErrores = ref<string[]>([])
+const telefonoErrores = ref<string[]>([])
+
+const esNumeroUno = (v: string): boolean => {
+  return v === '1'
+}
+
+const validarCedula = (value: string) => {
+  cedulaErrores.value = []
+  
+  if (!value) return
+  
+  // Eliminar espacios
+  const cedulaLimpia = value.trim()
+  
+  // Validación: solo "1"
+  if (esNumeroUno(cedulaLimpia)) {
+    cedulaErrores.value.push('La cédula no puede ser solo "1"')
+    return
+  }
+  
+  // Validación: al menos 4 dígitos
+  if (cedulaLimpia.length < 4) {
+    cedulaErrores.value.push('La cédula debe tener mínimo 4 caracteres')
+    return
+  }
+  
+  // Validación: no debe ser todo ceros
+  if (/^[0\-]+$/.test(cedulaLimpia)) {
+    cedulaErrores.value.push('La cédula no puede contener solo ceros')
+    return
+  }
+}
+
+const validarTelefono = (value: string) => {
+  telefonoErrores.value = []
+  
+  if (!value) return
+  
+  const telefonoLimpio = value.trim()
+  
+  // Si tiene contenido, debe tener al menos 10 dígitos
+  if (telefonoLimpio.length > 0 && telefonoLimpio.replace(/\D/g, '').length < 10) {
+    telefonoErrores.value.push('El teléfono debe tener al menos 10 dígitos')
+    return
+  }
+}
+
+const validarFormatoTelefono = (value: string): boolean => {
+  if (!value) return true // opcional
+  
+  const telefonoLimpio = value.trim()
+  const soloDigitos = telefonoLimpio.replace(/\D/g, '')
+  
+  // Debe tener al menos 10 dígitos
+  if (soloDigitos.length < 10) return false
+  
+  // Debe empezar con + (intl) o ser solo dígitos/caracteres permitidos
+  const formatoValido = /^(\+\d{1,3})?[\d\s\-()]{9,}$/
+  return formatoValido.test(telefonoLimpio)
+}
+
 const formData = reactive({
   nombre: props.nombre || '',
   apellido: props.apellido || '',
@@ -173,20 +257,40 @@ const formData = reactive({
 })
 
 const formValido = computed(() => {
+  const cedulaLimpia = formData.cedula?.trim() || ''
+  
+  // Validar que la cédula no sea "1" ni esté vacía
+  if (!cedulaLimpia || esNumeroUno(cedulaLimpia)) {
+    return false
+  }
+  
   return (
     !!formData.nombre &&
     !!formData.apellido &&
     !!formData.tipoDocumento &&
-    !!formData.cedula
+    !!formData.cedula &&
+    cedulaErrores.value.length === 0 &&
+    telefonoErrores.value.length === 0
   )
 })
 
 const guardar = async () => {
-  if (!formValido.value) return
+  if (!formValido.value) {
+    // Ejecutar validaciones nuevamente
+    validarCedula(formData.cedula)
+    validarTelefono(formData.telefono || '')
+    return
+  }
 
   cargando.value = true
   try {
-    emit('guardar', formData)
+    // Limpiar espacios extra
+    const datosLimpios = {
+      ...formData,
+      cedula: formData.cedula?.trim().replace(/\s+/g, ''),
+      telefono: formData.telefono?.trim().replace(/\s+/g, ''),
+    }
+    emit('guardar', datosLimpios)
   } finally {
     cargando.value = false
   }
