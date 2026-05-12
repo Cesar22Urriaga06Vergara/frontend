@@ -251,7 +251,11 @@ const refrescarReportes = async () => {
   if (!idHotel) return
 
   const periodo = periodoReporte.value || undefined
-  await reportesStore.cargarTodosLosReportes(idHotel, periodo)
+  try {
+    await reportesStore.cargarTodosLosReportes(idHotel, periodo)
+  } catch (_error) {
+    // El store ya expone el error para la vista; no propagamos al handler de Vuetify.
+  }
 }
 
 const totalReservas = computed(() => reportesStore.totalReservas)

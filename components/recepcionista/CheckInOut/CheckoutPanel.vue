@@ -58,7 +58,8 @@
       class="mb-6"
       icon="mdi-alert-circle-outline"
     >
-      <strong>⚠️ {{ checkoutsPendientePago.length }} Check-outs con folio sin pagar</strong>
+      <v-icon icon="mdi-alert-circle-outline" size="16" class="mr-1" />
+      <strong>{{ checkoutsPendientePago.length }} check-outs con folio sin pagar</strong>
       <div class="text-caption">Estos clientes no pueden retirarse hasta completar el pago.</div>
     </v-alert>
 

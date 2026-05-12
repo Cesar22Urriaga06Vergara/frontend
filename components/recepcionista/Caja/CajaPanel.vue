@@ -1,37 +1,37 @@
 <template>
   <div class="caja-panel">
-    <!-- Búsqueda de habitación -->
-    <v-card class="mb-4" title="Buscar folio de habitación">
+    <!-- Busqueda de folio por cliente -->
+    <v-card class="mb-4" title="Buscar folio por cedula">
       <v-card-text>
         <div class="d-flex gap-2 align-center">
-          <v-autocomplete
-            v-model="habitacionBuscada"
-            label="Habitación"
-            placeholder="Ej: 101, 205..."
-            :items="habitacionesOcupadas"
-            item-title="numero"
-            item-value="id"
+          <v-text-field
+            v-model="cedulaBuscada"
+            label="Cedula del cliente"
+            placeholder="Ej: 50919231"
+            prepend-inner-icon="mdi-card-account-details-outline"
             variant="outlined"
             density="compact"
             class="flex-grow-1"
-            :loading="folios.buscandoHabitacion.value"
-            no-data-text="No hay habitaciones ocupadas"
-            @update:model-value="cargarFolio"
-          ></v-autocomplete>
+            :loading="folios.buscandoCedula.value"
+            clearable
+            @keyup.enter="buscarFolioPorCedula"
+            @click:clear="limpiarBusqueda"
+          ></v-text-field>
           <v-btn
             icon
             color="primary"
-            @click="recargarFolio"
+            @click="buscarFolioPorCedula"
             :loading="folios.loadingFolio.value"
+            :disabled="!cedulaBuscada.trim()"
           >
-            <v-icon>mdi-refresh</v-icon>
-            <v-tooltip activator="parent">Recargar folio</v-tooltip>
+            <v-icon>mdi-magnify</v-icon>
+            <v-tooltip activator="parent">Buscar folio</v-tooltip>
           </v-btn>
           <v-btn
             icon
             color="error"
             @click="limpiarBusqueda"
-            :disabled="!habitacionBuscada"
+            :disabled="!cedulaBuscada && !habitacionBuscada && !folios.folioActual.value"
           >
             <v-icon>mdi-close</v-icon>
             <v-tooltip activator="parent">Limpiar</v-tooltip>
@@ -40,23 +40,13 @@
 
         <!-- Mensaje de error si no hay folio -->
         <v-alert
-          v-if="habitacionBuscada && !folios.folioActual.value && !folios.loadingFolio.value"
+          v-if="busquedaCedulaRealizada && cedulaBuscada && !folios.folioActual.value && !folios.loadingFolio.value"
           type="info"
           variant="tonal"
           density="compact"
           class="mt-3 mb-0"
         >
-          No hay folio activo para esta habitación. ¿Deseas abrirlo?
-          <v-btn
-            size="small"
-            variant="text"
-            color="info"
-            class="ms-2"
-            @click="crearFolioNuevo"
-            :loading="folios.loadingOperacion.value"
-          >
-            Abrir folio
-          </v-btn>
+          No hay folio activo para esta cedula. Valida que el cliente tenga check-in y folio abierto.
         </v-alert>
       </v-card-text>
     </v-card>
@@ -212,14 +202,31 @@
     </v-row>
 
     <!-- Dialog para confirmar cobro -->
-    <v-dialog v-model="cobrarFolioDialog" max-width="500px">
+    <v-dialog v-model="cobrarFolioDialog" max-width="720px">
       <v-card title="Confirmar pago del folio">
         <v-card-text v-if="cobrarFolioDialog">
-          <ConfirmarCobroForm
-            :total-a-cobrar="folios.folioActual.value?.total || 0"
-            :loading="folios.loadingOperacion.value"
-            @confirmar-cobro="ejecutarCobro"
-          />
+          <v-tabs v-model="modoCobro" density="compact" class="mb-4">
+            <v-tab value="simple">Pago simple</v-tab>
+            <v-tab value="mixto">Pago mixto</v-tab>
+          </v-tabs>
+
+          <v-window v-model="modoCobro">
+            <v-window-item value="simple">
+              <ConfirmarCobroForm
+                :total-a-cobrar="folios.folioActual.value?.total || 0"
+                :loading="folios.loadingOperacion.value"
+                @confirmar-cobro="ejecutarCobro"
+              />
+            </v-window-item>
+            <v-window-item value="mixto">
+              <PagoMixtoForm
+                :id-habitacion="folios.folioActual.value?.idHabitacion || 0"
+                :total-a-cobrar="folios.folioActual.value?.total || 0"
+                :loading="folios.loadingOperacion.value"
+                @confirmar="ejecutarCobroMixto"
+              />
+            </v-window-item>
+          </v-window>
         </v-card-text>
 
         <v-divider></v-divider>
@@ -293,19 +300,39 @@
     <!-- Dialog Factura -->
     <v-dialog v-model="facturaDialog" max-width="1000px" fullscreen>
       <v-card v-if="facturaGenerada" class="factura-print-container">
+        <v-card-title class="d-flex align-center ga-2 no-print">
+          <v-icon icon="mdi-printer-pos" />
+          Factura POS
+          <v-spacer />
+          <v-btn icon="mdi-close" variant="text" size="small" @click="facturaDialog = false" />
+        </v-card-title>
+        <v-card-text class="pa-4">
+          <v-skeleton-loader v-if="loadingTicket" type="article" />
+          <FacturaPosTicketPreview
+            v-else-if="ticketPosFactura"
+            :ticket="ticketPosFactura"
+            :formato="formatoTicketPos"
+            :downloading-pdf="loadingTicket"
+            @update:formato="cambiarFormatoTicketCaja"
+            @download-pdf="descargarTicketPdfCaja"
+          />
+          <v-alert v-else type="info" variant="tonal">
+            No se pudo generar la vista POS de esta factura.
+          </v-alert>
+        </v-card-text>
         <!-- Contenido imprimible -->
-        <div style="background: white; padding: 40px; font-family: Arial, sans-serif; color: #333;">
+        <div v-if="false" style="background: white; padding: 40px; font-family: Arial, sans-serif; color: #333;">
           
           <!-- Encabezado del Hotel -->
           <div style="display: flex; justify-content: space-between;Align-items: center; margin-bottom: 30px; border-bottom: 3px solid #1976d2; padding-bottom: 20px;">
             <div>
-              <h1 style="margin: 0; font-size: 28px; color: #1976d2; font-weight: bold;">{{ hotelActual?.nombre?.toUpperCase() || 'HOTEL SENA' }}</h1>
+              <h1 style="margin: 0; font-size: 28px; color: #1976d2; font-weight: bold;">{{ hotelActual?.nombre?.toUpperCase() || 'HOTEL NO CONFIGURADO' }}</h1>
               <p style="margin: 5px 0; font-size: 12px; color: #666;">NIT: {{ hotelActual?.nit || 'N/A' }}</p>
               <p style="margin: 5px 0; font-size: 12px; color: #666;">{{ hotelActual?.direccion || 'N/A' }} - {{ hotelActual?.ciudad || 'N/A' }}</p>
             </div>
             <div style="text-align: right;">
               <h2 style="margin: 0; font-size: 24px; color: #d32f2f; font-weight: bold;">FACTURA</h2>
-              <p style="margin: 5px 0; font-size: 12px; color: #666;">Prefijo: FVTA</p>
+              <p style="margin: 5px 0; font-size: 12px; color: #666;">Prefijo: {{ hotelActual?.prefijoFacturacion || 'N/A' }}</p>
             </div>
           </div>
 
@@ -320,7 +347,7 @@
             <div>
               <p style="margin: 0 0 8px 0; font-size: 11px; font-weight: bold; color: #666; text-transform: uppercase;">Datos del Huésped</p>
               <p style="margin: 3px 0; font-size: 13px;"><strong>Nombre:</strong> {{ folios.folioActual.value?.nombreCliente || 'N/A' }}</p>
-              <p style="margin: 3px 0; font-size: 13px;"><strong>Cédula:</strong> {{ folios.folioActual.value?.idCliente || 'N/A' }}</p>
+              <p style="margin: 3px 0; font-size: 13px;"><strong>Cédula:</strong> {{ folios.folioActual.value?.cedulaCliente || 'N/A' }}</p>
               <p style="margin: 3px 0; font-size: 13px;"><strong>Habitación:</strong> {{ folios.folioActual.value?.numeroHabitacion || 'N/A' }}</p>
             </div>
           </div>
@@ -428,7 +455,7 @@
           <!-- Información de Pago -->
           <div style="padding: 15px; background: #c8e6c9; border-radius: 4px; margin-bottom: 20px; border-left: 4px solid #4caf50;">
             <p style="margin: 0 0 5px 0; font-size: 12px;"><strong>Método de Pago:</strong> {{ folios.folioActual.value?.medioPago || 'Efectivo' }}</p>
-            <p style="margin: 0; font-size: 12px;"><strong>Estado:</strong> <span style="background: #4caf50; color: white; padding: 2px 8px; border-radius: 3px; font-weight: bold; font-size: 11px;">✓ PAGADO</span></p>
+            <p style="margin: 0; font-size: 12px;"><strong>Estado:</strong> <span style="background: #4caf50; color: white; padding: 2px 8px; border-radius: 3px; font-weight: bold; font-size: 11px;">PAGADO</span></p>
           </div>
 
           <!-- Pie de página -->
@@ -438,9 +465,9 @@
           </div>
         </div>
 
-        <v-divider></v-divider>
+        <v-divider v-if="false"></v-divider>
 
-        <v-card-actions class="pa-4">
+        <v-card-actions v-if="false" class="pa-4">
           <v-spacer></v-spacer>
           <v-btn
             variant="tonal"
@@ -477,22 +504,36 @@ import { useFolios } from '~/composables/useFolios'
 import { useFoliosStore } from '~/stores/folios'
 import { useNotification } from '~/composables/useNotification'
 import { useHotel } from '~/composables/useHotel'
-import type { AgregarCargoDto } from '~/types/folio'
+import { useCaja } from '~/composables/useCaja'
+import { useFacturas } from '~/composables/useFacturas'
+import type { AgregarCargoDto, CobrarFolioMixtoDto, RespuestaCobro } from '~/types/folio'
+import type { FacturaPosTicket, FormatoTicketPos } from '~/types/factura'
 
 import FolioCard from './FolioCard.vue'
 import CargosList from './CargosList.vue'
 import AgregarCargoForm from './AgregarCargoForm.vue'
 import ConfirmarCobroForm from './ConfirmarCobroForm.vue'
+import PagoMixtoForm from './PagoMixtoForm.vue'
+import FacturaPosTicketPreview from '~/components/facturas/FacturaPosTicket.vue'
 
 const { success, error } = useNotification()
 const folios = useFolios()
 const foliosStore = useFoliosStore()
 const hotel = useHotel()
+const caja = useCaja()
+const {
+  obtenerTicketPos,
+  descargarTicketPosPdf,
+  loadingTicket,
+} = useFacturas()
 const route = useRoute()
 
 // State local
+const cedulaBuscada = ref('')
 const habitacionBuscada = ref<number | null>(null)
+const busquedaCedulaRealizada = ref(false)
 const cobrarFolioDialog = ref(false)
+const modoCobro = ref<'simple' | 'mixto'>('simple')
 const cerrarDialog = ref(false)
 const cancelarDialog = ref(false)
 const observacionesCierre = ref('')
@@ -500,6 +541,8 @@ const motivoCancelacion = ref('')
 const facturaDialog = ref(false)
 const facturaGenerada = ref<any>(null)
 const hotelActual = ref<any>(null)
+const ticketPosFactura = ref<FacturaPosTicket | null>(null)
+const formatoTicketPos = ref<FormatoTicketPos>('80mm')
 
 const habitacionesOcupadas = computed(() => {
   const habitaciones = new Map<number, { id: number; numero: string; piso?: string }>()
@@ -536,19 +579,50 @@ const cargarFolio = async (idHabitacion: number) => {
   const resumen = await folios.obtenerFolio(idHabitacion)
   if (!resumen) {
     // Sin folio activo
+  } else if (folios.folioActual.value?.cedulaCliente) {
+    cedulaBuscada.value = folios.folioActual.value.cedulaCliente
   }
 
   foliosStore.setFolioActual(folios.folioActual.value)
 }
 
+const buscarFolioPorCedula = async () => {
+  const cedula = cedulaBuscada.value.trim()
+
+  if (!cedula) {
+    error('Ingresa la cedula del cliente')
+    return
+  }
+
+  busquedaCedulaRealizada.value = true
+  const resumen = await folios.obtenerFolioPorCedula(cedula)
+
+  if (resumen?.idHabitacion) {
+    habitacionBuscada.value = resumen.idHabitacion
+  }
+
+  foliosStore.setFolioActual(folios.folioActual.value)
+
+  if (folios.folioActual.value) {
+    foliosStore.agregarAlHistorial(folios.folioActual.value)
+  }
+}
+
 const recargarFolio = async () => {
+  if (cedulaBuscada.value.trim()) {
+    await buscarFolioPorCedula()
+    return
+  }
+
   if (habitacionBuscada.value) {
     await cargarFolio(habitacionBuscada.value)
   }
 }
 
 const limpiarBusqueda = () => {
+  cedulaBuscada.value = ''
   habitacionBuscada.value = null
+  busquedaCedulaRealizada.value = false
   folios.limpiarFolioActual()
 }
 
@@ -599,6 +673,78 @@ const ejecutarCierre = async () => {
   }
 }
 
+const aplicarFormatoPosHotel = (hotelData: any) => {
+  const formato = hotelData?.posFormatoDefault
+  if (formato === '58mm' || formato === '80mm') {
+    formatoTicketPos.value = formato
+  }
+}
+
+const cargarTicketPosCaja = async (idFactura: number) => {
+  ticketPosFactura.value = null
+  try {
+    ticketPosFactura.value = await obtenerTicketPos(idFactura, formatoTicketPos.value)
+  } catch (err) {
+    ticketPosFactura.value = null
+  }
+}
+
+const cambiarFormatoTicketCaja = async (formato: FormatoTicketPos) => {
+  formatoTicketPos.value = formato
+  if (facturaGenerada.value?.id) {
+    await cargarTicketPosCaja(facturaGenerada.value.id)
+  }
+}
+
+const descargarTicketPdfCaja = async () => {
+  if (!facturaGenerada.value?.id) {
+    error('No hay factura para descargar')
+    return
+  }
+
+  await descargarTicketPosPdf(
+    facturaGenerada.value.id,
+    formatoTicketPos.value,
+    'Descarga/reimpresion ticket POS desde caja',
+  )
+}
+
+const procesarRespuestaCobro = async (respuesta: RespuestaCobro | undefined, mensajeExito: string) => {
+  if (!respuesta?.folio) {
+    error('No se proceso el pago correctamente')
+    return
+  }
+
+  if (respuesta.factura?.id) {
+    respuesta.folio.idFactura = respuesta.factura.id
+    respuesta.folio.numeroFactura = respuesta.factura.numeroFactura
+  }
+
+  folios.folioActual.value = respuesta.folio
+  foliosStore.setFolioActual(respuesta.folio)
+  foliosStore.actualizarFolioEnHistorial(respuesta.folio)
+
+  success(mensajeExito)
+  await caja.obtenerTurnoActual().catch(() => {})
+
+  cobrarFolioDialog.value = false
+  modoCobro.value = 'simple'
+
+  if (respuesta.factura) {
+    facturaGenerada.value = respuesta.factura
+    if (respuesta.factura.idHotel) {
+      await hotel.obtenerPorId(respuesta.factura.idHotel).then((hotelData) => {
+        hotelActual.value = hotelData
+        aplicarFormatoPosHotel(hotelData)
+      }).catch(() => {
+        hotelActual.value = null
+      })
+    }
+    await cargarTicketPosCaja(respuesta.factura.id)
+    facturaDialog.value = true
+  }
+}
+
 const ejecutarCobro = async (datos: any) => {
   if (!folios.folioActual.value?.idHabitacion) return
   try {
@@ -608,35 +754,28 @@ const ejecutarCobro = async (datos: any) => {
       datos.medioPago,
       datos.referencia
     )
-    if (respuesta?.folio) {
-      folios.folioActual.value = respuesta.folio
-      foliosStore.setFolioActual(respuesta.folio)
-      foliosStore.actualizarFolioEnHistorial(respuesta.folio)
-      
-      // Mensaje de éxito
-      success(`✅ Pago registrado correctamente. Cambio: $${(respuesta.transaccion?.vuelto || 0).toLocaleString('es-CO')}`)
-      
-      // Cerrar dialog de cobro después del éxito
-      cobrarFolioDialog.value = false
-      
-      // Si hay factura, mostrar dialog de factura
-      if (respuesta.factura) {
-        facturaGenerada.value = respuesta.factura
-        // Obtener datos del hotel
-        if (respuesta.factura.idHotel) {
-          hotel.obtenerPorId(respuesta.factura.idHotel).then((hotelData) => {
-            hotelActual.value = hotelData
-          }).catch(() => {
-            hotelActual.value = null
-          })
-        }
-        facturaDialog.value = true
-      }
-    } else {
-      error('No se procesó el pago correctamente')
-    }
+    await procesarRespuestaCobro(
+      respuesta,
+      `Pago registrado correctamente. Cambio: $${(respuesta?.transaccion?.vuelto || 0).toLocaleString('es-CO')}`,
+    )
   } catch (err: any) {
     error(err?.message || 'Error al procesar el pago')
+  }
+}
+
+const ejecutarCobroMixto = async (payload: CobrarFolioMixtoDto) => {
+  if (!folios.folioActual.value?.idHabitacion) return
+  try {
+    const respuesta = await folios.cobrarFolioMixto(
+      folios.folioActual.value.idHabitacion,
+      payload,
+    )
+    await procesarRespuestaCobro(
+      respuesta,
+      `Pago mixto registrado correctamente. Cambio total: $${(respuesta?.transaccion?.vuelto || 0).toLocaleString('es-CO')}`,
+    )
+  } catch (err: any) {
+    error(err?.message || 'Error al procesar el pago mixto')
   }
 }
 

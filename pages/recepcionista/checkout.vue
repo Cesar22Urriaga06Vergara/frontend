@@ -79,7 +79,7 @@
       variant="tonal"
       class="mb-6"
       icon="mdi-alert-circle-outline"
-      title="⚠️ Folios Sin Pagar"
+      title="Folios sin pagar"
     >
       <div class="text-caption">
         {{ checkoutsPendientePago.length }} huesped(es) no pueden retirarse sin completar el pago.

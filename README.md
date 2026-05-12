@@ -1,271 +1,128 @@
-# Hotel Sena 2026 - Dashboard Frontend
+# ADUS Hospitality OS - Frontend
 
-<div align="center">
+Aplicacion web SPA para la operacion hotelera de ADUS. Consume la API NestJS
+del backend y ofrece pantallas por rol para autenticacion, administracion,
+recepcion, cliente, areas operativas, facturacion, caja, reportes y dashboards.
 
-**Interfaz web moderna y responsiva** para el sistema de gestión hotelera Hotel Sena 2026.
+## Stack
 
-Construido con **Nuxt 3**, **Vue 3**, **Vuetify** y **Tailwind CSS**.
+- Node.js 18 o superior
+- Nuxt 3
+- Vue 3
+- TypeScript
+- Vuetify 3
+- Tailwind CSS
+- Pinia
+- Vite
 
-[![Node.js](https://img.shields.io/badge/node.js-v18+-brightgreen)](https://nodejs.org/)
-[![Nuxt](https://img.shields.io/badge/Nuxt-3.14+-green)](https://nuxt.com/)
-[![Vue](https://img.shields.io/badge/Vue-3.5+-brightgreen)](https://vuejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.6+-blue)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4+-blue)](https://tailwindcss.com/)
-[![License](https://img.shields.io/badge/license-UNLICENSED-red)](#license)
+## Arquitectura
 
-</div>
+```text
+frontend/
+  app.vue
+  error.vue
+  nuxt.config.ts
+  assets/
+  components/
+  composables/
+  layouts/
+  middleware/
+  pages/
+  plugins/
+  docs/
+  scripts/
+  stores/
+  types/
+  utils/
+```
 
----
+La aplicacion corre con `ssr: false`, por lo que se comporta como SPA. Las rutas
+se definen en `pages/`, los layouts por rol estan en `layouts/`, el estado global
+usa Pinia en `stores/` y las llamadas HTTP se concentran en composables como
+`useApi`.
 
-## 📋 Descripción
+La documentacion tecnica complementaria vive en `docs/`, organizada por
+auditorias, planificacion, operacion, dominio y changelog.
 
-Dashboard web completo para la gestión del hotel con interfaces específicas para cada rol:
+## Instalacion
 
-- 👥 **SuperAdmin** - Administración completa del sistema
-- 🏨 **Admin Hotel** - Gestión de su respectivo hotel
-- 📅 **Recepcionista** - Check-in/Check-out y reservas
-- 💼 **Gerente de Área** - Reportes y KPIs de su área
-- 💰 **Facturación** - Gestión de facturas y pagos
-- 👤 **Cliente** - Visualización de reservas y servicios
-
-### Características
-
-- ✨ Interfaz moderna y responsive
-- 🎨 Temas personalizables con Vuetify
-- 📊 Dashboards con gráficas e indicadores KPI
-- 🔐 Sistema RBAC integrado
-- 📱 Optimizado para mobile y desktop
-- ⚡ Rendimiento optimizado con Nuxt 3
-- 🗂️ Composables reutilizables
-- 📈 Reportes interactivos
-
----
-
-## 🚀 Requisitos Previos
-
-- **Node.js** v18+
-- **npm** o **yarn**
-- **Backend API** ejecutándose (Hotel Sena 2026)
-- Variables de entorno configuradas (`.env`)
-
----
-
-## 📦 Instalación
-
-1. **Clonar el repositorio**
-   ```bash
-   git clone <repository-url>
-   cd dashboard
-   ```
-
-2. **Instalar dependencias**
-   ```bash
-   npm install
-   ```
-
-3. **Configurar variables de entorno**
-   ```bash
-   cp .env.example .env
-   ```
-   Editar `.env` con la URL de la API backend.
-
----
-
-## 🛠️ Scripts Disponibles
-
-### Desarrollo
 ```bash
-# Iniciar servidor de desarrollo
-npm run dev
-
-# Validar navegación y rutas
-npm run check:navigation
+npm install
+cp .env.example .env
 ```
 
-### Producción
-```bash
-# Compilar para producción
-npm run build
+Edita `.env` con la URL real del backend.
 
-# Preview de la build
-npm run preview
-
-# Generar sitio estático
-npm run generate
-```
-
----
-
-## 📁 Estructura del Proyecto
-
-```
-dashboard/
-├── components/              # Componentes Vue reutilizables
-│   ├── auth/               # Componentes de autenticación
-│   ├── shared/             # Componentes compartidos
-│   ├── admin/              # Componentes para admin
-│   ├── recepcionista/      # Componentes para recepción
-│   ├── empleados/          # Componentes para empleados
-│   ├── facturas/           # Componentes de facturación
-│   ├── reportes/           # Componentes de reportes
-│   └── superadmin/         # Componentes para super admin
-├── composables/             # Composables (lógica reutilizable)
-│   ├── useApi.ts           # Llamadas HTTP a API
-│   ├── usePermissions.ts   # Gestión de permisos
-│   ├── useReservas.ts      # Lógica de reservas
-│   ├── useFacturas.ts      # Lógica de facturas
-│   └── ...                 # Otros composables
-├── layouts/                 # Layouts principales
-│   ├── admin.vue
-│   ├── recepcion.vue
-│   ├── operacion.vue
-│   └── ...
-├── pages/                   # Páginas/rutas de la aplicación
-│   ├── index.vue           # Home
-│   ├── login.vue           # Login
-│   ├── admin/              # Rutas admin
-│   ├── areas/              # Rutas de áreas
-│   ├── dashboard/          # Dashboards
-│   └── ...
-├── stores/                  # Stores Pinia
-├── middleware/              # Middlewares Nuxt
-├── plugins/                 # Plugins globales
-├── assets/                  # Estilos y recursos
-├── types/                   # Tipos TypeScript
-├── utils/                   # Utilidades
-└── nuxt.config.ts          # Configuración de Nuxt
-```
-
----
-
-## 🔑 Variables de Entorno
-
-Crear archivo `.env` con:
+## Variables De Entorno
 
 ```env
-# URL de la API Backend
-NUXT_PUBLIC_API_URL=http://localhost:3000
-
-# Modo debug
+NUXT_PUBLIC_API_BASE=http://localhost:3001
 NUXT_PUBLIC_DEBUG=false
 ```
 
----
+No subas `.env` a Git. `.env.example` si debe versionarse.
 
-## 🎨 Tecnologías Principales
+## Scripts
 
-- **Nuxt 3** - Framework Vue meta
-- **Vue 3** - Composición API
-- **Vuetify 3** - Componentes Material Design
-- **Tailwind CSS** - Estilos utilitarios
-- **Pinia** - Gestión de estado
-- **TypeScript** - Tipado estático
-- **Vite** - Build tool
-
----
-
-## 📚 Estructura de Componentes
-
-### Composables (`composables/`)
-Lógica reutilizable para componentes:
-
-```typescript
-// useApi.ts
-const { data, loading, error } = await useApi('/endpoint')
-
-// usePermissions.ts
-const hasPermission = usePermissions('crear:reservas')
-
-// useReservas.ts
-const { createReserva, updateReserva } = useReservas()
+```bash
+npm run dev               # Servidor local de Nuxt
+npm run build             # Build de produccion
+npm run preview           # Preview de .output
+npm run generate          # Generacion estatica si aplica
+npm run check:navigation  # Valida rutas declaradas de navegacion
+npm run postinstall       # Prepara Nuxt despues de instalar
 ```
 
-### Stores Pinia (`stores/`)
-Gestión centralizada de estado:
+## Ejecucion Local
 
-```typescript
-// authStore
-const auth = useAuthStore()
-auth.login(credentials)
+1. Levanta el backend en `http://localhost:3001`.
+2. Configura `NUXT_PUBLIC_API_BASE`.
+3. Ejecuta:
+
+```bash
+npm run dev
 ```
 
-### Layouts (`layouts/`)
-Diferentes layouts para diferentes roles:
+El frontend queda disponible por defecto en:
 
-- `admin.vue` - Layout para administrador
-- `recepcion.vue` - Layout para recepcionista
-- `operacion.vue` - Layout para operaciones
-- `cliente.vue` - Layout para clientes
-- `superadmin.vue` - Layout para super admin
-- `auth.vue` - Layout para autenticación
+```text
+http://localhost:3000
+```
 
----
+## Produccion
 
-## 🔐 Autenticación y Autorización
+```bash
+npm run build
+npm run preview
+```
 
-- **Login con JWT** token
-- **Google OAuth2** integrado
-- **RBAC** (Role-Based Access Control)
-- **Middleware de autenticación** en rutas protegidas
-- **Middleware de roles** para control de acceso
+Para despliegue, configura `NUXT_PUBLIC_API_BASE` con la URL publica de la API y
+manten fuera del repositorio cualquier archivo `.env` real.
 
----
+## Seguridad
 
-## 📊 Dashboards Disponibles
+- `.env`, builds, caches, logs y archivos temporales estan ignorados por Git.
+- La API base publica debe apuntar al backend autorizado.
+- Los tokens de sesion se gestionan desde el flujo de autenticacion del frontend.
+- No agregues secretos privados a archivos Vue, stores, composables ni documentos.
+- Documenta nuevas variables publicas en `.env.example`.
 
-- **SuperAdmin** - Estadísticas globales del sistema
-- **Admin** - Estadísticas de su hotel
-- **Recepcionista** - Reservas del día y check-ins
-- **Gerente de Área** - KPIs de su área
-- **Facturación** - Estado de facturas y cobros
+## Convenciones
 
----
+- Componentes Vue en PascalCase.
+- Composables con prefijo `use`.
+- Tipos compartidos en `types/`.
+- Utilidades puras en `utils/`.
+- Rutas protegidas mediante middleware Nuxt y validaciones de permisos.
+- Mantener componentes visuales separados de llamadas HTTP reutilizables.
 
-## 🤝 Contribuir
+## Troubleshooting
 
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+- `Failed fetch` o CORS: valida `NUXT_PUBLIC_API_BASE` y `CORS_ORIGINS` del backend.
+- Pantalla protegida redirige: revisa sesion, token y rol del usuario.
+- Error de build por cache: elimina `.nuxt` y vuelve a ejecutar `npm run build`.
+- Puerto ocupado en dev: cambia el puerto de Nuxt o deten el proceso existente.
 
----
+## Licencia
 
-## 📋 Convenciones
-
-### Nombres de Componentes
-- PascalCase: `DialogCompletarPerfil.vue`
-- Específicos por contexto: `useNombreRecurso.ts`
-
-### Estructura de Rutas
-- `/admin/*` - Rutas de administración
-- `/recepcion/*` - Rutas de recepción
-- `/areas/*` - Rutas de reportes por área
-- `/dashboard/*` - Dashboards personalizados
-- `/facturas/*` - Gestión de facturas
-- `/reportes/*` - Reportes
-
-### Estilos
-- Usar clases de Tailwind CSS
-- Componentes Vuetify para UI
-- SCSS en scope de componentes cuando sea necesario
-
----
-
-## 📄 Licencia
-
-Este proyecto es **UNLICENSED** y es propiedad privada.
-
----
-
-## 🔗 Enlaces Útiles
-
-- [Documentación Nuxt 3](https://nuxt.com/)
-- [Documentación Vue 3](https://vuejs.org/)
-- [Documentación Vuetify 3](https://vuetifyjs.com/)
-- [Documentación Tailwind CSS](https://tailwindcss.com/)
-- [Documentación Pinia](https://pinia.vuejs.org/)
-
----
-
-Desarrollado para Hotel Sena 2026 ©2026
+Proyecto privado sin licencia publica declarada.

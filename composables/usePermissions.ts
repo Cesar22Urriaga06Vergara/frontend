@@ -64,8 +64,19 @@ export const usePermissions = () => {
       'reserva:checkin',
       'reserva:checkout',
       'caja:ver',
+      'caja:abrir',
+      'caja:movimientos',
+      'caja:cerrar',
       'view_reports',
       // FASE 7: Permisos de facturas
+      'factura:ver',
+      'factura:ver-historial',
+    ],
+    cajero: [
+      'caja:ver',
+      'caja:abrir',
+      'caja:movimientos',
+      'caja:cerrar',
       'factura:ver',
       'factura:ver-historial',
     ],
@@ -73,6 +84,11 @@ export const usePermissions = () => {
     lavanderia: ['manage_orders'],
     spa: ['manage_orders'],
     room_service: ['manage_orders'],
+    minibar: ['manage_orders'],
+    transporte: ['manage_orders'],
+    tours: ['manage_orders'],
+    eventos: ['manage_orders'],
+    mantenimiento: ['manage_orders'],
     cliente: [
       // FASE 7: Clientes ven solo sus propias facturas
       'factura:ver',

@@ -1,27 +1,52 @@
+# Dependencies
+node_modules/
+
 # Nuxt dev/build outputs
-.output
-.data
-.nuxt
-.nitro
-.cache
-dist
+.output/
+.data/
+.nuxt/
+.nitro/
+.cache/
+dist/
+build/
+coverage/
 
-# Node dependencies
-node_modules
-
-# Logs
-logs
+# Logs and diagnostics
+logs/
 *.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+build-output.log
 
-# Misc
-.DS_Store
-.fleet
-.idea
-
-# Environment variables
-.env
-
-# Local env files
+# Environment files
 .env
 .env.*
-.env.example
+!.env.example
+
+# Secrets and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+
+# Runtime and temporary files
+tmp/
+temp/
+.tmp/
+.temp/
+*.tmp
+*.bak
+*.backup
+*.old
+*.orig
+
+# OS and editors
+.DS_Store
+Thumbs.db
+desktop.ini
+.fleet/
+.idea/

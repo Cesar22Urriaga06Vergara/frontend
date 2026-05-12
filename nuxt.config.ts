@@ -61,14 +61,11 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase: 'http://localhost:3001', // ← Backend NestJS en puerto 3001
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:3001',
     },
   },
 
   routeRules: {
-    // Cache some routes when deployed
-    '/': { cache: { maxAge: 60 * 10 } },
-    '/login': { cache: { maxAge: 60 * 10 } },
     '/cliente/servicios/servicios': { redirect: '/cliente/servicios' },
     '/cliente/servicios/servicios/carrito': { redirect: '/cliente/servicios/carrito' },
     '/cliente/servicios/servicios/mis-pedidos': { redirect: '/cliente/servicios/mis-pedidos' },

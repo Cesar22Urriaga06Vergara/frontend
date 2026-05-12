@@ -124,6 +124,15 @@
           title="Ver detalle"
           @click="abrirDetalle(item)"
         />
+        <v-btn
+          icon="mdi-receipt-text-check"
+          size="x-small"
+          variant="text"
+          color="success"
+          title="Vista POS"
+          :loading="cargandoTicketPos && facturaSeleccionada?.id === item.id"
+          @click="abrirTicketPos(item)"
+        />
         <v-menu v-if="puedeMostrarAcciones(item)">
           <template #activator="{ props }">
             <v-btn icon="mdi-dots-vertical" size="x-small" variant="text" v-bind="props" />
@@ -260,12 +269,38 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog v-model="showTicketPos" max-width="520">
+      <v-card>
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon icon="mdi-printer-pos" />
+          Factura POS
+          <v-spacer />
+          <v-btn icon="mdi-close" variant="text" size="small" @click="showTicketPos = false" />
+        </v-card-title>
+        <v-card-text class="pa-4">
+          <v-skeleton-loader v-if="cargandoTicketPos" type="article" />
+          <FacturaPosTicketPreview
+            v-else-if="ticketPos"
+            :ticket="ticketPos"
+            :formato="formatoTicketPos"
+            :downloading-pdf="descargandoTicketPdf"
+            @update:formato="cambiarFormatoTicket"
+            @download-pdf="descargarTicketPdf"
+          />
+          <v-alert v-else type="info" variant="tonal">
+            Selecciona una factura para generar el ticket POS.
+          </v-alert>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '~/composables/useApi'
+import { useFacturas } from '~/composables/useFacturas'
 import { useNotification } from '~/composables/useNotification'
 import PageHeader from '~/components/shared/PageHeader.vue'
 import SectionCard from '~/components/shared/SectionCard.vue'
@@ -273,7 +308,8 @@ import StatCard from '~/components/shared/StatCard.vue'
 import StandardDataTable from '~/components/shared/StandardDataTable.vue'
 import EstadoFacturaBadge from '~/components/facturas/EstadoFacturaBadge.vue'
 import FacturaDesglose from '~/components/facturas/FacturaDesglose.vue'
-import type { EstadoFactura, Factura } from '~/types/factura'
+import FacturaPosTicketPreview from '~/components/facturas/FacturaPosTicket.vue'
+import type { EstadoFactura, Factura, FacturaPosTicket, FormatoTicketPos } from '~/types/factura'
 import { UserRole } from '~/types/auth'
 
 definePageMeta({
@@ -286,17 +322,22 @@ useHead({ title: 'Gestión de Facturas' })
 
 const api = useApi()
 const { success, error } = useNotification()
+const { descargarTicketPosPdf, loadingTicket: descargandoTicketPdf } = useFacturas()
 
 const facturas = ref<Factura[]>([])
 const loading = ref(false)
 const showDetalle = ref(false)
 const showAnular = ref(false)
+const showTicketPos = ref(false)
 const facturaSeleccionada = ref<Factura | null>(null)
+const ticketPos = ref<FacturaPosTicket | null>(null)
+const formatoTicketPos = ref<FormatoTicketPos>('80mm')
 const filtroEstado = ref<EstadoFactura>()
 const busquedaNumero = ref('')
 const busquedaCliente = ref('')
 const motivoAnulacion = ref('')
 const anulando = ref(false)
+const cargandoTicketPos = ref(false)
 
 const estadosDisponibles = [
   { label: 'Borrador', value: 'BORRADOR' },
@@ -389,6 +430,47 @@ const aplicarFiltros = () => {
 const abrirDetalle = (factura: Factura) => {
   facturaSeleccionada.value = factura
   showDetalle.value = true
+}
+
+const cargarTicketPos = async (factura: Factura) => {
+  cargandoTicketPos.value = true
+  try {
+    ticketPos.value = await api.get<FacturaPosTicket>(
+      `/facturas/${factura.id}/ticket-pos?formato=${formatoTicketPos.value}`,
+    )
+  } catch (err: any) {
+    ticketPos.value = null
+    error(err.message || 'Error al generar vista POS')
+  } finally {
+    cargandoTicketPos.value = false
+  }
+}
+
+const abrirTicketPos = async (factura: Factura) => {
+  facturaSeleccionada.value = factura
+  ticketPos.value = null
+  showTicketPos.value = true
+  await cargarTicketPos(factura)
+}
+
+const cambiarFormatoTicket = async (formato: FormatoTicketPos) => {
+  formatoTicketPos.value = formato
+  if (facturaSeleccionada.value) {
+    await cargarTicketPos(facturaSeleccionada.value)
+  }
+}
+
+const descargarTicketPdf = async () => {
+  if (!facturaSeleccionada.value) {
+    error('No hay factura seleccionada')
+    return
+  }
+
+  await descargarTicketPosPdf(
+    facturaSeleccionada.value.id,
+    formatoTicketPos.value,
+    'Descarga desde gestion de facturas',
+  )
 }
 
 const emitirFactura = async (id: number) => {

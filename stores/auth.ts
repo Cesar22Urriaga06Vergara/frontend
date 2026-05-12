@@ -221,10 +221,16 @@ export const useAuthStore = defineStore('auth', {
         if (response && response.idHotel && this.user) {
           this.user.idHotel = response.idHotel
           this.persistSession()
+        } else if (this.user) {
+          this.user.idHotel = undefined
+          this.persistSession()
         }
       } catch {
-        // Sin reserva activa — el cliente puede ver el catálogo pero no hacer pedidos
-        // idHotel permanece null
+        // Sin reserva activa: el cliente puede ver el catalogo pero no hacer pedidos.
+        if (this.user) {
+          this.user.idHotel = undefined
+          this.persistSession()
+        }
       }
     },
 

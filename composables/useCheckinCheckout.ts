@@ -456,7 +456,9 @@ export const useCheckinCheckout = () => {
     idReserva: number,
     idHabitacion: number,
     idCliente: number,
-    notasCheckin?: string
+    notasCheckin?: string,
+    horaCheckin?: string,
+    documentoHuespedPrincipal?: string
   ) => {
     loadingOperacion.value = true
     errorMessage.value = ''
@@ -467,6 +469,8 @@ export const useCheckinCheckout = () => {
         {
           idReserva,
           ...(notasCheckin ? { observacionesCheckin: notasCheckin } : {}),
+          ...(horaCheckin ? { horaCheckin } : {}),
+          ...(documentoHuespedPrincipal ? { documentoHuespedPrincipal } : {}),
         }
       )
 
@@ -493,20 +497,25 @@ export const useCheckinCheckout = () => {
     idReserva: number,
     idHabitacion: number,
     notasCheckout?: string,
-    estadoLimpieza: EstadoLimpieza = 'PENDIENTE_LIMPIEZA'
+    estadoLimpieza: EstadoLimpieza = 'PENDIENTE_LIMPIEZA',
+    horaCheckout?: string
   ) => {
     loadingOperacion.value = true
     errorMessage.value = ''
 
     try {
-      void idHabitacion
-      void notasCheckout
-      void estadoLimpieza
 
       // Checkout es una acción limpia: registra la hora de salida
       // La factura se genera SOLO en caja cuando se cobra el folio
       const response = await api.post<ConfirmarCheckoutResponse>(
-        `/reservas/${idReserva}/checkout`
+        `/reservas/${idReserva}/checkout`,
+        {
+          idReserva,
+          idHabitacion,
+          estadoLimpieza,
+          ...(notasCheckout ? { observacionesCheckout: notasCheckout } : {}),
+          ...(horaCheckout ? { horaCheckout } : {}),
+        }
       )
 
       success('Check-out realizado correctamente.')

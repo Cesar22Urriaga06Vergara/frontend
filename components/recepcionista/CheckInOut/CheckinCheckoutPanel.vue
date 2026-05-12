@@ -289,6 +289,7 @@
       :loading="cc.loadingOperacion.value"
       :folio-pagado="folioPagado"
       @confirmar="ejecutarCheckout"
+      @ir-caja="irACajaDesdeCheckout"
       @cerrar="reservaParaCheckout = null"
     />
 
@@ -725,7 +726,9 @@ const ejecutarCheckin = async (datos: any) => {
       reservaParaCheckin.value.id,
       reservaParaCheckin.value.idHabitacion,
       reservaParaCheckin.value.idCliente,
-      datos.notas
+      datos.notas,
+      datos.hora,
+      datos.documento
     )
 
     if (respuesta) {
@@ -750,7 +753,8 @@ const ejecutarCheckout = async (datos: any) => {
       reservaProcesada.id,
       reservaProcesada.idHabitacion,
       datos.notas,
-      datos.estado
+      datos.estado,
+      datos.hora
     )
 
     // Registrar check-out completado
@@ -761,6 +765,11 @@ const ejecutarCheckout = async (datos: any) => {
   } catch (err: any) {
     error(err?.message || 'Error al realizar check-out')
   }
+}
+
+const irACajaDesdeCheckout = async () => {
+  if (!reservaParaCheckout.value?.idHabitacion) return
+  await navigateTo(`/recepcionista/caja?habitacion=${reservaParaCheckout.value.idHabitacion}`)
 }
 
 const buscarPorCedula = async () => {

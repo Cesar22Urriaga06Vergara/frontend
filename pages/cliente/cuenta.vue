@@ -272,11 +272,11 @@ const formatearFecha = (fecha: string | Date): string => {
 
 const formatearCategoria = (cat: string): string => {
   const map: Record<string, string> = {
-    cafeteria: 'Cafetería ☕',
-    lavanderia: 'Lavandería 👔',
-    spa: 'Spa 💆',
-    room_service: 'Room Service 🛎️',
-    minibar: 'Minibar 🍷',
+    cafeteria: 'Cafetería',
+    lavanderia: 'Lavandería',
+    spa: 'Spa',
+    room_service: 'Room Service',
+    minibar: 'Minibar',
     otros: 'Otros',
   };
   return map[cat] || cat;

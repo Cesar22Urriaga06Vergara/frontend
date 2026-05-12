@@ -21,7 +21,10 @@
       <v-card-text class="pa-6">
         <!-- ADVERTENCIA -->
         <v-alert type="error" variant="tonal" class="mb-6">
-          <p class="font-weight-bold mb-1">⚠️ Esta acción no se puede deshacer</p>
+          <p class="font-weight-bold mb-1">
+            <v-icon icon="mdi-alert-circle-outline" size="16" class="mr-1" />
+            Esta accion no se puede deshacer
+          </p>
           <p class="text-body-2 mb-0">Una vez cancelada, la reserva se marcará como cancelada.</p>
         </v-alert>
 

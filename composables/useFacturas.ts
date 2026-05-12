@@ -4,14 +4,21 @@ import type {
   Factura, 
   FacturaCambio, 
   HistorialCambiosResponse,
-  EstadoFactura 
+  EstadoFactura,
+  FacturaPosTicket,
+  FormatoTicketPos,
+  PagoFactura,
+  PagoMixtoPayload,
 } from '~/types/factura'
 import { useApi } from './useApi'
 import { useNotification } from './useNotification'
+import { useAuthStore } from '~/stores/auth'
 
 export const useFacturas = () => {
   const api = useApi()
   const { success, error } = useNotification()
+  const config = useRuntimeConfig()
+  const authStore = useAuthStore()
 
   // State
   const facturas = ref<Factura[]>([])
@@ -21,6 +28,7 @@ export const useFacturas = () => {
   const loadingDetalle = ref(false)
   const loadingHistorial = ref(false)
   const loadingOperacion = ref(false)
+  const loadingTicket = ref(false)
   const errorMessage = ref('')
 
   /**
@@ -194,6 +202,98 @@ export const useFacturas = () => {
   }
 
   /**
+   * Obtener datos normalizados para vista previa e impresiÃ³n POS/tÃ©rmica.
+   */
+  const obtenerTicketPos = async (
+    idFactura: number,
+    formato: FormatoTicketPos = '80mm',
+  ) => {
+    loadingTicket.value = true
+    errorMessage.value = ''
+
+    try {
+      return await api.get<FacturaPosTicket>(
+        `/facturas/${idFactura}/ticket-pos?formato=${formato}`,
+      )
+    } catch (err: any) {
+      const errorMsg = err?.message || 'Error al obtener ticket POS'
+      errorMessage.value = errorMsg
+      error(errorMsg)
+      throw err
+    } finally {
+      loadingTicket.value = false
+    }
+  }
+
+  /**
+   * Descargar/abrir ticket POS en PDF. El backend registra la reimpresion.
+   */
+  const descargarTicketPosPdf = async (
+    idFactura: number,
+    formato: FormatoTicketPos = '80mm',
+    motivo = 'Descarga/reimpresion ticket POS PDF',
+  ) => {
+    if (import.meta.server) return
+
+    loadingTicket.value = true
+    errorMessage.value = ''
+
+    try {
+      const params = new URLSearchParams({
+        formato,
+        motivo,
+      })
+
+      const headers: Record<string, string> = {}
+      if (authStore.token) {
+        headers.Authorization = `Bearer ${authStore.token}`
+      }
+
+      const blob = await $fetch<Blob>(
+        `${config.public.apiBase}/facturas/${idFactura}/ticket-pos/pdf?${params.toString()}`,
+        {
+          method: 'GET',
+          headers,
+          responseType: 'blob',
+        },
+      )
+
+      const url = URL.createObjectURL(blob)
+      window.open(url, '_blank', 'noopener,noreferrer')
+      setTimeout(() => URL.revokeObjectURL(url), 60_000)
+      success('PDF POS generado correctamente')
+    } catch (err: any) {
+      const errorMsg = err?.message || 'Error al descargar PDF POS'
+      errorMessage.value = errorMsg
+      error(errorMsg)
+      throw err
+    } finally {
+      loadingTicket.value = false
+    }
+  }
+
+  /**
+   * Registrar pago mixto atomico para una factura.
+   */
+  const registrarPagoMixto = async (payload: PagoMixtoPayload) => {
+    loadingOperacion.value = true
+    errorMessage.value = ''
+
+    try {
+      const response = await api.post<PagoFactura[]>('/pagos/mixto', payload)
+      success('Pago mixto registrado correctamente')
+      return response
+    } catch (err: any) {
+      const errorMsg = err?.message || 'Error al registrar pago mixto'
+      errorMessage.value = errorMsg
+      error(errorMsg)
+      throw err
+    } finally {
+      loadingOperacion.value = false
+    }
+  }
+
+  /**
    * Validar si se puede hacer una transición de estado
    */
   const puedeTransicionar = (
@@ -281,6 +381,7 @@ export const useFacturas = () => {
     loadingDetalle,
     loadingHistorial,
     loadingOperacion,
+    loadingTicket,
     errorMessage,
 
     // Métodos
@@ -290,6 +391,9 @@ export const useFacturas = () => {
     anular,
     marcarComoPagada,
     obtenerHistorial,
+    obtenerTicketPos,
+    descargarTicketPosPdf,
+    registrarPagoMixto,
     puedeTransicionar,
     getColorEstado,
     getIconoEstado,

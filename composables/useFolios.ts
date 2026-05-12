@@ -6,6 +6,7 @@ import type {
   CreateFolioDto,
   AgregarCargoDto,
   CobrarFolioDto,
+  CobrarFolioMixtoDto,
   ResumenFolio,
   RespuestaCobro,
   DesgloseCalculos
@@ -71,7 +72,11 @@ export const useFolios = () => {
       ),
       idReserva: raw?.idReserva ? Number(raw.idReserva) : undefined,
       idCliente: raw?.idCliente ? Number(raw.idCliente) : undefined,
+      idFactura: raw?.idFactura ? Number(raw.idFactura) : undefined,
+      numeroFactura: raw?.numeroFactura || undefined,
       nombreCliente: raw?.nombreCliente || raw?.reserva?.nombreCliente || undefined,
+      cedulaCliente: raw?.cedulaCliente || raw?.reserva?.cedulaCliente || undefined,
+      emailCliente: raw?.emailCliente || raw?.reserva?.emailCliente || undefined,
       estado,
       fechaApertura: String(raw?.fechaApertura || new Date().toISOString()),
       fechaCierre: raw?.fechaCierre ? String(raw.fechaCierre) : undefined,
@@ -123,6 +128,7 @@ export const useFolios = () => {
   const loadingHistorial = ref(false)
   const errorMessage = ref('')
   const buscandoHabitacion = ref(false)
+  const buscandoCedula = ref(false)
 
   /**
    * Crear un nuevo folio (abrir caja para una habitación)
@@ -384,6 +390,93 @@ export const useFolios = () => {
   }
 
   /**
+   * Obtener folio por cedula del cliente.
+   */
+  const obtenerFolioPorCedula = async (cedulaCliente: string) => {
+    const cedula = String(cedulaCliente || '').trim()
+
+    if (!cedula) {
+      folioActual.value = null
+      errorMessage.value = 'Ingresa la cedula del cliente'
+      return null
+    }
+
+    loadingFolio.value = true
+    buscandoCedula.value = true
+    errorMessage.value = ''
+
+    try {
+      const response = await api.get<any>(`/folios/cedula/${encodeURIComponent(cedula)}`)
+      const folioNormalizado = normalizarFolio(response)
+      folioActual.value = folioNormalizado
+      return folioNormalizado as unknown as ResumenFolio
+    } catch (err: any) {
+      folioActual.value = null
+      const errorMsg = err?.message || 'No hay folio activo para esta cedula'
+      errorMessage.value = errorMsg
+      return null
+    } finally {
+      loadingFolio.value = false
+      buscandoCedula.value = false
+    }
+  }
+
+  /**
+   * Cobrar folio con varias lineas/metodos de pago.
+   */
+  const cobrarFolioMixto = async (
+    idHabitacion: number,
+    dto: CobrarFolioMixtoDto,
+  ) => {
+    loadingOperacion.value = true
+    errorMessage.value = ''
+
+    try {
+      const response = await api.post<any>(
+        `/folios/${idHabitacion}/cobrar-mixto`,
+        dto,
+      )
+
+      const totalRecibido = Array.isArray(response?.pago?.lineas)
+        ? response.pago.lineas.reduce((sum: number, linea: any) => {
+            return sum + Number(linea.montoRecibido ?? linea.monto ?? 0)
+          }, 0)
+        : dto.pagos.reduce((sum, linea) => sum + Number(linea.montoRecibido ?? linea.montoCobrar ?? 0), 0)
+      const totalCambio = Number(response?.pago?.vuelto || 0)
+
+      const folioNormalizado = normalizarFolio(response?.folio, {
+        montoRecibido: totalRecibido,
+        medioPago: 'OTRO' as any,
+        vuelto: totalCambio,
+        fechaPago: new Date().toISOString(),
+      })
+
+      folioActual.value = folioNormalizado
+      success(`Pago mixto registrado. Cambio total: $${totalCambio.toLocaleString('es-CO')}`)
+
+      return {
+        folio: folioNormalizado,
+        transaccion: {
+          montoRecibido: totalRecibido,
+          totalACobrar: folioNormalizado.total,
+          vuelto: totalCambio,
+          medioPago: 'OTRO' as any,
+          lineas: response?.pago?.lineas || [],
+          timestamp: new Date().toISOString(),
+        },
+        factura: response?.factura || undefined,
+      } as RespuestaCobro
+    } catch (err: any) {
+      const errorMsg = err?.message || 'Error al cobrar folio con pago mixto'
+      errorMessage.value = errorMsg
+      error(errorMsg)
+      throw err
+    } finally {
+      loadingOperacion.value = false
+    }
+  }
+
+  /**
    * Obtener historial de folios (folios cerrados/pagados del día)
    */
   const obtenerHistorial = async (filtros?: {
@@ -480,6 +573,7 @@ export const useFolios = () => {
     loadingHistorial,
     errorMessage,
     buscandoHabitacion,
+    buscandoCedula,
     
     // Computed
     saldoPendiente,
@@ -489,10 +583,12 @@ export const useFolios = () => {
     // Methods
     crearFolio,
     obtenerFolio,
+    obtenerFolioPorCedula,
     agregarCargo,
     eliminarCargo,
     cerrarFolio,
     cobrarFolio,
+    cobrarFolioMixto,
     cargarMediosPago,
     obtenerHistorial,
     limpiarFolioActual

@@ -14,6 +14,7 @@ export interface Hotel {
   id: number
   nombre: string
   nit: string
+  razonSocial?: string
   direccion?: string
   ciudad?: string
   pais?: string
@@ -21,6 +22,12 @@ export interface Hotel {
   email?: string
   estrellas?: number
   descripcion?: string
+  logoUrl?: string
+  resolucionFacturacion?: string
+  prefijoFacturacion?: string
+  pieFactura?: string
+  moneda?: string
+  posFormatoDefault?: '58mm' | '80mm'
   estado: EstadoHotel
   fechaRegistro?: string
   createdAt?: string
@@ -33,6 +40,7 @@ export interface Hotel {
 export interface CreateHotelDto {
   nombre: string
   nit: string
+  razonSocial?: string
   direccion?: string
   ciudad?: string
   pais?: string
@@ -40,6 +48,12 @@ export interface CreateHotelDto {
   email?: string
   estrellas?: number
   descripcion?: string
+  logoUrl?: string
+  resolucionFacturacion?: string
+  prefijoFacturacion?: string
+  pieFactura?: string
+  moneda?: string
+  posFormatoDefault?: '58mm' | '80mm'
 }
 
 /**
@@ -47,6 +61,7 @@ export interface CreateHotelDto {
  */
 export interface UpdateHotelDto {
   nombre?: string
+  razonSocial?: string
   direccion?: string
   ciudad?: string
   pais?: string
@@ -54,5 +69,11 @@ export interface UpdateHotelDto {
   email?: string
   estrellas?: number
   descripcion?: string
+  logoUrl?: string
+  resolucionFacturacion?: string
+  prefijoFacturacion?: string
+  pieFactura?: string
+  moneda?: string
+  posFormatoDefault?: '58mm' | '80mm'
   estado?: EstadoHotel
 }

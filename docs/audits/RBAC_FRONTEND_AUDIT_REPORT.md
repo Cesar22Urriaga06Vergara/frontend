@@ -1,7 +1,7 @@
 # AUDITORÍA FRONTEND NUXT — FASE 0 EXPLORACIÓN RBAC
 
-**Fecha:** 5 de abril de 2026  
-**Alcance:** Nuxt 3 Dashboard en `c:\Users\urria\dashboard`  
+**Fecha:** 5 de abril de 2026
+**Alcance:** Nuxt 3 Frontend en `c:\Users\urria\frontend`
 **Objetivo:** Mapeo exhaustivo de vistas, roles, componentes y gaps de implementación
 
 ---

@@ -2,7 +2,7 @@
   <div class="ds-page">
     <PageHeader :title="`Bienvenido, ${authStore.userName}`" subtitle="Panel de control del huésped">
       <template #status>
-        <StatusBadge status="success" label="Estadía activa" />
+        <StatusBadge :status="estadiaStatus" :label="estadiaLabel" />
       </template>
     </PageHeader>
 
@@ -114,11 +114,14 @@
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
 import { useAuthStore } from '~/stores/auth'
 import { UserRole } from '~/types/auth'
+import { useApi } from '~/composables/useApi'
 import PageHeader from '~/components/shared/PageHeader.vue'
 import SectionCard from '~/components/shared/SectionCard.vue'
 import StatusBadge from '~/components/shared/StatusBadge.vue'
+import type { ViewStatus } from '~/composables/useViewState'
 
 definePageMeta({
   layout: 'cliente',
@@ -129,4 +132,46 @@ definePageMeta({
 useHead({ title: 'Dashboard Cliente' })
 
 const authStore = useAuthStore()
+const api = useApi()
+
+const cargandoEstadia = ref(false)
+const tieneEstadiaActiva = ref(false)
+const errorEstadia = ref(false)
+
+const estadiaStatus = computed<ViewStatus>(() => {
+  if (cargandoEstadia.value) return 'loading'
+  if (errorEstadia.value) return 'unavailable'
+  return tieneEstadiaActiva.value ? 'success' : 'empty'
+})
+
+const estadiaLabel = computed(() => {
+  if (cargandoEstadia.value) return 'Verificando estadía'
+  if (errorEstadia.value) return 'Estado no disponible'
+  return tieneEstadiaActiva.value ? 'Estadía activa' : 'Sin estadía activa'
+})
+
+const cargarEstadoEstadia = async () => {
+  if (!authStore.user?.idCliente) {
+    tieneEstadiaActiva.value = false
+    return
+  }
+
+  cargandoEstadia.value = true
+  errorEstadia.value = false
+
+  try {
+    const reserva = await api.get<any>(`/reservas/activa/${authStore.user.idCliente}`)
+    tieneEstadiaActiva.value = Boolean(reserva?.id)
+  } catch (error: any) {
+    if (error?.statusCode === 404) {
+      tieneEstadiaActiva.value = false
+    } else {
+      errorEstadia.value = true
+    }
+  } finally {
+    cargandoEstadia.value = false
+  }
+}
+
+onMounted(cargarEstadoEstadia)
 </script>

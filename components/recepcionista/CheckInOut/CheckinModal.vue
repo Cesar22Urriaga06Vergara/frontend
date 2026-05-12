@@ -1,75 +1,129 @@
 <template>
-  <v-dialog v-model="isOpen" max-width="600px" @update:model-value="handleClose">
+  <v-dialog v-model="isOpen" max-width="760px" @update:model-value="handleClose">
     <template #activator="{ props }">
       <slot name="activator" :props="props"></slot>
     </template>
 
-    <v-card :title="`Check-in #${reserva?.numeroHabitacion || ''}`">
+    <v-card>
+      <v-card-title class="d-flex align-center justify-space-between ga-3">
+        <div>
+          <div class="text-h6">Check-in habitación #{{ reserva?.numeroHabitacion || '-' }}</div>
+          <div class="text-caption text-medium-emphasis">
+            {{ reserva?.numeroReserva || 'Reserva sin código' }}
+          </div>
+        </div>
+        <v-chip color="success" variant="tonal" prepend-icon="mdi-login">
+          Entrada
+        </v-chip>
+      </v-card-title>
+
       <v-card-text>
-        <!-- INFO -->
         <v-alert type="info" variant="tonal" density="compact" class="mb-4">
-          <strong>Resumen de la reserva</strong>
+          Al confirmar se marca la habitación como ocupada y se abre el folio operativo en Caja.
         </v-alert>
 
-        <v-row class="mb-4">
-          <v-col cols="12" sm="6">
-            <div class="text-caption text-medium-emphasis">Cliente</div>
-            <div class="text-subtitle-1 font-weight-bold">{{ reserva?.nombreCliente }}</div>
-            <div class="text-caption">{{ reserva?.cedulaCliente }}</div>
-          </v-col>
-          <v-col cols="12" sm="6">
-            <div class="text-caption text-medium-emphasis">Habitación</div>
-            <div class="text-subtitle-1 font-weight-bold">#{{ reserva?.numeroHabitacion }}</div>
-            <div class="text-caption">{{ reserva?.tipoHabitacion }}</div>
-          </v-col>
-          <v-col cols="12" sm="6">
-            <div class="text-caption text-medium-emphasis">Check-in programado</div>
-            <div class="text-subtitle-1 font-weight-bold">{{ formatearFecha(reserva?.checkinFecha) }}</div>
-          </v-col>
-          <v-col cols="12" sm="6">
-            <div class="text-caption text-medium-emphasis">Check-out</div>
-            <div class="text-subtitle-1 font-weight-bold">{{ formatearFecha(reserva?.checkoutFecha) }}</div>
-          </v-col>
-          <v-col cols="12" sm="6">
-            <div class="text-caption text-medium-emphasis">Huéspedes</div>
-            <div class="text-subtitle-1 font-weight-bold">{{ reserva?.cantidadHuespedes }} persona(s)</div>
-          </v-col>
-          <v-col cols="12" sm="6">
-            <div class="text-caption text-medium-emphasis">Tarifa total</div>
-            <div class="text-subtitle-1 font-weight-bold text-success">${{ reserva?.montoTotal.toLocaleString('es-CO') }}</div>
-          </v-col>
-        </v-row>
+        <div class="summary-grid mb-5">
+          <div class="summary-item">
+            <span>Huésped principal</span>
+            <strong>{{ reserva?.nombreCliente || '-' }}</strong>
+            <small>{{ reserva?.cedulaCliente || 'Documento no disponible' }}</small>
+          </div>
+          <div class="summary-item">
+            <span>Habitación</span>
+            <strong>#{{ reserva?.numeroHabitacion || '-' }}</strong>
+            <small>{{ reserva?.tipoHabitacion || 'Tipo no disponible' }}</small>
+          </div>
+          <div class="summary-item">
+            <span>Fechas</span>
+            <strong>{{ formatearFechaCorta(reserva?.checkinFecha) }} - {{ formatearFechaCorta(reserva?.checkoutFecha) }}</strong>
+            <small>{{ nochesEstadia }} noche(s)</small>
+          </div>
+          <div class="summary-item">
+            <span>Personas</span>
+            <strong>{{ reserva?.cantidadHuespedes || 0 }} huésped(es)</strong>
+            <small>Validar acompañantes en recepción</small>
+          </div>
+          <div class="summary-item">
+            <span>Tarifa total</span>
+            <strong class="text-success">{{ formatCurrency(reserva?.montoTotal) }}</strong>
+            <small>Precio final registrado</small>
+          </div>
+          <div class="summary-item">
+            <span>Hora operativa</span>
+            <strong>{{ horaCheckin || '-' }}</strong>
+            <small>{{ formatearFechaCompleta(new Date().toISOString()) }}</small>
+          </div>
+        </div>
 
-        <v-divider class="mb-4"></v-divider>
-
-        <!-- FORM -->
         <v-form ref="formRef" @submit.prevent="confirmar">
-          <v-text-field
-            v-model="horaCheckin"
-            label="Hora de check-in actual"
-            type="time"
-            variant="outlined"
-            density="compact"
-            class="mb-4"
-          ></v-text-field>
+          <v-row>
+            <v-col cols="12" md="5">
+              <v-text-field
+                v-model="horaCheckin"
+                label="Hora de check-in"
+                type="time"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
+            <v-col cols="12" md="7">
+              <v-text-field
+                v-model="documentoValidado"
+                label="Documento validado"
+                :placeholder="reserva?.cedulaCliente || 'Número de documento'"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
+          </v-row>
+
+          <v-list density="compact" class="checklist mb-4">
+            <v-list-item>
+              <template #prepend>
+                <v-checkbox-btn v-model="confirmaDocumentos" color="primary" />
+              </template>
+              <v-list-item-title>Identificación del huésped validada</v-list-item-title>
+              <v-list-item-subtitle>Documento físico o digital revisado antes de entregar la habitación.</v-list-item-subtitle>
+            </v-list-item>
+
+            <v-list-item>
+              <template #prepend>
+                <v-checkbox-btn v-model="confirmaAcompanantes" color="primary" />
+              </template>
+              <v-list-item-title>Huéspedes y acompañantes confirmados</v-list-item-title>
+              <v-list-item-subtitle>La cantidad coincide con la reserva y queda lista para control operativo.</v-list-item-subtitle>
+            </v-list-item>
+
+            <v-list-item>
+              <template #prepend>
+                <v-checkbox-btn v-model="confirmaEntrega" color="primary" />
+              </template>
+              <v-list-item-title>Llave, tarjeta o acceso entregado</v-list-item-title>
+              <v-list-item-subtitle>El huésped recibe indicaciones básicas de la estadía.</v-list-item-subtitle>
+            </v-list-item>
+          </v-list>
 
           <v-textarea
             v-model="notasCheckin"
-            label="Notas del check-in (opcional)"
-            placeholder="Ej: Cliente solicitó habitación más alta, tiene mascota pequeña, etc..."
+            label="Observaciones del check-in"
+            placeholder="Ej: solicitud de piso alto, llegada tardía, acompañante pendiente por registrar..."
             variant="outlined"
             density="compact"
             rows="3"
-            class="mb-2"
-          ></v-textarea>
-
-          <v-checkbox
-            v-model="confirmaDocumentos"
-            label="Confirmo haber validado identificación del cliente"
-            color="primary"
-            class="mb-4"
-          ></v-checkbox>
+            counter="500"
+            maxlength="500"
+          />
         </v-form>
+
+        <v-alert
+          v-if="!puedeConfirmar"
+          type="warning"
+          variant="tonal"
+          density="compact"
+          class="mt-4"
+        >
+          Completa las validaciones operativas obligatorias para confirmar el check-in.
+        </v-alert>
       </v-card-text>
 
       <v-divider></v-divider>
@@ -80,9 +134,10 @@
         <v-btn
           color="success"
           variant="tonal"
-          @click="confirmar"
+          prepend-icon="mdi-check"
           :loading="loading"
-          :disabled="!confirmaDocumentos"
+          :disabled="!puedeConfirmar"
+          @click="confirmar"
         >
           Confirmar check-in
         </v-btn>
@@ -92,7 +147,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import type { ReservaParaCheckin } from '~/types/checkinCheckout'
 
 interface Props {
@@ -101,7 +156,7 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'confirmar', datos: { notas?: string; hora?: string }): void
+  (e: 'confirmar', datos: { notas?: string; hora?: string; documento?: string }): void
   (e: 'cerrar'): void
 }
 
@@ -111,30 +166,58 @@ const emit = defineEmits<Emits>()
 const isOpen = ref(true)
 const formRef = ref<any>(null)
 
-const horaCheckin = ref('')
+const horaCheckin = ref(new Date().toTimeString().slice(0, 5))
+const documentoValidado = ref(props.reserva?.cedulaCliente || '')
 const notasCheckin = ref('')
 const confirmaDocumentos = ref(false)
+const confirmaAcompanantes = ref(false)
+const confirmaEntrega = ref(false)
 
-const formatearFecha = (fecha?: string) => {
+const puedeConfirmar = computed(() => {
+  return confirmaDocumentos.value && confirmaAcompanantes.value && confirmaEntrega.value
+})
+
+const nochesEstadia = computed(() => {
+  if (!props.reserva?.checkinFecha || !props.reserva?.checkoutFecha) return 0
+
+  const checkin = new Date(props.reserva.checkinFecha)
+  const checkout = new Date(props.reserva.checkoutFecha)
+  const diff = checkout.getTime() - checkin.getTime()
+
+  return Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)))
+})
+
+const formatCurrency = (valor?: number) => {
+  return `$${Number(valor || 0).toLocaleString('es-CO')}`
+}
+
+const formatearFechaCorta = (fecha?: string) => {
   if (!fecha) return '-'
-  const date = new Date(fecha)
-  return date.toLocaleDateString('es-CO', {
+  return new Date(fecha).toLocaleDateString('es-CO', {
+    month: 'short',
+    day: '2-digit',
+  })
+}
+
+const formatearFechaCompleta = (fecha?: string) => {
+  if (!fecha) return '-'
+  return new Date(fecha).toLocaleDateString('es-CO', {
     weekday: 'short',
     year: 'numeric',
     month: 'short',
     day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
   })
 }
 
 const confirmar = async () => {
-  const isValid = await formRef.value?.validate()
-  if (!isValid) return
+  const result = await formRef.value?.validate()
+  if (result && result.valid === false) return
+  if (!puedeConfirmar.value) return
 
   emit('confirmar', {
     notas: notasCheckin.value || undefined,
-    hora: horaCheckin.value || undefined
+    hora: horaCheckin.value || undefined,
+    documento: documentoValidado.value || undefined,
   })
 
   if (!props.loading) {
@@ -144,9 +227,42 @@ const confirmar = async () => {
 
 const handleClose = () => {
   isOpen.value = false
-  horaCheckin.value = ''
+  horaCheckin.value = new Date().toTimeString().slice(0, 5)
+  documentoValidado.value = props.reserva?.cedulaCliente || ''
   notasCheckin.value = ''
   confirmaDocumentos.value = false
+  confirmaAcompanantes.value = false
+  confirmaEntrega.value = false
   emit('cerrar')
 }
 </script>
+
+<style scoped>
+.summary-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.summary-item {
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.summary-item span,
+.summary-item small {
+  display: block;
+  color: rgba(var(--v-theme-on-surface), 0.62);
+}
+
+.summary-item strong {
+  display: block;
+  margin: 3px 0;
+}
+
+.checklist {
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 8px;
+}
+</style>

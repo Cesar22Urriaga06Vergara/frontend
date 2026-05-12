@@ -62,6 +62,10 @@ export interface Factura {
   cedulaCliente: string
   emailCliente: string
   idHotel: number
+  idResolucionFacturacion?: number | null
+  prefijoFactura?: string | null
+  consecutivoFactura?: number | null
+  resolucionNumero?: string | null
   subtotal: number
   porcentajeIva: number
   montoIva: number
@@ -102,10 +106,34 @@ export interface Factura {
 export interface PagoFactura {
   id: number
   idFactura: number
+  idMedioPago?: number
   monto: number
-  estado: 'pendiente' | 'completado' | 'fallido'
-  metodoPago: string
+  montoRecibido?: number
+  cambioDevuelto?: number
+  referenciaPago?: string
+  estado: 'pendiente' | 'completado' | 'fallido' | 'devuelto'
+  metodoPago?: string
+  medioPago?: {
+    id: number
+    nombre: string
+    descripcion?: string
+    requiereReferencia?: boolean
+  }
   fechaPago?: string
+}
+
+export interface PagoMixtoLineaPayload {
+  idMedioPago: number
+  montoCobrar: number
+  montoRecibido?: number
+  referenciaPago?: string
+  observaciones?: string
+}
+
+export interface PagoMixtoPayload {
+  idFactura: number
+  pagos: PagoMixtoLineaPayload[]
+  observaciones?: string
 }
 
 /**
@@ -140,4 +168,77 @@ export interface HistorialCambiosResponse {
 export interface CheckoutResponse {
   reserva: any
   factura: Factura
+}
+
+export type FormatoTicketPos = '58mm' | '80mm'
+
+export interface FacturaPosTicket {
+  formato: FormatoTicketPos
+  widthMm: number
+  generadoEn: string
+  hotel: {
+    id: number
+    nombre: string
+    razonSocial?: string
+    nit?: string
+    direccion?: string
+    ciudad?: string
+    telefono?: string
+    email?: string
+    logoUrl?: string | null
+    resolucionDian?: string | null
+    prefijoFacturacion?: string | null
+    pieFactura?: string | null
+    moneda?: string
+  }
+  factura: {
+    id: number
+    numeroFactura: string
+    estadoFactura: EstadoFactura
+    fechaEmision?: string
+    fechaCreacion?: string
+    cufe?: string | null
+    uuid?: string | null
+    idResolucionFacturacion?: number | null
+    prefijoFactura?: string | null
+    consecutivoFactura?: number | null
+    resolucionNumero?: string | null
+  }
+  recepcionista?: {
+    nombre?: string
+    email?: string
+  }
+  estancia: {
+    idReserva: number
+    habitacion?: string
+    huesped: string
+    documento?: string
+    email?: string
+  }
+  detalles: Array<{
+    descripcion: string
+    cantidad: number
+    precioUnitario: number
+    subtotal: number
+    descuento: number
+    iva?: number
+    inc?: number
+    total: number
+  }>
+  totales: {
+    subtotal: number
+    descuento: number
+    iva: number
+    inc: number
+    total: number
+    pagado: number
+    saldo: number
+  }
+  pagos: Array<{
+    metodo: string
+    monto: number
+    estado: string
+    fecha?: string
+  }>
+  qrData?: string | null
 }

@@ -18,8 +18,7 @@ export const useReportesStore = defineStore('reportes', () => {
   const cargarEstadisticasReservas = async (idHotel: number, periodo?: string) => {
     error.value = null
     unavailable.value = false
-    error.value = null
-    
+
     try {
       const params = periodo ? `?periodo=${periodo}` : ''
       const data = await api.get(`/reservas/stats/${idHotel}${params}`)
@@ -28,6 +27,7 @@ export const useReportesStore = defineStore('reportes', () => {
     } catch (err: any) {
       unavailable.value = isUnavailableError(err)
       error.value = getErrorMessage(err, 'Error al cargar estadísticas de reservas')
+      reportesReservas.value = null
       throw err
     }
   }
@@ -38,8 +38,7 @@ export const useReportesStore = defineStore('reportes', () => {
   const cargarEstadisticasServicios = async (idHotel: number, periodo?: string) => {
     error.value = null
     unavailable.value = false
-    error.value = null
-    
+
     try {
       const params = periodo ? `?periodo=${periodo}` : ''
       const data = await api.get(`/servicios/stats/${idHotel}${params}`)
@@ -48,6 +47,7 @@ export const useReportesStore = defineStore('reportes', () => {
     } catch (err: any) {
       unavailable.value = isUnavailableError(err)
       error.value = getErrorMessage(err, 'Error al cargar estadísticas de servicios')
+      reportesServicios.value = null
       throw err
     }
   }
@@ -59,20 +59,26 @@ export const useReportesStore = defineStore('reportes', () => {
     loading.value = true
     error.value = null
     unavailable.value = false
-    
-    try {
-      const [reservas, servicios] = await Promise.all([
-        cargarEstadisticasReservas(idHotel, periodo),
-        cargarEstadisticasServicios(idHotel, periodo),
-      ])
-      
-      return { reservas, servicios }
-    } catch (err: any) {
-      unavailable.value = isUnavailableError(err)
-      error.value = getErrorMessage(err, 'Error al cargar reportes combinados')
-      throw err
-    } finally {
-      loading.value = false
+
+    const [reservasResult, serviciosResult] = await Promise.allSettled([
+      cargarEstadisticasReservas(idHotel, periodo),
+      cargarEstadisticasServicios(idHotel, periodo),
+    ])
+
+    const failedResults = [reservasResult, serviciosResult].filter(
+      (result): result is PromiseRejectedResult => result.status === 'rejected',
+    )
+
+    if (failedResults.length > 0) {
+      unavailable.value = failedResults.some(result => isUnavailableError(result.reason))
+      error.value = getErrorMessage(failedResults[0].reason, 'Error al cargar reportes combinados')
+    }
+
+    loading.value = false
+
+    return {
+      reservas: reservasResult.status === 'fulfilled' ? reservasResult.value : null,
+      servicios: serviciosResult.status === 'fulfilled' ? serviciosResult.value : null,
     }
   }
 

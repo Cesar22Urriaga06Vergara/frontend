@@ -54,7 +54,11 @@ export interface Folio {
   numeroHabitacion: string
   idReserva?: number
   idCliente?: number
+  idFactura?: number
+  numeroFactura?: string
   nombreCliente?: string
+  cedulaCliente?: string
+  emailCliente?: string
   estado: EstadoFolio
   fechaApertura: string
   fechaCierre?: string
@@ -135,6 +139,28 @@ export interface CobrarFolioDto {
   cobrador?: string
 }
 
+export interface MedioPagoCatalogo {
+  id: number
+  nombre: string
+  descripcion?: string
+  requiereReferencia?: boolean
+}
+
+export interface CobrarFolioMixtoLineaDto {
+  idMedioPago: number
+  montoCobrar: number
+  montoRecibido?: number
+  referenciaPago?: string
+  observaciones?: string
+}
+
+export interface CobrarFolioMixtoDto {
+  idHabitacion: number
+  pagos: CobrarFolioMixtoLineaDto[]
+  observacionesCobro?: string
+  cobrador?: string
+}
+
 /**
  * Interface básica de Factura para la respuesta de pago
  */
@@ -175,6 +201,14 @@ export interface RespuestaCobro {
     totalACobrar: number
     vuelto: number
     medioPago: MetodoPago
+    lineas?: Array<{
+      idMedioPago: number
+      medioPago?: string
+      monto: number
+      montoRecibido?: number
+      cambioDevuelto?: number
+      referencia?: string
+    }>
     timestamp: string
   }
   factura?: FacturaResumen
@@ -187,7 +221,10 @@ export interface ResumenFolio {
   id: number
   idHabitacion: number
   numeroHabitacion: string
+  idFactura?: number
+  numeroFactura?: string
   nombreCliente?: string
+  cedulaCliente?: string
   estado: EstadoFolio
   subtotal: number
   iva: number

@@ -235,11 +235,11 @@ const formulario = ref({
 
 // Computed
 const categoriasDisponibles = computed(() => [
-  { title: 'Cafetería ☕', value: 'cafeteria' },
-  { title: 'Lavandería 👔', value: 'lavanderia' },
-  { title: 'Spa 💆', value: 'spa' },
-  { title: 'Room Service 🛎️', value: 'room_service' },
-  { title: 'Minibar 🍷', value: 'minibar' },
+  { title: 'Cafetería', value: 'cafeteria' },
+  { title: 'Lavandería', value: 'lavanderia' },
+  { title: 'Spa', value: 'spa' },
+  { title: 'Room Service', value: 'room_service' },
+  { title: 'Minibar', value: 'minibar' },
   { title: 'Otros', value: 'otros' },
 ]);
 
@@ -264,11 +264,11 @@ const headers = [
 // Methods
 const formatearCategoria = (cat: string): string => {
   const map: Record<string, string> = {
-    cafeteria: 'Cafetería ☕',
-    lavanderia: 'Lavandería 👔',
-    spa: 'Spa 💆',
-    room_service: 'Room Service 🛎️',
-    minibar: 'Minibar 🍷',
+    cafeteria: 'Cafetería',
+    lavanderia: 'Lavandería',
+    spa: 'Spa',
+    room_service: 'Room Service',
+    minibar: 'Minibar',
     otros: 'Otros',
   };
   return map[cat] || cat;
