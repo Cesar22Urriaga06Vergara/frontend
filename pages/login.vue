@@ -1,7 +1,5 @@
 <template>
   <div class="auth-entry-page">
-    <img src="/favicon.jpeg" alt="" class="auth-watermark">
-
     <div class="auth-page-actions">
       <v-btn
         to="/"
@@ -24,11 +22,17 @@
     </div>
 
     <v-container class="auth-container">
-      <v-col cols="12" sm="8" md="5" lg="4" xl="3">
-        <div class="text-center mb-8">
-          <div class="auth-logo-mark">
+      <section class="auth-panel">
+        <aside class="auth-brand-side" aria-label="Marca ADUS">
+          <div class="auth-brand-card">
             <img src="/favicon.jpeg" alt="Logo ADUS">
+            <span>ADUS Hospitality OS</span>
+            <p>Gestión hotelera conectada para equipos de recepción, administración y servicios.</p>
           </div>
+        </aside>
+
+        <div class="auth-form-side">
+          <div class="text-center mb-8">
           <h1 class="text-h5 font-weight-bold mb-1">Bienvenido</h1>
           <p class="text-body-2 text-medium-emphasis">
             Ingresa tus credenciales para continuar
@@ -65,7 +69,8 @@
             </NuxtLink>
           </p>
         </div>
-      </v-col>
+        </div>
+      </section>
     </v-container>
   </div>
 </template>
@@ -110,22 +115,10 @@ const onLoginError = (message: string) => {
 .auth-entry-page {
   position: relative;
   min-height: 100vh;
-  overflow: hidden;
+  overflow-x: hidden;
   background:
     linear-gradient(135deg, rgba(7, 20, 38, 0.98), rgba(10, 45, 48, 0.96)),
     #071426;
-}
-
-.auth-watermark {
-  position: absolute;
-  right: -90px;
-  bottom: -120px;
-  width: 520px;
-  height: 520px;
-  object-fit: contain;
-  border-radius: 48px;
-  opacity: 0.08;
-  pointer-events: none;
 }
 
 .auth-page-actions {
@@ -145,26 +138,67 @@ const onLoginError = (message: string) => {
   z-index: 1;
   display: flex;
   justify-content: center;
-  padding-top: 32px;
+  padding-top: 54px;
   padding-bottom: 56px;
 }
 
-.auth-logo-mark {
+.auth-panel {
   display: grid;
-  width: 88px;
-  height: 88px;
-  margin: 0 auto 22px;
-  place-items: center;
+  grid-template-columns: minmax(280px, 0.92fr) minmax(360px, 1fr);
+  align-items: stretch;
+  width: min(100%, 920px);
+  border: 1px solid rgba(148, 163, 184, 0.12);
   border-radius: 8px;
-  background: rgba(25, 188, 172, 0.18);
-  box-shadow: 0 22px 60px rgba(25, 188, 172, 0.16);
+  background: rgba(15, 23, 42, 0.58);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.24);
+  overflow: hidden;
 }
 
-.auth-logo-mark img {
-  width: 64px;
-  height: 64px;
+.auth-brand-side {
+  display: grid;
+  min-height: 100%;
+  padding: 32px;
+  place-items: center;
+  background:
+    linear-gradient(145deg, rgba(25, 188, 172, 0.18), rgba(7, 20, 38, 0.4)),
+    rgba(3, 32, 43, 0.82);
+}
+
+.auth-brand-card {
+  display: grid;
+  justify-items: center;
+  max-width: 300px;
+  text-align: center;
+}
+
+.auth-brand-card img {
+  width: min(100%, 250px);
+  max-height: 280px;
+  aspect-ratio: 1;
   object-fit: contain;
-  border-radius: 8px;
+  border-radius: 18px;
+  filter: drop-shadow(0 24px 55px rgba(0, 0, 0, 0.25));
+}
+
+.auth-brand-card span {
+  margin-top: 22px;
+  color: #f8fafc;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.auth-brand-card p {
+  margin-top: 10px;
+  color: rgba(226, 232, 240, 0.74);
+  line-height: 1.65;
+}
+
+.auth-form-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding: 34px;
 }
 
 @media (max-width: 640px) {
@@ -174,11 +208,26 @@ const onLoginError = (message: string) => {
     padding-top: 18px;
   }
 
-  .auth-watermark {
-    right: -120px;
-    bottom: -90px;
-    width: 360px;
-    height: 360px;
+  .auth-container {
+    padding-top: 26px;
+  }
+
+  .auth-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-brand-side {
+    min-height: 240px;
+    padding: 24px;
+  }
+
+  .auth-brand-card img {
+    width: 150px;
+    max-height: 150px;
+  }
+
+  .auth-form-side {
+    padding: 24px;
   }
 }
 </style>

@@ -42,9 +42,9 @@
 
     <main>
       <section class="hero-section">
-        <img src="/favicon.jpeg" alt="" class="hero-watermark">
-
         <div class="hero-copy">
+          <img src="/favicon.jpeg" alt="" class="hero-watermark">
+
           <div class="eyebrow">
             <Sparkles :size="16" />
             Gestión hotelera conectada
@@ -115,20 +115,6 @@
       </section>
 
       <section class="content-shell">
-        <aside class="navigation-panel" aria-label="Panel de navegación del inicio">
-          <span>Explora ADUS</span>
-          <button
-            v-for="item in navItems"
-            :key="`panel-${item.id}`"
-            type="button"
-            class="panel-nav-item"
-            @click="scrollToSection(item.id)"
-          >
-            <component :is="item.icon" :size="18" />
-            <span>{{ item.label }}</span>
-          </button>
-        </aside>
-
         <div class="content-stack">
           <section
             v-for="section in detailSections"
@@ -536,6 +522,7 @@ const handleFooterAction = async (item: FooterAction) => {
 .home-page {
   min-height: 100vh;
   overflow-x: hidden;
+  padding-top: 84px;
   color: #30211e;
   background:
     linear-gradient(135deg, rgba(255, 247, 231, 0.96), rgba(250, 226, 202, 0.78) 42%, rgba(220, 239, 228, 0.86)),
@@ -543,17 +530,20 @@ const handleFooterAction = async (item: FooterAction) => {
 }
 
 .home-nav {
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 20;
+  left: 0;
+  right: 0;
+  z-index: 100;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
   padding: 16px 40px;
   border-bottom: 1px solid rgba(99, 66, 42, 0.12);
-  background: rgba(255, 248, 237, 0.88);
+  background: rgba(255, 248, 237, 0.94);
   backdrop-filter: blur(18px);
+  box-shadow: 0 14px 38px rgba(56, 38, 28, 0.08);
 }
 
 .brand-link,
@@ -611,8 +601,7 @@ const handleFooterAction = async (item: FooterAction) => {
 }
 
 .nav-link:hover,
-.footer-link:hover,
-.panel-nav-item:hover {
+.footer-link:hover {
   color: #c65b3a;
 }
 
@@ -632,15 +621,15 @@ const handleFooterAction = async (item: FooterAction) => {
 
 .hero-watermark {
   position: absolute;
-  top: 52%;
-  right: 28%;
+  top: 45%;
+  left: 46%;
   z-index: 0;
-  width: 380px;
-  height: 380px;
+  width: min(42vw, 460px);
+  height: min(42vw, 460px);
   object-fit: contain;
   border-radius: 32px;
-  opacity: 0.08;
-  transform: translate(50%, -50%);
+  opacity: 0.075;
+  transform: translate(-50%, -50%);
   pointer-events: none;
   filter: saturate(1.15);
 }
@@ -652,7 +641,16 @@ const handleFooterAction = async (item: FooterAction) => {
 }
 
 .hero-copy {
+  position: relative;
   max-width: 780px;
+}
+
+.hero-copy .eyebrow,
+.hero-copy h1,
+.hero-copy .hero-text,
+.hero-copy .hero-actions {
+  position: relative;
+  z-index: 1;
 }
 
 .eyebrow {
@@ -794,61 +792,22 @@ h1 {
 }
 
 .content-shell {
-  display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
-  gap: 28px;
-  padding: 0 40px 68px;
-}
-
-.navigation-panel {
-  position: sticky;
-  top: 104px;
-  align-self: start;
-  display: grid;
-  gap: 10px;
-  padding: 18px;
-  border: 1px solid rgba(104, 76, 50, 0.14);
-  border-radius: 8px;
-  background: rgba(255, 252, 244, 0.82);
-  box-shadow: 0 22px 60px rgba(102, 64, 33, 0.1);
-  backdrop-filter: blur(16px);
-}
-
-.navigation-panel > span {
-  margin-bottom: 4px;
-  color: #ad5b35;
-  font-size: 0.82rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.panel-nav-item {
-  display: grid;
-  grid-template-columns: 22px 1fr;
-  gap: 10px;
-  align-items: center;
-  border: 0;
-  padding: 12px;
-  border-radius: 8px;
-  color: #5e4638;
-  background: rgba(255, 255, 255, 0.58);
-  cursor: pointer;
-  font: inherit;
-  font-weight: 800;
-  text-align: left;
+  padding: 0 28px 72px;
 }
 
 .content-stack {
   display: grid;
-  gap: 18px;
+  gap: 22px;
+  width: 100%;
 }
 
 .detail-section {
   display: grid;
-  grid-template-columns: minmax(260px, 0.82fr) minmax(0, 1.2fr);
-  gap: 26px;
-  padding: 32px;
+  grid-template-columns: minmax(360px, 0.76fr) minmax(0, 1.24fr);
+  gap: 34px;
+  align-items: center;
+  min-height: 420px;
+  padding: clamp(30px, 3.2vw, 48px);
   border: 1px solid rgba(104, 76, 50, 0.12);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.62);
@@ -889,10 +848,10 @@ h1 {
 
 .detail-copy h2,
 .closing-section h2 {
-  max-width: 760px;
+  max-width: 820px;
   margin-top: 12px;
   color: #2d211f;
-  font-size: 2.3rem;
+  font-size: clamp(2.1rem, 3.1vw, 3.25rem);
   font-weight: 900;
   line-height: 1.08;
   letter-spacing: 0;
@@ -900,9 +859,9 @@ h1 {
 
 .detail-copy p,
 .closing-section p {
-  max-width: 650px;
+  max-width: 760px;
   margin-top: 16px;
-  font-size: 1rem;
+  font-size: 1.05rem;
   line-height: 1.72;
 }
 
@@ -913,8 +872,8 @@ h1 {
 }
 
 .detail-card {
-  min-height: 230px;
-  padding: 20px;
+  min-height: 250px;
+  padding: 24px;
 }
 
 .detail-icon {
@@ -1053,7 +1012,7 @@ h1 {
   }
 
   .hero-watermark {
-    right: 12%;
+    left: 55%;
   }
 
   .detail-card-grid {
@@ -1062,6 +1021,10 @@ h1 {
 }
 
 @media (max-width: 980px) {
+  .home-page {
+    padding-top: 154px;
+  }
+
   .home-nav {
     align-items: flex-start;
     flex-direction: column;
@@ -1070,19 +1033,6 @@ h1 {
   .nav-actions {
     width: 100%;
     justify-content: space-between;
-  }
-
-  .content-shell {
-    grid-template-columns: 1fr;
-  }
-
-  .navigation-panel {
-    position: static;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .navigation-panel > span {
-    grid-column: 1 / -1;
   }
 
   .footer-grid {
@@ -1096,6 +1046,10 @@ h1 {
 }
 
 @media (max-width: 680px) {
+  .home-page {
+    padding-top: 152px;
+  }
+
   .home-nav {
     padding: 14px 16px;
   }
@@ -1128,8 +1082,8 @@ h1 {
   }
 
   .hero-watermark {
-    top: 28%;
-    right: -36px;
+    top: 40%;
+    left: 64%;
     width: 230px;
     height: 230px;
     opacity: 0.07;
@@ -1155,7 +1109,6 @@ h1 {
     padding-right: 16px;
   }
 
-  .navigation-panel,
   .metric-grid,
   .detail-card-grid,
   .footer-grid {
