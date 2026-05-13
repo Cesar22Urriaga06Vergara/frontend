@@ -7,6 +7,14 @@ export default defineNuxtConfig({
 
   devtools: { enabled: true },
 
+  app: {
+    head: {
+      link: [
+        { rel: 'icon', type: 'image/jpeg', href: '/favicon.jpeg' },
+      ],
+    },
+  },
+
   devServer: {
     port: 3000,
   },
