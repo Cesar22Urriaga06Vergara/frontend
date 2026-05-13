@@ -2,6 +2,17 @@
   <div class="d-flex align-center justify-center" style="min-height: 100vh">
     <v-container class="d-flex justify-center">
       <v-col cols="12" sm="8" md="5" lg="4" xl="3">
+        <div class="login-home-action">
+          <v-btn
+            to="/"
+            variant="text"
+            color="primary"
+            prepend-icon="mdi-arrow-left"
+          >
+            Volver al inicio
+          </v-btn>
+        </div>
+
         <!-- Logo -->
         <div class="text-center mb-8">
           <v-avatar color="primary" size="56" rounded="xl" class="mb-4">
@@ -86,3 +97,11 @@ const onLoginError = (message: string) => {
   notification.error(message)
 }
 </script>
+
+<style scoped>
+.login-home-action {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+</style>

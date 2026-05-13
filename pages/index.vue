@@ -7,8 +7,8 @@
       </NuxtLink>
 
       <nav class="nav-actions" aria-label="Accesos principales">
-        <a href="#funciones" class="nav-link">Funciones</a>
-        <a href="#operacion" class="nav-link">Operación</a>
+        <button type="button" class="nav-link" @click="scrollToSection('funciones')">Funciones</button>
+        <button type="button" class="nav-link" @click="scrollToSection('operacion')">Operación</button>
         <v-btn
           :to="sessionRoute"
           color="primary"
@@ -92,7 +92,7 @@
         </div>
       </section>
 
-      <section id="funciones" class="section-band">
+      <section id="funciones" class="section-band scroll-target">
         <div class="section-heading">
           <span>Funciones principales</span>
           <h2>Todo el recorrido del huésped, desde la reserva hasta el cierre de caja</h2>
@@ -109,7 +109,7 @@
         </div>
       </section>
 
-      <section id="operacion" class="workflow-section">
+      <section id="operacion" class="workflow-section scroll-target">
         <div class="workflow-copy">
           <span>Operación por roles</span>
           <h2>Cada equipo ve lo que necesita para trabajar mejor</h2>
@@ -153,6 +153,50 @@
         </v-btn>
       </section>
     </main>
+
+    <footer class="home-footer">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <NuxtLink to="/" class="footer-logo-link" aria-label="Ir al inicio de ADUS">
+            <img src="/favicon.jpeg" alt="Logo ADUS" class="footer-logo">
+            <span>ADUS Hospitality OS</span>
+          </NuxtLink>
+          <p>
+            Sistema de gestión hotelera para reservas, recepción, caja,
+            facturación, servicios, reportes y administración por roles.
+          </p>
+          <div class="footer-social" aria-label="Canales de soporte">
+            <v-btn
+              v-for="channel in supportChannels"
+              :key="channel.label"
+              :aria-label="channel.label"
+              :icon="channel.icon"
+              size="small"
+              variant="tonal"
+              color="primary"
+            />
+          </div>
+        </div>
+
+        <div v-for="column in footerColumns" :key="column.title" class="footer-column">
+          <h3>{{ column.title }}</h3>
+          <button
+            v-for="item in column.items"
+            :key="item.label"
+            type="button"
+            class="footer-link"
+            @click="handleFooterAction(item)"
+          >
+            {{ item.label }}
+          </button>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© 2026 ADUS Hospitality OS. Todos los derechos reservados.</span>
+        <strong>Gestión hotelera inteligente</strong>
+      </div>
+    </footer>
   </div>
 </template>
 
@@ -192,6 +236,12 @@ const sessionRoute = computed(() => (
 const sessionLabel = computed(() => (
   authStore.isAuthenticated ? 'Ir a mi panel' : 'Iniciar sesión'
 ))
+
+type FooterAction = {
+  label: string
+  section?: string
+  route?: string
+}
 
 const metrics = [
   { icon: CalendarCheck, value: 'Reservas', label: 'controladas en tiempo real' },
@@ -290,6 +340,72 @@ const roles = [
     text: 'Las áreas internas permanecen protegidas con autenticación y roles definidos.',
   },
 ]
+
+const footerColumns: Array<{ title: string, items: FooterAction[] }> = [
+  {
+    title: 'Módulos',
+    items: [
+      { label: 'Reservas y habitaciones', section: 'funciones' },
+      { label: 'Recepción y check-in', section: 'funciones' },
+      { label: 'Pagos, caja y folios', section: 'funciones' },
+      { label: 'Reportes operativos', section: 'funciones' },
+    ],
+  },
+  {
+    title: 'Sistema',
+    items: [
+      { label: 'Operación por roles', section: 'operacion' },
+      { label: 'Administración hotelera', section: 'operacion' },
+      { label: 'Servicios del huésped', section: 'funciones' },
+      { label: 'Acceso seguro', route: '/login' },
+    ],
+  },
+  {
+    title: 'Soporte',
+    items: [
+      { label: 'Iniciar sesión', route: '/login' },
+      { label: 'Crear cuenta', route: '/register' },
+      { label: 'Ver funciones', section: 'funciones' },
+      { label: 'Volver arriba', section: 'inicio' },
+    ],
+  },
+]
+
+const supportChannels = [
+  { label: 'Soporte operativo', icon: 'mdi-lifebuoy' },
+  { label: 'Documentación del sistema', icon: 'mdi-file-document-outline' },
+  { label: 'Contacto administrativo', icon: 'mdi-email-outline' },
+]
+
+const scrollToSection = (id: string) => {
+  if (!import.meta.client) {
+    return
+  }
+
+  if (id === 'inicio') {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    return
+  }
+
+  const target = document.getElementById(id)
+  if (!target) {
+    return
+  }
+
+  const top = target.getBoundingClientRect().top + window.scrollY - 88
+  window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' })
+}
+
+const handleFooterAction = async (item: FooterAction) => {
+  if (item.route) {
+    await navigateTo(item.route)
+    return
+  }
+
+  if (item.section) {
+    scrollToSection(item.section)
+  }
+}
 </script>
 
 <style scoped>
@@ -299,6 +415,7 @@ const roles = [
   background:
     linear-gradient(135deg, rgba(255, 247, 231, 0.95), rgba(248, 225, 204, 0.84) 44%, rgba(230, 241, 230, 0.9)),
     #fff8ed;
+  overflow-x: hidden;
 }
 
 .home-nav {
@@ -316,6 +433,7 @@ const roles = [
 }
 
 .brand-link,
+.footer-logo-link,
 .nav-actions,
 .hero-actions,
 .eyebrow,
@@ -334,7 +452,8 @@ const roles = [
 }
 
 .brand-logo,
-.panel-logo {
+.panel-logo,
+.footer-logo {
   width: 44px;
   height: 44px;
   object-fit: cover;
@@ -347,9 +466,23 @@ const roles = [
 }
 
 .nav-link {
+  border: 0;
+  padding: 8px 0;
   color: #654832;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
   font-weight: 700;
   text-decoration: none;
+}
+
+.nav-link:hover,
+.footer-link:hover {
+  color: #c75f3f;
+}
+
+.scroll-target {
+  scroll-margin-top: 104px;
 }
 
 .hero-section {
@@ -625,8 +758,95 @@ h1 {
   background: linear-gradient(135deg, rgba(67, 103, 89, 0.12), rgba(255, 255, 255, 0.72));
 }
 
+.home-footer {
+  padding: 0 clamp(20px, 5vw, 72px);
+  color: #d5dde8;
+  background: #071426;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.3fr) repeat(3, minmax(150px, 1fr));
+  gap: clamp(28px, 6vw, 90px);
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 46px 0 42px;
+}
+
+.footer-logo-link {
+  gap: 12px;
+  width: fit-content;
+  color: #ffffff;
+  font-size: 1.08rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.footer-brand p {
+  max-width: 360px;
+  margin-top: 18px;
+  color: #93a0b2;
+  font-size: 0.94rem;
+  line-height: 1.75;
+}
+
+.footer-social {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.footer-column h3 {
+  margin: 0 0 18px;
+  color: #ffffff;
+  font-size: 0.86rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.footer-link {
+  display: block;
+  border: 0;
+  padding: 0;
+  color: #93a0b2;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: left;
+}
+
+.footer-link + .footer-link {
+  margin-top: 15px;
+}
+
+.footer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 20px 0;
+  border-top: 1px solid rgba(213, 221, 232, 0.12);
+  color: #697589;
+  font-size: 0.84rem;
+}
+
+.footer-bottom strong {
+  color: #f28b4b;
+  font-weight: 800;
+}
+
 @media (max-width: 1180px) {
   .feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .footer-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -648,9 +868,14 @@ h1 {
   }
 
   .section-heading,
-  .closing-section {
+  .closing-section,
+  .footer-bottom {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
   }
 }
 
