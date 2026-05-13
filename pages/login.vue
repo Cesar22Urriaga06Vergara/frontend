@@ -25,7 +25,7 @@
       <section class="auth-panel">
         <aside class="auth-brand-side" aria-label="Marca ADUS">
           <div class="auth-brand-card">
-            <img src="/favicon.jpeg" alt="Logo ADUS">
+            <img src="/favicon.png" alt="Logo ADUS">
             <span>ADUS Hospitality OS</span>
             <p>Gestión hotelera conectada para equipos de recepción, administración y servicios.</p>
           </div>

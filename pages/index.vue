@@ -2,7 +2,7 @@
   <div class="home-page">
     <header class="home-nav">
       <NuxtLink to="/" class="brand-link" aria-label="Ir al inicio de ADUS">
-        <img src="/favicon.jpeg" alt="Logo ADUS" class="brand-logo">
+        <img src="/favicon.png" alt="Logo ADUS" class="brand-logo">
         <span>ADUS Hospitality OS</span>
       </NuxtLink>
 
@@ -43,7 +43,7 @@
     <main>
       <section class="hero-section">
         <div class="hero-copy">
-          <img src="/favicon.jpeg" alt="" class="hero-watermark">
+          <img src="/favicon.png" alt="" class="hero-watermark">
 
           <div class="eyebrow">
             <Sparkles :size="16" />
@@ -85,7 +85,7 @@
         <div class="hero-panel" aria-label="Resumen visual del sistema">
           <div class="panel-top">
             <div class="panel-brand">
-              <img src="/favicon.jpeg" alt="" class="panel-logo">
+              <img src="/favicon.png" alt="" class="panel-logo">
               <div>
                 <strong>Operación de hoy</strong>
                 <span>Vista general del hotel</span>
@@ -181,7 +181,7 @@
       <div class="footer-grid">
         <div class="footer-brand">
           <NuxtLink to="/" class="footer-logo-link" aria-label="Ir al inicio de ADUS">
-            <img src="/favicon.jpeg" alt="Logo ADUS" class="footer-logo">
+            <img src="/favicon.png" alt="Logo ADUS" class="footer-logo">
             <span>ADUS Hospitality OS</span>
           </NuxtLink>
           <p>
